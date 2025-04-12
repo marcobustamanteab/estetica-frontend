@@ -8,7 +8,7 @@ import MiniCalendar from '../components/dashboard/MiniCalendar';
 import UpcomingAppointments from '../components/dashboard/UpcomingAppoinments';
 import AppointmentDetail from '../components/appointments/AppointmentDetail';
 import { format } from 'date-fns';
-import './Dashboard.css';
+import './dashboard.css';
 import { useClients } from '../hooks/useClients';
 import { useServices } from '../hooks/useServices';
 
