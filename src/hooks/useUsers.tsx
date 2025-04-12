@@ -7,7 +7,10 @@ import { useLoading } from '../context/LoadingContext';
 type AxiosInstance = ReturnType<typeof axios.create>;
 
 // Definir la base URL para la API de usuarios
-const API_URL = 'http://localhost:8000/api/auth/users/';
+// const API_URL = 'http://localhost:8000/api/auth/users/';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app';
+const API_URL = `${API_BASE_URL}/api/auth/users/`;
 
 // Tipos para manejar los usuarios
 export interface User {
@@ -54,7 +57,13 @@ export const useUsers = (): UsersHook => {
   // Crear una instancia de axios con interceptores
   const createAxiosInstance = useCallback((): AxiosInstance => {
     const instance = axios.create({
-      baseURL: API_URL,
+      baseURL: API_URL, // Usa la variable de entorno
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      withCredentials: true, // Necesario para cookies de sesión
+      timeout: 15000
     });
     
     instance.interceptors.request.use(
