@@ -1,0 +1,57 @@
+/* src/components/common/switchToggle.css */
+.switch-button {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 34px;
+    border: none;
+    background-color: #ddd;
+    transition: background-color 0.3s;
+    padding: 0;
+  }
+  
+  .switch-button.on {
+    background-color: #0d9488;
+  }
+  
+  .switch-button.off {
+    background-color: #e5e7eb;
+  }
+  
+  .switch-button-slider {
+    position: absolute;
+    content: "";
+    height: 80%;
+    aspect-ratio: 1/1;
+    left: 10%;
+    bottom: 10%;
+    border-radius: 50%;
+    background-color: white;
+    transition: 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .switch-button.on .switch-button-slider {
+    transform: translateX(100%);
+  }
+  
+  /* Tamaños */
+  .switch-button.small {
+    width: 36px;
+    height: 20px;
+  }
+  
+  .switch-button.medium {
+    width: 46px;
+    height: 24px;
+  }
+  
+  .switch-button.large {
+    width: 56px;
+    height: 28px;
+  }
+  
+  .switch-button.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }

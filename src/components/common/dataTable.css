@@ -1,0 +1,290 @@
+/* src/components/common/dataTable.css */
+.datatable-container {
+  width: 100%;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.datatable-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #0f172a;
+}
+
+.datatable-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.datatable-filter {
+  flex: 1;
+  max-width: 300px;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.page-size-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.page-size-select {
+  padding: 5px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  min-height: 200px;
+  position: relative;
+}
+
+.datatable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.datatable th, .datatable td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.datatable th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #4b5563;
+  position: relative;
+}
+
+.datatable th.sortable {
+  cursor: pointer;
+}
+
+.datatable tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+}
+
+.no-data {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #6b7280;
+  transform: translateY(-50%);
+}
+
+/* Nuevos estilos para la paginación */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.pagination-info {
+  color: #4b5563;
+}
+
+.current-page, .total-pages {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+}
+
+.pagination-button {
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  margin: 0 2px;
+  color: #4b5563;
+}
+
+.pagination-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+
+  background-image: none;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #e2e8f0;
+}
+
+.pagination-numbers {
+  display: flex;
+  margin: 0 4px;
+}
+
+.pagination-number {
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: none;
+  border: 1px solid #e2e8f0;
+  margin: 0 2px;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+.pagination-number.active {
+  background-color: #0d9488;
+  color: white;
+  border-color: #0d9488;
+}
+
+.pagination-number:hover:not(.active) {
+  background-color: #e2e8f0;
+}
+
+.pagination-ellipsis {
+  display: flex;
+  align-items: center;
+  margin: 0 4px;
+  color: #4b5563;
+}
+
+.goto-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+}
+
+.goto-page-input {
+  width: 50px;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Estilos para los pills de estado */
+.status-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 9999px; /* Forma de píldora */
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  min-width: 80px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.status-pill.active {
+  background-color: #d1fae5;
+  color: #059669;
+  border: 1px solid #10b981;
+}
+
+.status-pill.active:hover {
+  background-color: #a7f3d0;
+}
+
+.status-pill.inactive {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #ef4444;
+}
+
+.status-pill.inactive:hover {
+  background-color: #fecaca;
+}
+
+/* Estilos para los botones de acción con iconos */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.icon-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.icon-button:hover {
+  transform: translateY(-1px);
+}
+
+.icon-button:active {
+  transform: translateY(1px);
+}
+
+.edit-button {
+  background-color: #e2f5f4;
+  color: #0d9488;
+  border: 1px solid #0d9488;
+}
+
+.edit-button:hover {
+  background-color: #ccfbf1;
+}
+
+.delete-button {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+}
+
+.delete-button:hover {
+  background-color: #fecaca;
+}
+
+@media (max-width: 768px) {
+  .datatable-header, .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .datatable-filter {
+    max-width: 100%;
+  }
+  
+  .goto-page {
+    margin-top: 10px;
+  }
+}

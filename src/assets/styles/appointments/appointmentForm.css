@@ -1,0 +1,83 @@
+/* src/components/appointments/appointmentForm.css */
+
+.appointment-form-modal {
+    max-width: 650px;
+  }
+  
+  .availability-alert {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-left: 4px solid #ffc107;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+    color: #856404;
+  }
+  
+  .availability-error {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  
+  .availability-icon {
+    font-size: 18px;
+    margin-right: 10px;
+    line-height: 1.4;
+  }
+  
+  .availability-error p {
+    margin: 0;
+    flex: 1;
+    font-weight: 500;
+  }
+  
+  .conflicting-appointment {
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    border: 1px dashed rgba(133, 100, 4, 0.3);
+  }
+  
+  .conflicting-appointment p {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+  
+  .conflicting-appointment p:first-child {
+    margin-top: 0;
+  }
+  
+  .conflicting-appointment p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .service-info {
+    margin-top: 8px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .service-info p {
+    margin: 5px 0;
+  }
+  
+  .help-text {
+    display: block;
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+    font-style: italic;
+  }
+  
+  .save-button.disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+  }
+  
+  .save-button.disabled:hover {
+    background-color: #6c757d;
+  }

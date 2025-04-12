@@ -1,0 +1,17 @@
+/* Footer.css */
+.footer {
+    background-color: white;
+    border-top: 1px solid #e2e8f0;
+    padding: 16px 24px;
+    text-align: center;
+    z-index: 10;
+  }
+  
+  .footer-content {
+    font-size: 14px;
+    color: #64748b; /* slate-500 */
+  }
+  
+  .footer-content p {
+    margin: 0;
+  }

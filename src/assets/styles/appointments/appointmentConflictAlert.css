@@ -1,0 +1,148 @@
+/* src/components/appointments/appointmentConflictAlert.css */
+
+.conflict-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+  }
+  
+  .conflict-alert-container {
+    background-color: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  @keyframes slideDown {
+    from {
+      transform: translateY(-30px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .conflict-alert-header {
+    background-color: #fef3c7;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #fde68a;
+  }
+  
+  .conflict-alert-header h3 {
+    margin: 0;
+    color: #92400e;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .conflict-alert-content {
+    padding: 20px;
+  }
+  
+  .conflict-icon {
+    font-size: 36px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+  
+  .conflict-message {
+    text-align: center;
+    font-size: 16px;
+    color: #0f172a;
+    margin-bottom: 20px;
+  }
+  
+  .conflicting-details {
+    background-color: #f8fafc;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .conflicting-details h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 15px;
+    color: #334155;
+    font-weight: 600;
+  }
+  
+  .conflict-detail-item {
+    display: flex;
+    margin-bottom: 8px;
+  }
+  
+  .conflict-detail-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .conflict-detail-label {
+    font-weight: 500;
+    color: #64748b;
+    width: 80px;
+    flex-shrink: 0;
+  }
+  
+  .conflict-detail-value {
+    color: #334155;
+  }
+  
+  .conflict-suggestion {
+    text-align: center;
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 20px;
+  }
+  
+  .conflict-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .secondary-button {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .secondary-button:hover {
+    background-color: #e2e8f0;
+    color: #475569;
+  }
+  
+  .primary-button {
+    background-color: #0d9488;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .primary-button:hover {
+    background-color: #0f766e;
+  }

@@ -1,0 +1,206 @@
+/* src/components/appointments/appointmentDetail.css */
+.appointment-detail {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 600px;
+    max-width: 100%;
+  }
+  
+  .appointment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .appointment-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #0f172a;
+    font-weight: 600;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #64748b;
+    cursor: pointer;
+  }
+  
+  .appointment-content {
+    padding: 20px;
+  }
+  
+  .detail-row {
+    display: flex;
+    margin-bottom: 16px;
+  }
+  
+  .detail-item {
+    flex: 1;
+  }
+  
+  .detail-item h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #64748b;
+  }
+  
+  .detail-item p {
+    margin: 0;
+    font-size: 16px;
+    color: #1e293b;
+  }
+  
+  .detail-notes {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .detail-notes h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #64748b;
+  }
+  
+  .detail-notes p {
+    margin: 0;
+    font-size: 16px;
+    color: #1e293b;
+    white-space: pre-line;
+  }
+  
+  .appointment-actions {
+    padding: 20px;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .appointment-actions h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #64748b;
+  }
+  
+  .status-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  
+  .status-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .status-button.confirmed {
+    background-color: #d1fae5;
+    color: #059669;
+  }
+  
+  .status-button.confirmed:hover {
+    background-color: #a7f3d0;
+  }
+  
+  .status-button.cancelled {
+    background-color: #fee2e2;
+    color: #dc2626;
+  }
+  
+  .status-button.cancelled:hover {
+    background-color: #fecaca;
+  }
+  
+  .status-button.completed {
+    background-color: #dbeafe;
+    color: #2563eb;
+  }
+  
+  .status-button.completed:hover {
+    background-color: #bfdbfe;
+  }
+  
+  .management-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  
+  .edit-button {
+    background-color: #e2f5f4;
+    color: #0d9488;
+    border: 1px solid #0d9488;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .edit-button:hover {
+    background-color: #ccfbf1;
+  }
+  
+  .delete-button {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #dc2626;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .delete-button:hover {
+    background-color: #fecaca;
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .status-pending {
+    background-color: #fef3c7;
+    color: #d97706;
+  }
+  
+  .status-confirmed {
+    background-color: #d1fae5;
+    color: #059669;
+  }
+  
+  .status-cancelled {
+    background-color: #fee2e2;
+    color: #dc2626;
+  }
+  
+  .status-completed {
+    background-color: #dbeafe;
+    color: #2563eb;
+  }
+  
+  @media (max-width: 640px) {
+    .detail-row {
+      flex-direction: column;
+    }
+    
+    .detail-item {
+      margin-bottom: 12px;
+    }
+    
+    .status-actions {
+      flex-direction: column;
+    }
+  }

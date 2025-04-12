@@ -1,0 +1,154 @@
+/* src/pages/services.css */
+.services-page {
+    width: 100%;
+    padding: 0 15px;
+  }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  
+  .page-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #0f172a;
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .add-button {
+    background-color: #0d9488;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .add-button:hover {
+    background-color: #0f766e;
+  }
+  
+  .category-button {
+    background-color: #6366f1;
+  }
+  
+  .category-button:hover {
+    background-color: #4f46e5;
+  }
+  
+  .error-alert {
+    background-color: #fee2e2;
+    border-left: 4px solid #ef4444;
+    color: #b91c1c;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+  }
+  
+  .loading-message {
+    text-align: center;
+    padding: 40px 0;
+    color: #64748b;
+    font-size: 16px;
+  }
+  
+  .category-filter {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .category-filter span {
+    font-weight: 500;
+    color: #4b5563;
+  }
+  
+  .category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .category-filter-button {
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 30px;
+    padding: 6px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .category-filter-button:hover {
+    background-color: #e2e8f0;
+  }
+  
+  .category-filter-button.active {
+    background-color: #0d9488;
+    color: white;
+    border-color: #0d9488;
+  }
+  
+  .services-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .section-title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #0f172a;
+    font-weight: 600;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  .view-button {
+    background-color: #dbeafe;
+    color: #2563eb;
+    border: 1px solid #2563eb;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .view-button:hover {
+    background-color: #bfdbfe;
+    transform: translateY(-2px);
+  }
+  
+  @media (max-width: 768px) {
+    .services-container {
+      flex-direction: column;
+    }
+    
+    .header-actions {
+      flex-direction: column;
+    }
+  }
