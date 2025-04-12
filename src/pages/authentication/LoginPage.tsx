@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Spinner from '../../components/common/Spinner';
-import './LoginPage.css';
+import './loginPage.css';
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState<string>('');
