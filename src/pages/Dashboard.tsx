@@ -7,17 +7,16 @@ import Counter from '../components/common/Counter';
 import MiniCalendar from '../components/dashboard/MiniCalendar';
 import UpcomingAppointments from '../components/dashboard/UpcomingAppoinments';
 import AppointmentDetail from '../components/appointments/AppointmentDetail';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import './Dashboard.css';
 import { useClients } from '../hooks/useClients';
 import { useServices } from '../hooks/useServices';
-import Breadcrumb from '../components/common/Breadcrumb';
 
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [, setSelectedDate] = useState<string>('');
   const [showAppointmentDetail, setShowAppointmentDetail] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const { fetchClients, clients } = useClients();

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { BreadcrumbItem } from '../components/common/Breadcrumb';
 
 // Mapeo directo de rutas con títulos y subtítulos
 const routeMap: Record<string, { title: string, subtitle: string }> = {
@@ -37,6 +36,13 @@ const routeMap: Record<string, { title: string, subtitle: string }> = {
 /**
  * Hook simplificado que genera breadcrumbs directos para las secciones principales
  */
+
+interface BreadcrumbItem {
+  label: string;
+  path: string;
+  active?: boolean;
+}
+
 export const useBreadcrumbs = (customItems?: BreadcrumbItem[]): BreadcrumbItem[] => {
   const location = useLocation();
   const [items, setItems] = useState<BreadcrumbItem[]>([]);
@@ -79,16 +85,14 @@ export const useBreadcrumbs = (customItems?: BreadcrumbItem[]): BreadcrumbItem[]
           if (!isNaN(Number(pathParts[1]))) {
             // Es un ID numérico
             items.push({
-              label: `${routeMap[mainRoute].subtitle}`,
-              path: path,
-              active: true
+              label: routeMap[mainRoute].subtitle,
+              path: path
             });
           } else {
             // Es una acción o subruta (ejemplo: /clientes/nuevo)
             items.push({
               label: pathParts[1].charAt(0).toUpperCase() + pathParts[1].slice(1),
               path: path,
-              active: true
             });
           }
         }

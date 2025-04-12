@@ -41,7 +41,6 @@ const AppointmentsPage: React.FC = () => {
     updateAppointment,
     deleteAppointment,
     changeAppointmentStatus,
-    checkEmployeeAvailability
   } = useAppointments();
 
   const { clients, fetchClients } = useClients();
@@ -122,6 +121,13 @@ const AppointmentsPage: React.FC = () => {
   const handleAddAppointment = (date?: Date, time?: string) => {
     setSelectedAppointment(null);
     setIsModalOpen(true);
+
+    if (date && time) {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      console.log(time)
+      setFilterDate(formattedDate);
+      setFilters({ ...filters, date_from: formattedDate, date_to: formattedDate });
+    }
 
     // Si proporcionaron fecha y hora, pasar como valores iniciales al modal
     // Esto requeriría modificar el componente AppointmentFormModal para aceptar valores iniciales
