@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import './RegisterPage.css'; // Importar el CSS externo
+import './registerPage.css'; // Importar el CSS externo
 
 interface FormData {
   username: string;
