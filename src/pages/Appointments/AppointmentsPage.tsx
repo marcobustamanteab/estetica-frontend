@@ -26,7 +26,7 @@ const AppointmentsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [showDetail, setShowDetail] = useState(false);
-  const [availableEmployees, setAvailableEmployees] = useState<User[]>([]);
+  const [, setAvailableEmployees] = useState<User[]>([]);
   const [filterDate, setFilterDate] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filters, setFilters] = useState<AppointmentFilters>({});
