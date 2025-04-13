@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useAppointments, Appointment, AppointmentFilters } from '../hooks/useAppointments';
@@ -7,11 +6,10 @@ import Counter from '../components/common/Counter';
 import MiniCalendar from '../components/dashboard/MiniCalendar';
 import UpcomingAppointments from '../components/dashboard/UpcomingAppoinments';
 import AppointmentDetail from '../components/appointments/AppointmentDetail';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import './dashboard.css';
 import { useClients } from '../hooks/useClients';
 import { useServices } from '../hooks/useServices';
-
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -23,21 +21,8 @@ const Dashboard: React.FC = () => {
   const { fetchServices, services } = useServices();
   const [totalClients, setTotalClients] = useState<number>(0);
   const [todayAppointments, setTodayAppointments] = useState<number>(0);
-  const [totalServices, setTotalServices] = useState<number>(0);
   const [totalSales, setTotalSales] = useState<number>(0);
-  
-  useEffect(() => {
-    fetchClients();
-    fetchServices();
-  }, []);
-
-  useEffect(() => {
-    setTotalClients(clients.length);
-  }, [clients]);
-  
-  useEffect(() => {
-    setTotalServices(services.length);
-  }, [services]);
+  const [monthlySales, setMonthlySales] = useState<number>(0);
   
   const { 
     appointments, 
@@ -45,22 +30,35 @@ const Dashboard: React.FC = () => {
     changeAppointmentStatus
   } = useAppointments();
 
-  // Cargar citas al montar
+  // Cargar datos iniciales al montar el componente
   useEffect(() => {
-    // Obtener fecha actual
-    const today = format(new Date(), 'yyyy-MM-dd');
+    fetchClients();
+    fetchServices();
     
-    // Filtros para citas futuras
+    // Obtener fecha actual
+    const today = new Date();
+    const firstDayOfMonth = startOfMonth(today);
+    const lastDayOfMonth = endOfMonth(today);
+    
+    // Filtros para citas del mes actual
     const filters: AppointmentFilters = {
-      date_from: today
+      date_from: format(firstDayOfMonth, 'yyyy-MM-dd'),
+      date_to: format(lastDayOfMonth, 'yyyy-MM-dd')
     };
     
     fetchAppointments(filters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // Solo ejecutar al montar el componente
 
-  // Contar las citas de hoy y calcular ventas
+  // Actualizar total de clientes cuando cambie la lista de clientes
   useEffect(() => {
+    setTotalClients(clients.length);
+  }, [clients]);
+  
+  // Contar las citas de hoy y calcular ventas diarias y mensuales
+  useEffect(() => {
+    if (appointments.length === 0 || services.length === 0) return;
+    
     // Filtrar las citas de hoy
     const today = format(new Date(), 'yyyy-MM-dd');
     const appointmentsToday = appointments.filter(appointment => 
@@ -79,16 +77,30 @@ const Dashboard: React.FC = () => {
     );
     
     // Sumar los precios de los servicios de las citas completadas
-    let salesTotal = 0;
+    let dailySalesTotal = 0;
     completedAppointments.forEach(appointment => {
-      // Buscar el servicio correspondiente para obtener su precio
       const service = services.find(s => s.id === appointment.service);
       if (service) {
-        salesTotal += service.price;
+        dailySalesTotal += service.price;
       }
     });
     
-    setTotalSales(salesTotal);
+    setTotalSales(dailySalesTotal);
+    
+    // Calcular ventas mensuales (todas las citas completadas del mes)
+    const completedMonthlyAppointments = appointments.filter(
+      appointment => appointment.status === 'completed'
+    );
+    
+    let monthlySalesTotal = 0;
+    completedMonthlyAppointments.forEach(appointment => {
+      const service = services.find(s => s.id === appointment.service);
+      if (service) {
+        monthlySalesTotal += service.price;
+      }
+    });
+    
+    setMonthlySales(monthlySalesTotal);
   }, [appointments, services]);
 
   // Manejar clic en fecha del calendario
@@ -108,10 +120,15 @@ const Dashboard: React.FC = () => {
     try {
       await changeAppointmentStatus(id, status);
       setShowAppointmentDetail(false);
+      
       // Recargar citas
-      const today = format(new Date(), 'yyyy-MM-dd');
+      const today = new Date();
+      const firstDayOfMonth = startOfMonth(today);
+      const lastDayOfMonth = endOfMonth(today);
+      
       const filters: AppointmentFilters = {
-        date_from: today
+        date_from: format(firstDayOfMonth, 'yyyy-MM-dd'),
+        date_to: format(lastDayOfMonth, 'yyyy-MM-dd')
       };
       fetchAppointments(filters);
     } catch (error) {
@@ -141,19 +158,19 @@ const Dashboard: React.FC = () => {
         </div>
         
         <div className="dashboard-card">
-          <h3>Ventas</h3>
+          <h3>Ventas Hoy</h3>
           <div className="card-value">
             <Counter end={totalSales} prefix="$" />
           </div>
           <p>Ventas del día</p>
         </div>
         
-        <div className="dashboard-card">
-          <h3>Servicios</h3>
+        <div className="dashboard-card monthly-sales-card">
+          <h3>Ventas Mensuales</h3>
           <div className="card-value">
-            <Counter end={totalServices} />
+            <Counter end={monthlySales} prefix="$" />
           </div>
-          <p>Servicios disponibles</p>
+          <p>Total de ventas del mes</p>
         </div>
       </div>
       

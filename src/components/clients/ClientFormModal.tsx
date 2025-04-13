@@ -47,7 +47,7 @@ const ClientFormModal: React.FC<ClientFormModalProps> = ({ client, onClose, onSa
       first_name: formData.first_name,
       last_name: formData.last_name,
       email: formData.email,
-      phone: formData.phone || null,
+      phone: formData.phone || "No indica",
       gender: formData.gender || null, 
       birth_date: formData.birth_date || null,
       address: formData.address || null,
@@ -68,7 +68,7 @@ const ClientFormModal: React.FC<ClientFormModalProps> = ({ client, onClose, onSa
         <form onSubmit={handleSubmit} className="form">
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="first_name">Nombre</label>
+              <label htmlFor="first_name">Nombre <span className="required">*</span></label>
               <input
                 type="text"
                 id="first_name"
@@ -76,12 +76,13 @@ const ClientFormModal: React.FC<ClientFormModalProps> = ({ client, onClose, onSa
                 value={formData.first_name}
                 onChange={handleChange}
                 className={errors.first_name ? 'form-input error' : 'form-input'}
+                required
               />
               {errors.first_name && <span className="error-message">{errors.first_name}</span>}
             </div>
             
             <div className="form-group">
-              <label htmlFor="last_name">Apellido</label>
+              <label htmlFor="last_name">Apellido <span className="required">*</span></label>
               <input
                 type="text"
                 id="last_name"
@@ -89,6 +90,7 @@ const ClientFormModal: React.FC<ClientFormModalProps> = ({ client, onClose, onSa
                 value={formData.last_name}
                 onChange={handleChange}
                 className={errors.last_name ? 'form-input error' : 'form-input'}
+                required
               />
               {errors.last_name && <span className="error-message">{errors.last_name}</span>}
             </div>
@@ -96,7 +98,7 @@ const ClientFormModal: React.FC<ClientFormModalProps> = ({ client, onClose, onSa
           
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="email">Correo Electrónico</label>
+              <label htmlFor="email">Correo Electrónico <span className="required">*</span></label>
               <input
                 type="email"
                 id="email"
@@ -104,6 +106,7 @@ const ClientFormModal: React.FC<ClientFormModalProps> = ({ client, onClose, onSa
                 value={formData.email}
                 onChange={handleChange}
                 className={errors.email ? 'form-input error' : 'form-input'}
+                required
               />
               {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
@@ -122,49 +125,21 @@ const ClientFormModal: React.FC<ClientFormModalProps> = ({ client, onClose, onSa
             </div>
           </div>
           
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="gender">Género</label>
-              <select
-                id="gender"
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                className={errors.gender ? 'form-input error' : 'form-input'}
-              >
-                <option value="">Seleccione...</option>
-                <option value="M">Masculino</option>
-                <option value="F">Femenino</option>
-                <option value="O">Otro</option>
-              </select>
-              {errors.gender && <span className="error-message">{errors.gender}</span>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="birth_date">Fecha de Nacimiento</label>
-              <input
-                type="date"
-                id="birth_date"
-                name="birth_date"
-                value={formData.birth_date}
-                onChange={handleChange}
-                className={errors.birth_date ? 'form-input error' : 'form-input'}
-              />
-              {errors.birth_date && <span className="error-message">{errors.birth_date}</span>}
-            </div>
-          </div>
-          
           <div className="form-group">
-            <label htmlFor="address">Dirección</label>
-            <textarea
-              id="address"
-              name="address"
-              value={formData.address}
+            <label htmlFor="gender">Género</label>
+            <select
+              id="gender"
+              name="gender"
+              value={formData.gender}
               onChange={handleChange}
-              className={errors.address ? 'form-input error' : 'form-input'}
-              rows={3}
-            />
-            {errors.address && <span className="error-message">{errors.address}</span>}
+              className={errors.gender ? 'form-input error' : 'form-input'}
+            >
+              <option value="">Seleccione...</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+              <option value="O">Otro</option>
+            </select>
+            {errors.gender && <span className="error-message">{errors.gender}</span>}
           </div>
           
           <div className="form-group checkbox-group">

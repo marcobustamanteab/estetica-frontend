@@ -1,4 +1,3 @@
-
 import { Client } from '../hooks/useClients';
 
 export interface ClientFormValues {
@@ -7,8 +6,8 @@ export interface ClientFormValues {
   email: string;
   phone: string;
   gender: 'M' | 'F' | 'O' | ''; 
-  birth_date: string;
-  address: string;
+  birth_date: string; 
+  address: string;    
   is_active: boolean;
 }
 
@@ -53,6 +52,10 @@ export const validateClientForm = (values: ClientFormValues): Record<string, str
     errors.email = 'El correo electrónico es obligatorio';
   } else if (!/\S+@\S+\.\S+/.test(values.email)) {
     errors.email = 'Formato de correo electrónico inválido';
+  }
+
+  if (!values.gender) {
+    errors.gender = 'Seleccione género';
   }
   
   if (values.birth_date) {
