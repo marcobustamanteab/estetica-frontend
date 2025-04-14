@@ -1,0 +1,45 @@
+
+.roles-page {
+    width: 100%;
+    padding: 0 15px;
+  }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  
+  .page-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #0f172a;
+  }
+  
+  .add-button {
+    background-color: #0d9488;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .add-button:hover {
+    background-color: #0f766e;
+  }
+  
+  /* Estilo para el botón de permisos */
+  .permissions-button {
+    background-color: #f0f6ff;
+    color: #3b82f6;
+    border: 1px solid #3b82f6;
+  }
+  
+  .permissions-button:hover {
+    background-color: #e0edff;
+  }

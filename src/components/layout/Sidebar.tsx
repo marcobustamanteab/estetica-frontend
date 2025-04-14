@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { JSX, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiScissors, FiChevronDown, FiChevronRight, FiUserPlus } from 'react-icons/fi';
+import { FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiScissors, FiChevronDown, FiChevronRight, FiUserPlus, FiShield } from 'react-icons/fi';
 import avatarImage from '../../assets/img/avatar001.jpeg';
 import './sidebar.css';
 
@@ -31,6 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       label: 'Usuarios',
       subMenus: [
         { path: '/usuarios/administracion', icon: <FiUserPlus size={20} />, label: 'Administración de Usuarios' },
+        { path: '/usuarios/roles', icon: <FiShield size={20} />, label: 'Administración de Roles' },
       ]
     },
     { path: '/clientes', icon: <FiUserCheck size={20} />, label: 'Clientes' },

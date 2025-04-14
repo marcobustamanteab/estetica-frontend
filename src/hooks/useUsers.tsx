@@ -19,6 +19,7 @@ export interface User {
   is_active: boolean;
   is_staff: boolean;
   profile_image?: string;
+  groups?: number[];
 }
 
 export interface UserFormData {
@@ -29,6 +30,7 @@ export interface UserFormData {
   last_name?: string;
   is_active?: boolean;
   is_staff?: boolean;
+  groups?: number[]; 
 }
 
 export interface UsersHook {

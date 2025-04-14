@@ -1,0 +1,97 @@
+/* src/components/users/rolePermissionsModal.css */
+.permissions-modal {
+    max-width: 800px;
+    width: 90%;
+    max-height: 80vh;
+  }
+  
+  .permissions-search {
+    margin-bottom: 15px;
+    padding: 0 20px;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .permissions-form {
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px 20px;
+  }
+  
+  .permissions-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 50vh;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 10px;
+  }
+  
+  .permission-model {
+    margin-bottom: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 15px;
+  }
+  
+  .permission-model:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  .model-header {
+    margin-bottom: 10px;
+  }
+  
+  .model-checkbox {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #0f172a;
+    cursor: pointer;
+  }
+  
+  .model-name {
+    margin-left: 8px;
+    font-size: 16px;
+  }
+  
+  .model-permissions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-left: 24px;
+  }
+  
+  .permission-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    border-radius: 4px;
+    background-color: #f8fafc;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .permission-checkbox:hover {
+    background-color: #f1f5f9;
+  }
+  
+  .permission-name {
+    margin-left: 6px;
+    font-size: 14px;
+    color: #475569;
+  }
+  
+  .no-results {
+    padding: 20px;
+    text-align: center;
+    color: #64748b;
+  }

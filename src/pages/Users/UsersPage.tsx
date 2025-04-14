@@ -1,14 +1,15 @@
 // src/pages/UsersPage.tsx
 import React, { useState, useEffect } from 'react';
-import { useUsers, User, UserFormData } from '../hooks/useUsers';
-import UserFormModal from '../components/users/UserFormModal';
-import DataTable from '../components/common/DataTable';
-import SwitchToggle from '../components/common/SwitchToggle';
+import { useUsers, User, UserFormData } from '../../hooks/useUsers';
+import UserFormModal from '../../components/users/UserFormModal';
+import DataTable from '../../components/common/DataTable';
+import SwitchToggle from '../../components/common/SwitchToggle';
 import { createColumnHelper } from '@tanstack/react-table';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+
 
 const UsersPage: React.FC = () => {
 
