@@ -1,10 +1,12 @@
 import axios from 'axios';
 
 // Configuración de URLs (único cambio estructural)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.MODE === 'development' 
-    ? 'http://localhost:8000' 
-    : 'https://estetica-backend-production.up.railway.app');
+const API_BASE_URL = 
+  // En producción, prioriza la variable de entorno o usa la URL de Railway
+  import.meta.env.PROD 
+    ? (import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app')
+    // En desarrollo, siempre usa localhost
+    : 'http://localhost:8000';
 
 const API_AUTH_URL = `${API_BASE_URL}/api/auth/`;
 
