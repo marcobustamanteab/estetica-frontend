@@ -17,7 +17,13 @@ const API_BASE_URL =
 
 const API_URL = `${API_BASE_URL}/api/services/`;
 
-const CATEGORIES_URL = 'http://localhost:8000/api/services/categories/';
+
+const CATEGORIES_BASE_URL = 
+  import.meta.env.PROD
+    ? (import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app')
+    : 'http://localhost:8000';
+
+const CATEGORIES_URL = `${CATEGORIES_BASE_URL}/api/services/categories/`;
 
 // Tipos para manejar los servicios
 export interface ServiceCategory {
