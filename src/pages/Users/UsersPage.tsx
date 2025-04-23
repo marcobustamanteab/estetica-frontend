@@ -1,5 +1,4 @@
-// src/pages/UsersPage.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useUsers, User, UserFormData } from '../../hooks/useUsers';
 import UserFormModal from '../../components/users/UserFormModal';
 import DataTable from '../../components/common/DataTable';
@@ -7,12 +6,12 @@ import SwitchToggle from '../../components/common/SwitchToggle';
 import { createColumnHelper } from '@tanstack/react-table';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
-
+import './usersPage.css';
 
 const UsersPage: React.FC = () => {
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   
@@ -29,7 +28,6 @@ const UsersPage: React.FC = () => {
   
   useEffect(() => {
     fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   const handleAddUser = () => {
@@ -175,11 +173,27 @@ const UsersPage: React.FC = () => {
     }),
   ];
 
+  // Definir las columnas para exportación
+  const exportColumns = [
+    { header: 'ID', accessor: 'id' },
+    { header: 'Nombre de Usuario', accessor: 'username' },
+    { header: 'Email', accessor: 'email' },
+    { header: 'Nombre', accessor: 'first_name', formatFn: (value: string | null) => value || 'No especificado' },
+    { header: 'Apellido', accessor: 'last_name', formatFn: (value: string | null) => value || 'No especificado' },
+    { 
+      header: 'Rol', 
+      accessor: 'is_staff',
+      formatFn: (value: boolean) => value ? 'Administrador' : 'Empleado'
+    },
+    { header: 'Estado', accessor: 'is_active', formatFn: (value: boolean) => value ? 'Activo' : 'Inactivo' },
+    { header: 'Última conexión', accessor: 'last_login', formatFn: (value: string | null) => value || 'Nunca' }
+  ];
+
   return (
     <div className="users-page">
       <div className="page-header">
         <h2>Administración de Usuarios</h2>
-        <button className="add-button" onClick={handleAddUser}>Nuevo Usuario</button>
+        <button className="add-button" onClick={handleAddUser}><AddIcon fontSize="small" /> Nuevo Usuario</button>
       </div>
       
       {error && (
@@ -196,6 +210,10 @@ const UsersPage: React.FC = () => {
           data={users} 
           title="Usuarios del Sistema"
           filterPlaceholder="Buscar usuario..."
+          exportConfig={{
+            columns: exportColumns,
+            fileName: "usuarios"
+          }}
         />
       )}
       

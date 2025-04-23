@@ -12,6 +12,7 @@ import {
   ColumnFiltersState,
 } from '@tanstack/react-table';
 import './dataTable.css';
+import ExportData from './ExportData'; 
 
 interface DataTableProps<T> {
   columns: ColumnDef<T, any>[];
@@ -19,6 +20,14 @@ interface DataTableProps<T> {
   title?: string;
   pageSize?: number;
   filterPlaceholder?: string;
+  exportConfig?: {
+    columns: {
+      header: string;
+      accessor: string;
+      formatFn?: (value: any) => string;
+    }[];
+    fileName: string;
+  };
 }
 
 function DataTable<T>({
@@ -26,7 +35,8 @@ function DataTable<T>({
   data,
   title,
   pageSize = 5,
-  filterPlaceholder = 'Buscar...'
+  filterPlaceholder = 'Buscar...',
+  exportConfig
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -59,14 +69,29 @@ function DataTable<T>({
       {title && <h2 className="datatable-title">{title}</h2>}
       
       <div className="datatable-header">
-        <div className="datatable-filter">
-          <input
-            value={globalFilter ?? ''}
-            onChange={e => setGlobalFilter(e.target.value)}
-            placeholder={filterPlaceholder}
-            className="filter-input"
-          />
+        <div className="search-export-container">
+          <div className="datatable-filter">
+            <input
+              value={globalFilter ?? ''}
+              onChange={e => setGlobalFilter(e.target.value)}
+              placeholder={filterPlaceholder}
+              className="filter-input"
+            />
+          </div>
+          
+          {/* Añadimos el componente de exportación aquí */}
+          {exportConfig && data.length > 0 && (
+            <div className="export-buttons-container">
+              <ExportData
+                data={data}
+                columns={exportConfig.columns}
+                fileName={exportConfig.fileName}
+                title=""
+              />
+            </div>
+          )}
         </div>
+        
         <div className="page-size-selector">
           <span>Mostrar</span>
           <select
@@ -136,7 +161,7 @@ function DataTable<T>({
         )}
       </div>
 
-      {/* Actualización de la paginación */}
+      {/* Paginación */}
       <div className="pagination">
         <div className="pagination-info">
           Página <span className="current-page">{table.getState().pagination.pageIndex + 1}</span> de <span className="total-pages">{table.getPageCount()}</span>

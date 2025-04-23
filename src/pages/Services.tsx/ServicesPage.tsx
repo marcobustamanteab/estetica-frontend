@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// src/pages/ServicesPage.tsx
+// src/pages/Services/ServicesPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useServices, Service, ServiceCategory, ServiceFormData } from '../../hooks/useServices';
 import { ServiceFormValues } from '../../forms/ServiceFormValues';
@@ -7,7 +6,7 @@ import { CategoryFormValues } from '../../forms/categoryFormValues';
 import ServiceFormModal from '../../components/services/ServiceFormModal';
 import CategoryFormModal from '../../components/services/CategoryFormModal';
 import DataTable from '../../components/common/DataTable';
-import SwitchToggle from '../../../src/components/common/SwitchToggle';
+import SwitchToggle from '../../components/common/SwitchToggle';
 import { createColumnHelper } from '@tanstack/react-table';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -43,7 +42,6 @@ const ServicesPage: React.FC = () => {
   useEffect(() => {
     fetchCategories();
     fetchServices();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   // Cuando cambia la categoría seleccionada, actualizar los servicios
@@ -53,7 +51,6 @@ const ServicesPage: React.FC = () => {
     } else {
       fetchServices();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategoryId]);
   
   // Handlers para servicios
@@ -350,6 +347,27 @@ const ServicesPage: React.FC = () => {
     }),
   ];
 
+  // Definir columnas para exportación de servicios
+  const serviceExportColumns = [
+    { header: 'ID', accessor: 'id' },
+    { header: 'Nombre', accessor: 'name' },
+    { header: 'Categoría', accessor: 'category_name' },
+    { header: 'Descripción', accessor: 'description', formatFn: (value: string | null) => value || 'No disponible' },
+    { header: 'Precio', accessor: 'price', formatFn: (value: number) => `$${value.toLocaleString()}` },
+    { header: 'Duración', accessor: 'duration', formatFn: (value: number) => `${value} minutos` },
+    { header: 'Estado', accessor: 'is_active', formatFn: (value: boolean) => value ? 'Activo' : 'Inactivo' },
+    { header: 'Fecha de Creación', accessor: 'created_at' },
+    { header: 'Última Actualización', accessor: 'updated_at' }
+  ];
+
+  // Definir columnas para exportación de categorías
+  const categoryExportColumns = [
+    { header: 'ID', accessor: 'id' },
+    { header: 'Nombre', accessor: 'name' },
+    { header: 'Descripción', accessor: 'description', formatFn: (value: string | null) => value || 'No disponible' },
+    { header: 'Estado', accessor: 'is_active', formatFn: (value: boolean) => value ? 'Activo' : 'Inactivo' },
+  ];
+
   return (
     <div className="services-page">
       <div className="page-header">
@@ -380,7 +398,7 @@ const ServicesPage: React.FC = () => {
           >
             Todas
           </button>
-          {categories.map((category: { id: number | null ; name: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined; }) => (
+          {categories.map((category) => (
             <button 
               key={category.id}
               className={`category-filter-button ${selectedCategoryId === category.id ? 'active' : ''}`}
@@ -402,6 +420,10 @@ const ServicesPage: React.FC = () => {
               columns={categoryColumns} 
               data={categories} 
               filterPlaceholder="Buscar categoría..."
+              exportConfig={{
+                columns: categoryExportColumns,
+                fileName: "categorias-servicios"
+              }}
             />
           )}
         </div>
@@ -409,7 +431,7 @@ const ServicesPage: React.FC = () => {
         <div className="services-section">
           <h3 className="section-title">
             {selectedCategoryId 
-              ? `Servicios de ${categories.find((c: { id: number; }) => c.id === selectedCategoryId)?.name || ''}` 
+              ? `Servicios de ${categories.find((c) => c.id === selectedCategoryId)?.name || ''}` 
               : 'Todos los Servicios'
             }
           </h3>
@@ -420,6 +442,12 @@ const ServicesPage: React.FC = () => {
               columns={serviceColumns} 
               data={services} 
               filterPlaceholder="Buscar servicio..."
+              exportConfig={{
+                columns: serviceExportColumns,
+                fileName: selectedCategoryId 
+                  ? `servicios-categoria-${categories.find((c) => c.id === selectedCategoryId)?.name || 'seleccionada'}`.toLowerCase().replace(/\s+/g, '-')
+                  : "todos-los-servicios"
+              }}
             />
           )}
         </div>
