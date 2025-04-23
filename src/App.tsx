@@ -8,7 +8,7 @@ import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import UsersPage from './pages/Users/UsersPage';
 import ClientsPage from './pages/Clients/ClientsPage';
-import ReportsPage from './pages/ReportsPage';
+import ReportsPage from './pages/Reports/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import Spinner from './components/common/Spinner';
 import { ToastContainer } from 'react-toastify';

@@ -1,0 +1,67 @@
+/* src/pages/Reports/reportsPage.css */
+.reports-page {
+    width: 100%;
+    padding: 0 15px;
+  }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  
+  .page-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #0f172a;
+  }
+  
+  .reports-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 30px;
+  }
+  
+  .report-content {
+    margin-top: 24px;
+  }
+  
+  .select-report-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    color: #6b7280;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    border: 1px dashed #d1d5db;
+  }
+  
+  .select-report-message h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #111827;
+  }
+  
+  .select-report-message p {
+    font-size: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .reports-container {
+      padding: 16px;
+    }
+    
+    .select-report-message {
+      padding: 32px 16px;
+    }
+  }
