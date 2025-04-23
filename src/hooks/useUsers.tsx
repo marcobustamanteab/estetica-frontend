@@ -14,9 +14,7 @@ const API_BASE_URL =
     // En desarrollo, siempre usa localhost
     : 'http://localhost:8000';
 
-// Definir la base URL para la API de clientes
-const API_URL = `${API_BASE_URL}/api/clients/`;
-
+const API_URL = `${API_BASE_URL}/api/auth/users/`;
 
 // Tipos para manejar los usuarios
 export interface User {

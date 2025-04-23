@@ -17,8 +17,7 @@ const API_BASE_URL =
     : 'http://localhost:8000';
 
 // Definir la base URL para la API de clientes
-const API_URL = `${API_BASE_URL}/api/clients/`;
-
+const API_URL = `${API_BASE_URL}/api/appointments/`;
 
 // Tipos para manejar las citas
 export interface Appointment {
