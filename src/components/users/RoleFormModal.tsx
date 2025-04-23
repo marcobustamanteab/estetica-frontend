@@ -1,5 +1,4 @@
-// src/components/users/RoleFormModal.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Group, GroupFormData } from '../../hooks/useGroups';
 import '../common/modal.css';
 
