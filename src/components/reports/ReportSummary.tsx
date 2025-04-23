@@ -1,5 +1,6 @@
 // src/components/reports/ReportSummary.tsx
 import React from 'react';
+import { TrendingUp, TrendingDown, Minus, DollarSign, Users, Clock } from 'lucide-react';
 import './reportSummary.css';
 
 // Define las métricas de resumen
@@ -61,16 +62,34 @@ const ReportSummary: React.FC<ReportSummaryProps> = ({ metrics }) => {
     return 'trend-neutral';
   };
   
+  // Obtener el icono de tendencia
+  const getTrendIcon = (metric: SummaryMetric): React.ReactNode => {
+    if (metric.trend === 'up') return <TrendingUp size={16} />;
+    if (metric.trend === 'down') return <TrendingDown size={16} />;
+    return <Minus size={16} />;
+  };
+  
+  // Obtener un icono predeterminado basado en el tipo de métrica
+  const getDefaultIcon = (metric: SummaryMetric): React.ReactNode => {
+    if (metric.isCurrency) return <DollarSign size={20} />;
+    if (metric.label.toLowerCase().includes('servicio')) return <Users size={20} />;
+    return <Clock size={20} />;
+  };
+
   return (
     <div className="report-summary">
       {metrics.map((metric, index) => (
         <div key={index} className="summary-metric">
-          <div className="metric-icon">{metric.icon}</div>
+          <div className="metric-icon">
+            {/* Usar el icono proporcionado o uno predeterminado */}
+            {metric.icon || getDefaultIcon(metric)}
+          </div>
           <div className="metric-content">
             <div className="metric-label">{metric.label}</div>
             <div className="metric-value">{formatValue(metric)}</div>
             {metric.previousValue !== undefined && (
               <div className={`metric-change ${getChangeClass(metric)}`}>
+                <span className="trend-icon">{getTrendIcon(metric)}</span>
                 {getChangeText(metric)}
               </div>
             )}

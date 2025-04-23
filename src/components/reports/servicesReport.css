@@ -7,151 +7,154 @@
 */
 
 .report-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #111827;
-    margin-top: 0;
-    margin-bottom: 24px;
-  }
-  
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.visualization-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  background-color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.view-toggles {
+  display: flex;
+  gap: 8px;
+}
+
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-toggle:hover {
+  border-color: #0d9488;
+  color: #0d9488;
+}
+
+.view-toggle.active {
+  background-color: #ffffff;
+  color: white;
+  border-color: #abacac;
+}
+
+/* Estilos específicos para los iconos de Lucide React */
+
+/* Estilos específicos para los iconos en botones activos */
+.view-toggle.active svg,
+.chart-type.active svg {
+  color: white;
+  stroke: white;
+}
+
+.chart-types {
+  display: flex;
+  gap: 4px;
+}
+
+.chart-type {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chart-type:hover {
+  border-color: #000000;
+  color: #000000;
+}
+
+.export-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.export-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-action:hover {
+  border-color: #000000;
+  color: #000000;
+}
+
+.report-visualization {
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.chart-container {
+  min-height: 400px;
+  width: 100%;
+}
+
+.empty-data-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  color: #6b7280;
+  font-size: 16px;
+  text-align: center;
+}
+
+.loading-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  color: #6b7280;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
   .visualization-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    background-color: white;
-    padding: 12px 16px;
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
   
-  .view-toggles {
-    display: flex;
-    gap: 8px;
+  .chart-types, .export-actions {
+    align-self: flex-end;
   }
-  
-  .view-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    background-color: white;
-    color: #4b5563;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .view-toggle:hover {
-    border-color: #0d9488;
-    color: #0d9488;
-  }
-  
-  .view-toggle.active {
-    background-color: #0d9488;
-    color: white;
-    border-color: #0d9488;
-  }
-  
-  .chart-types {
-    display: flex;
-    gap: 4px;
-  }
-  
-  .chart-type {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    background-color: white;
-    color: #4b5563;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .chart-type:hover {
-    border-color: #0d9488;
-    color: #0d9488;
-  }
-  
-  .chart-type.active {
-    background-color: #0d9488;
-    color: white;
-    border-color: #0d9488;
-  }
-  
-  .export-actions {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .export-action {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    background-color: white;
-    color: #4b5563;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .export-action:hover {
-    border-color: #0d9488;
-    color: #0d9488;
-  }
-  
-  .report-visualization {
-    background-color: white;
-    border-radius: 8px;
-    padding: 24px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  }
-  
-  .chart-container {
-    min-height: 400px;
-    width: 100%;
-  }
-  
-  .empty-data-message {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 300px;
-    color: #6b7280;
-    font-size: 16px;
-    text-align: center;
-  }
-  
-  .loading-message {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 300px;
-    color: #6b7280;
-    font-size: 16px;
-    text-align: center;
-  }
-  
-  /* Responsive styles */
-  @media (max-width: 768px) {
-    .visualization-controls {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    
-    .chart-types, .export-actions {
-      align-self: flex-end;
-    }
-  }
+}

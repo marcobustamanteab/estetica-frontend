@@ -341,14 +341,14 @@ const EmployeesReport: React.FC = () => {
         {currentView === 'chart' && (
           <div className="chart-types">
             <button 
-              className={`chart-type ${chartType === 'bar' ? 'active' : ''}`}
+              className={`view-toggle ${chartType === 'bar' ? 'active' : ''}`}
               onClick={() => toggleChartType('bar')}
               title="Gráfico de Barras"
             >
               <BarChart2 size={18} />
             </button>
             <button 
-              className={`chart-type ${chartType === 'pie' ? 'active' : ''}`}
+              className={`view-toggle ${chartType === 'pie' ? 'active' : ''}`}
               onClick={() => toggleChartType('pie')}
               title="Gráfico Circular"
             >

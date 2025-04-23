@@ -11,7 +11,7 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
-import { Printer, Download, BarChart2, PieChart as PieChartIcon } from 'lucide-react';
+import { Printer, BarChart2, PieChart as PieChartIcon, DollarSign, Layers, Tag } from 'lucide-react';
 import './servicesReport.css';
 
 // Tipo para los datos de servicios populares
@@ -71,7 +71,7 @@ const ServicesReport: React.FC = () => {
         fetchAppointments({ 
           date_from: filters.dateRange.startDate, 
           date_to: filters.dateRange.endDate,
-          status: 'completed' // Solo citas completadas para el reporte
+          status: 'completed' 
         })
       ]);
       setLoading(false);
@@ -134,7 +134,6 @@ const ServicesReport: React.FC = () => {
       });
       
       // Convertir a array y añadir datos adicionales
-      // src/components/reports/ServicesReport.tsx (continuación)
       const processedData: ServicePopularity[] = Object.entries(serviceCounts).map(
         ([serviceId, { count, revenue }]) => {
           const serviceObj = services.find(s => s.id === Number(serviceId));
@@ -188,17 +187,20 @@ const ServicesReport: React.FC = () => {
           label: 'Total de Ingresos',
           value: 0,
           isCurrency: true,
-          trend: 'neutral'
+          trend: 'neutral',
+          icon: <DollarSign size={20} />
         },
         {
           label: 'Servicios Realizados',
           value: 0,
-          trend: 'neutral'
+          trend: 'neutral',
+          icon: <Layers size={20} />
         },
         {
           label: 'Servicios Distintos',
           value: 0,
-          trend: 'neutral'
+          trend: 'neutral',
+          icon: <Tag size={20} />
         }
       ]);
       return;
@@ -216,17 +218,20 @@ const ServicesReport: React.FC = () => {
         label: 'Total de Ingresos',
         value: totalRevenue,
         isCurrency: true,
-        trend: 'neutral'
+        trend: 'neutral',
+        icon: <DollarSign size={20} />
       },
       {
         label: 'Servicios Realizados',
         value: totalServicesCount,
-        trend: 'neutral'
+        trend: 'neutral',
+        icon: <Layers size={20} />
       },
       {
         label: 'Servicios Distintos',
         value: uniqueServicesCount,
-        trend: 'neutral'
+        trend: 'neutral',
+        icon: <Tag size={20} />
       }
     ]);
   };
@@ -334,27 +339,18 @@ const ServicesReport: React.FC = () => {
         {currentView === 'chart' && (
           <div className="chart-types">
             <button 
-              className={`chart-type ${chartType === 'bar' ? 'active' : ''}`}
+              className={`view-toggle ${chartType === 'bar' ? 'active' : ''}`}
               onClick={() => toggleChartType('bar')}
               title="Gráfico de Barras"
             >
               <BarChart2 size={18} />
             </button>
             <button 
-              className={`chart-type ${chartType === 'pie' ? 'active' : ''}`}
+              className={`view-toggle ${chartType === 'pie' ? 'active' : ''}`}
               onClick={() => toggleChartType('pie')}
               title="Gráfico Circular"
             >
               <PieChartIcon size={18} />
-            </button>
-          </div>
-        )}
-        
-        {currentView === 'table' && (
-          <div className="export-actions">
-            <button className="export-action" title="Exportar">
-              <Download size={18} />
-              <span>Exportar</span>
             </button>
           </div>
         )}
