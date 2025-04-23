@@ -8,7 +8,16 @@ import { useLoading } from '../context/LoadingContext';
 type AxiosInstance = ReturnType<typeof axios.create>;
 
 // Definir las base URL para la API
-const API_URL = 'http://localhost:8000/api/services/';
+const API_BASE_URL = 
+  // En producción, prioriza la variable de entorno o usa la URL de Railway
+  import.meta.env.PROD
+    ? (import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app')
+    // En desarrollo, siempre usa localhost
+    : 'http://localhost:8000';
+
+// Definir la base URL para la API de clientes
+const API_URL = `${API_BASE_URL}/api/clients/`;
+
 const CATEGORIES_URL = 'http://localhost:8000/api/services/categories/';
 
 // Tipos para manejar los servicios
