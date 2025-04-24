@@ -400,7 +400,7 @@ const EmployeesReport: React.FC = () => {
                       y={y}
                       dy={10}
                       textAnchor="end"
-                      transform={`rotate(-45, ${x}, ${y})`}
+                      // transform={`rotate(${x}, ${y})`}
                       fontSize={12}
                     >
                       {payload.value}
@@ -409,17 +409,27 @@ const EmployeesReport: React.FC = () => {
                 }}
               />
               <YAxis
-                tickFormatter={(value: any) => `$${value}`}
+                yAxisId="left"
+                tickFormatter={(value) => `$${value}`}
+                orientation="left"
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
               />
               <Tooltip 
                 formatter={(value: any, name: string) => {
-                  if (name === 'totalSales' || name === 'averageServiceValue')
-                    return [`$${Number(value).toLocaleString()}`, name === 'totalSales' ? 'Ventas Totales' : 'Valor Promedio'];
-                  return [value, name === 'totalServiceCount' ? 'Servicios Completados' : name];
+                  if (name === 'totalSales')
+                    return [`$${Number(value).toLocaleString()}`, 'Ventas Totales'];
+                  if (name === 'totalServiceCount')
+                    return [value, 'Servicios Completados'];
+                  return [value, name];
                 }}
+                labelFormatter={(label) => `Empleado: ${label}`}
               />
               <Legend />
               <Bar 
+                yAxisId="left"
                 dataKey="totalSales" 
                 name="Ventas Totales"
                 fill="#0d9488" 
@@ -427,6 +437,7 @@ const EmployeesReport: React.FC = () => {
                 isAnimationActive={true}
               />
               <Bar 
+                yAxisId="right"
                 dataKey="totalServiceCount" 
                 name="Servicios Completados"
                 fill="#8884d8" 
@@ -445,7 +456,7 @@ const EmployeesReport: React.FC = () => {
                 outerRadius={120}
                 fill="#8884d8"
                 labelLine={true}
-                label={({ name, percent }: { name: string; percent?: number }) => 
+                label={({ name, percent }) => 
                   percent !== undefined ? `${name}: ${(percent * 100).toFixed(0)}%` : name
                 }
               >

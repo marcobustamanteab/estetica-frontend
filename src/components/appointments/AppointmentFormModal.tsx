@@ -1,4 +1,5 @@
-// src/components/appointments/AppointmentFormModal.tsx
+// Modificación al componente AppointmentFormModal
+
 import React, { useState, useEffect } from 'react';
 import { Appointment } from '../../hooks/useAppointments';
 import { Client } from '../../hooks/useClients';
@@ -8,7 +9,6 @@ import { AppointmentFormValues, getInitialAppointmentFormValues, validateAppoint
 import '../common/modal.css';
 import '../../assets/styles/appointments/appointmentForm.css';
 import { checkEmployeeAvailability, isOverlapping } from '../../services/availabilityService';
-
 
 interface AppointmentFormModalProps {
   appointment: Appointment | null;
@@ -37,6 +37,12 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [conflictingAppointment, setConflictingAppointment] = useState<Appointment | null>(null);
   const [cancelledAppointments, setCancelledAppointments] = useState<Appointment[]>([]);
+
+  // Solo mostrar clientes activos
+  const activeClients = clients.filter(client => client.is_active);
+
+  const activeUsers = employees.filter(user => user.is_active);
+  const activeServices = services.filter(service => service.is_active);
 
   useEffect(() => {
     setFormData(getInitialAppointmentFormValues(appointment));
@@ -198,7 +204,8 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               className={errors.client ? 'form-input error' : 'form-input'}
             >
               <option value="0">Seleccione un cliente...</option>
-              {clients.map(client => (
+              {/* Filtrar para mostrar solo clientes activos */}
+              {activeClients.map(client => (
                 <option key={client.id} value={client.id}>
                   {client.first_name} {client.last_name}
                 </option>
@@ -217,7 +224,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               className={errors.service ? 'form-input error' : 'form-input'}
             >
               <option value="0">Seleccione un servicio...</option>
-              {services.map(service => (
+              {activeServices.map(service => (
                 <option key={service.id} value={service.id}>
                   {service.name} (${service.price} - {service.duration} min)
                 </option>
@@ -287,7 +294,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               className={errors.employee ? 'form-input error' : 'form-input'}
             >
               <option value="0">Seleccione un empleado...</option>
-              {employees.map(employee => (
+              {activeUsers.map(employee => (
                 <option key={employee.id} value={employee.id}>
                   {employee.first_name} {employee.last_name}
                 </option>
