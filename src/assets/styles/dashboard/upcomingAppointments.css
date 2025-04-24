@@ -2,78 +2,67 @@
 .upcoming-appointments-container {
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .widget-title {
-  margin-top: 0;
-  margin-bottom: 20px;
   font-size: 1.25rem;
+  margin: 0;
+  padding: 20px;
+  border-bottom: 1px solid #f1f5f9;
   color: #0d9488;
-  border-bottom: 2px solid #e2f5f4;
-  padding-bottom: 10px;
+}
+
+.appointments-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 15px 15px;
 }
 
 .no-appointments {
   display: flex;
-  flex: 1;
   align-items: center;
   justify-content: center;
+  flex: 1;
+  padding: 30px;
 }
 
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 30px 0;
+  text-align: center;
+  color: #94a3b8;
 }
 
 .empty-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.empty-state p {
-  color: #94a3b8;
-  font-size: 0.95rem;
-}
-
-.appointments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 1;
-  overflow-y: auto;
+  font-size: 24px;
+  margin-bottom: 10px;
+  display: block;
 }
 
 .date-group {
-  display: flex;
-  flex-direction: column;
+  margin-top: 15px;
 }
 
 .date-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  margin-bottom: 8px;
+  padding: 10px 5px 5px;
 }
 
 .date-label {
   font-weight: 600;
+  color: #64748b;
   font-size: 0.9rem;
-  color: #475569;
+  text-transform: capitalize;
 }
 
 .date-count {
-  font-size: 0.75rem;
-  background-color: #f1f5f9;
-  color: #64748b;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  background-color: #f8fafc;
   padding: 2px 8px;
   border-radius: 12px;
 }
@@ -81,58 +70,62 @@
 .appointment-card {
   display: flex;
   align-items: center;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
   background-color: #f8fafc;
-  cursor: pointer;
-  transition: all 0.2s;
-  border-left: 3px solid transparent;
   margin-bottom: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border-left: 3px solid #e2e8f0;
 }
 
 .appointment-card:hover {
+  background-color: #f1f5f9;
   transform: translateY(-2px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  background-color: #f1f5f9;
 }
 
 .appointment-time-block {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 60px;
-  flex-shrink: 0;
+  min-width: 60px;
+  color: #0d9488;
+  font-weight: 600;
 }
 
-.appointment-time {
-  font-size: 0.9rem;
-  font-weight: 600;
+.clock-icon {
+  margin-right: 4px;
   color: #0d9488;
 }
 
 .appointment-info {
   flex: 1;
-  min-width: 0;
-  padding: 0 10px;
+  margin: 0 10px;
+  overflow: hidden;
 }
 
 .appointment-client {
   font-weight: 600;
-  font-size: 0.9rem;
-  color: #0f172a;
-  margin-bottom: 2px;
+  font-size: 0.95rem;
+  color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .appointment-service {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #64748b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.appointment-employee {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 2px;
+  font-style: italic;
 }
 
 .appointment-meta {
@@ -143,27 +136,9 @@
 
 .appointment-status-badge {
   font-size: 0.7rem;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: 3px 6px;
+  border-radius: 4px;
   font-weight: 500;
-  text-align: center;
-}
-
-/* Estilos específicos por estado */
-.appointment-card.status-pending {
-  border-left-color: #fbbf24;
-}
-
-.appointment-card.status-confirmed {
-  border-left-color: #10b981;
-}
-
-.appointment-card.status-cancelled {
-  border-left-color: #ef4444;
-}
-
-.appointment-card.status-completed {
-  border-left-color: #3b82f6;
 }
 
 .status-pending {
@@ -188,18 +163,19 @@
 
 .view-all-link {
   text-align: center;
-  margin-top: auto;
-  padding-top: 15px;
-  border-top: 1px solid #e2e8f0;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
 }
 
 .view-all-link a {
   color: #0d9488;
   font-size: 0.9rem;
-  text-decoration: none;
   font-weight: 500;
-  display: inline-flex;
+  text-decoration: none;
+  display: flex;
   align-items: center;
+  justify-content: center;
   transition: color 0.2s;
 }
 
@@ -208,40 +184,6 @@
 }
 
 .arrow-icon {
-  margin-left: 6px;
-  display: inline-block;
-  transition: transform 0.2s;
-}
-
-.view-all-link a:hover .arrow-icon {
-  transform: translateX(3px);
-}
-
-/* Modificación para mostrar citas por día con una mejor transición visual */
-.appointment-card {
-  border-radius: 6px 6px 6px 6px;
-  margin-bottom: 4px;
-  overflow: hidden;
-  border-left-width: 4px;
-}
-
-/* Aplicar borde izquierdo basado en el estado */
-.appointment-card.status-pending, 
-.appointment-status-badge.status-pending {
-  border-left-color: #fbbf24;
-}
-
-.appointment-card.status-confirmed,
-.appointment-status-badge.status-confirmed {
-  border-left-color: #10b981;
-}
-
-.appointment-card.status-cancelled,
-.appointment-status-badge.status-cancelled {
-  border-left-color: #ef4444;
-}
-
-.appointment-card.status-completed,
-.appointment-status-badge.status-completed {
-  border-left-color: #3b82f6;
+  margin-left: 4px;
+  font-size: 1.1rem;
 }

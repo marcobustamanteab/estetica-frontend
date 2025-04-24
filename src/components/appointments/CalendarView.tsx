@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/components/appointments/CalendarView.tsx
-import React, { useState } from 'react';
+import { useState, useRef } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -23,6 +22,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   onNewAppointment
 }) => {
   const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'>('timeGridWeek');
+  const calendarRef = useRef<FullCalendar>(null);
 
   // Convertir las citas al formato que entiende FullCalendar
   const events = appointments.map(appointment => {
@@ -64,34 +64,45 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     onNewAppointment(date, time);
   };
 
+  // Función para cambiar la vista del calendario
+  const changeView = (view: 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay') => {
+    setCalendarView(view);
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.changeView(view);
+    }
+  };
+
   return (
     <div className="calendar-container">
       <div className="calendar-header">
         <h3>Calendario de Citas</h3>
         <div className="view-selector">
+          {/* Botones invertidos: día, semana, mes */}
           <button 
-            className={calendarView === 'dayGridMonth' ? 'active' : ''} 
-            onClick={() => setCalendarView('dayGridMonth')}
+            className={calendarView === 'timeGridDay' ? 'active' : ''} 
+            onClick={() => changeView('timeGridDay')}
           >
-            Mes
+            Día
           </button>
           <button 
             className={calendarView === 'timeGridWeek' ? 'active' : ''} 
-            onClick={() => setCalendarView('timeGridWeek')}
+            onClick={() => changeView('timeGridWeek')}
           >
             Semana
           </button>
           <button 
-            className={calendarView === 'timeGridDay' ? 'active' : ''} 
-            onClick={() => setCalendarView('timeGridDay')}
+            className={calendarView === 'dayGridMonth' ? 'active' : ''} 
+            onClick={() => changeView('dayGridMonth')}
           >
-            Día
+            Mes
           </button>
         </div>
       </div>
       
       <div className="calendar-wrapper">
         <FullCalendar
+          ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           headerToolbar={{
             left: 'prev,next today',

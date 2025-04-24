@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { Appointment } from '../../hooks/useAppointments';
-import { format, parseISO, isToday, isTomorrow } from 'date-fns';
+import { format, parseISO, isToday, isTomorrow, compareAsc } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Clock } from 'lucide-react';
 import '../../assets/styles/dashboard/upcomingAppointments.css';
 
 interface UpcomingAppointmentsProps {
@@ -21,7 +22,7 @@ const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({
     return dateA.getTime() - dateB.getTime();
   });
 
-  // Tomar solo las próximas 6 citas (antes eran 5)
+  // Tomar solo las próximas 6 citas
   const upcomingAppointments = sortedAppointments.slice(0, 6);
 
   // Formatear fecha para mostrar
@@ -72,6 +73,26 @@ const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({
     return groups;
   }, {} as Record<string, Appointment[]>);
 
+  // Ordenar las fechas para mostrar primero "Hoy", luego "Mañana" y después el resto
+  const orderedDates = Object.keys(groupedAppointments).sort((a, b) => {
+    const dateA = parseISO(a);
+    const dateB = parseISO(b);
+    
+    // Lógica especial para dar prioridad a "Hoy" y "Mañana"
+    const isTodayA = isToday(dateA);
+    const isTodayB = isToday(dateB);
+    const isTomorrowA = isTomorrow(dateA);
+    const isTomorrowB = isTomorrow(dateB);
+    
+    if (isTodayA && !isTodayB) return -1; // Hoy primero
+    if (isTodayB && !isTodayA) return 1;
+    if (isTomorrowA && !isTomorrowB && !isTodayB) return -1; // Mañana segundo
+    if (isTomorrowB && !isTomorrowA && !isTodayA) return 1;
+    
+    // Para el resto, orden cronológico normal
+    return compareAsc(dateA, dateB);
+  });
+
   return (
     <div className="upcoming-appointments-container">
       <h3 className="widget-title">Próximas Citas</h3>
@@ -85,26 +106,30 @@ const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({
         </div>
       ) : (
         <div className="appointments-list">
-          {/* Iterar por fechas agrupadas */}
-          {Object.entries(groupedAppointments).map(([date, dateAppointments]) => (
+          {/* Iterar por fechas ordenadas */}
+          {orderedDates.map(date => (
             <div key={date} className="date-group">
               <div className="date-header">
                 <span className="date-label">{formatDateLabel(date)}</span>
-                <span className="date-count">{dateAppointments.length} {dateAppointments.length === 1 ? 'cita' : 'citas'}</span>
+                <span className="date-count">
+                  {groupedAppointments[date].length} {groupedAppointments[date].length === 1 ? 'cita' : 'citas'}
+                </span>
               </div>
               
-              {dateAppointments.map(appointment => (
+              {groupedAppointments[date].map(appointment => (
                 <div 
                   key={appointment.id} 
                   className="appointment-card"
                   onClick={() => onAppointmentClick(appointment)}
                 >
                   <div className="appointment-time-block">
+                    <Clock size={14} className="clock-icon" />
                     <span className="appointment-time">{appointment.start_time.substring(0, 5)}</span>
                   </div>
                   <div className="appointment-info">
                     <div className="appointment-client">{appointment.client_name}</div>
                     <div className="appointment-service">{appointment.service_name}</div>
+                    <div className="appointment-employee">Con: {appointment.employee_name}</div>
                   </div>
                   <div className="appointment-meta">
                     <span className={`appointment-status-badge ${getStatusClass(appointment.status)}`}>
