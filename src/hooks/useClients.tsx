@@ -8,13 +8,10 @@ type AxiosInstance = ReturnType<typeof axios.create>;
 
 // Configurar la URL base según el entorno (producción o desarrollo)
 const API_BASE_URL = 
-  // En producción, prioriza la variable de entorno o usa la URL de Railway
   import.meta.env.PROD
     ? (import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app')
-    // En desarrollo, siempre usa localhost
     : 'http://localhost:8000';
 
-// Definir la base URL para la API de clientes
 const API_URL = `${API_BASE_URL}/api/clients/`;
 
 // Tipos para manejar los clientes
