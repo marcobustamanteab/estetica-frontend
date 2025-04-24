@@ -1,104 +1,150 @@
 /* src/components/appointments/calendarView.css */
 .calendar-container {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calendar-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #0f172a;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.view-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.view-selector button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-selector button:hover {
+  background-color: #f8fafc;
+}
+
+.view-selector button.active {
+  background-color: #0d9488;
+  color: white;
+  border-color: #0d9488;
+}
+
+.calendar-wrapper {
+  /* Estilos para el contenedor del calendario */
+}
+
+/* Personalizar algunos estilos de FullCalendar */
+:root {
+  --fc-border-color: #e2e8f0;
+  --fc-today-bg-color: #e2f5f4;
+  --fc-event-border-color: transparent;
+  --fc-event-text-color: white;
+  --fc-page-bg-color: white;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.25rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* PERSONALIZACIÓN DE BOTONES DE NAVEGACIÓN */
+/* Estilo base para todos los botones de navegación */
+.fc .fc-button-primary {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  padding: 6px 12px !important;
+  font-size: 14px !important;
+  font-weight: normal !important;
+  transition: all 0.2s !important;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Estilo para el botón today cuando está activo (estamos en el día actual) */
+.fc .fc-today-button.fc-button-active,
+.fc .fc-day-today + .fc-today-button,
+.fc-day-today .fc-today-button {
+  background-color: #0d9488 !important;
+  border-color: #0d9488 !important;
+  color: white !important;
+}
+
+/* Estilo para botones activos */
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: #0d9488 !important;
+  border-color: #0d9488 !important;
+  color: white !important;
+}
+
+/* Estilo para botones deshabilitados */
+.fc .fc-button-primary:disabled {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  opacity: 0.7 !important;
+}
+
+/* Ajustes para botones prev/next */
+.fc .fc-prev-button,
+.fc .fc-next-button {
+  padding: 6px 10px !important;
+}
+
+/* Estilos adicionales para FullCalendar */
+.fc .fc-daygrid-day.fc-day-today,
+.fc .fc-timegrid-col.fc-day-today {
+  background-color: #e2f5f4;
+}
+
+.fc-event-title {
+  font-weight: 500;
+  font-size: 0.9em;
+  padding: 2px 0;
+}
+
+/* Para forzar que el botón today se coloree cuando estamos en el día actual */
+.fc-day-today ~ .fc-toolbar .fc-today-button,
+.fc-toolbar-chunk .fc-today-button[aria-pressed="true"] {
+  background-color: #0d9488 !important;
+  border-color: #0d9488 !important;
+  color: white !important;
+}
+
+@media (max-width: 768px) {
   .calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
-  
-  .calendar-header h3 {
-    margin: 0;
-    font-size: 18px;
-    color: #0f172a;
-    font-weight: 600;
-  }
-  
-  .view-selector {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .view-selector button {
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 14px;
-    border: 1px solid #e2e8f0;
-    background-color: white;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  
-  .view-selector button:hover {
-    background-color: #f8fafc;
-  }
-  
-  .view-selector button.active {
-    background-color: #0d9488;
-    color: white;
-    border-color: #0d9488;
-  }
-  
-  .calendar-wrapper {
-    /* Estilos para el contenedor del calendario */
-  }
-  
-  /* Personalizar algunos estilos de FullCalendar */
-  :root {
-    --fc-border-color: #e2e8f0;
-    --fc-today-bg-color: #e2f5f4;
-    --fc-event-border-color: transparent;
-    --fc-event-text-color: white;
-    --fc-page-bg-color: white;
-  }
-  
-  .fc .fc-toolbar-title {
-    font-size: 1.5em;
-    color: #0f172a;
-  }
-  
-  .fc .fc-button-primary {
-    background-color: #0d9488;
-    border-color: #0d9488;
-  }
-  
-  .fc .fc-button-primary:hover {
-    background-color: #0f766e;
-    border-color: #0f766e;
-  }
-  
-  .fc .fc-button-primary:disabled {
-    background-color: #64748b;
-    border-color: #64748b;
-  }
-  
-  .fc .fc-daygrid-day.fc-day-today,
-  .fc .fc-timegrid-col.fc-day-today {
-    background-color: #e2f5f4;
-  }
-  
-  .fc-event-title {
-    font-weight: 500;
-    font-size: 0.9em;
-    padding: 2px 0;
-  }
-  
-  @media (max-width: 768px) {
-    .calendar-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-    }
     
-    .calendar-wrapper {
-      overflow-x: auto;
-    }
+  .calendar-wrapper {
+    overflow-x: auto;
   }
+}

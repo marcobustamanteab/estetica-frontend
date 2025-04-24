@@ -1,34 +1,40 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react';
-import { useAppointments, Appointment, AppointmentFormData, AppointmentFilters } from '../../hooks/useAppointments';
-import { getAvailableEmployees } from '../../services/availabilityService';
-import { useClients } from '../../hooks/useClients';
-import { useServices } from '../../hooks/useServices';
-import { useUsers, User } from '../../hooks/useUsers';
-import AppointmentFormModal from '../../components/appointments/AppointmentFormModal';
-import AppointmentDetail from '../../components/appointments/AppointmentDetail';
-import CalendarView from '../../components/appointments/CalendarView';
-import DataTable from '../../components/common/DataTable';
-import { createColumnHelper } from '@tanstack/react-table';
-import { format, parseISO } from 'date-fns';
-import { toast } from 'react-toastify';
-import Swal from 'sweetalert2';
-import './appointments.css';
-import { es } from 'date-fns/locale/es';
-
+import { useState, useEffect } from "react";
+import {
+  useAppointments,
+  Appointment,
+  AppointmentFormData,
+  AppointmentFilters,
+} from "../../hooks/useAppointments";
+import { getAvailableEmployees } from "../../services/availabilityService";
+import { useClients } from "../../hooks/useClients";
+import { useServices } from "../../hooks/useServices";
+import { useUsers, User } from "../../hooks/useUsers";
+import AppointmentFormModal from "../../components/appointments/AppointmentFormModal";
+import AppointmentDetail from "../../components/appointments/AppointmentDetail";
+import CalendarView from "../../components/appointments/CalendarView";
+import DataTable from "../../components/common/DataTable";
+import { createColumnHelper } from "@tanstack/react-table";
+import { format, parseISO } from "date-fns";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
+import "./appointments.css";
+import { es } from "date-fns/locale/es";
+import AddIcon from "@mui/icons-material/Add";
 
 // Tipo para las pestañas
-type TabType = 'list' | 'calendar';
+type TabType = "list" | "calendar";
 
 const AppointmentsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('list');
+  const [activeTab, setActiveTab] = useState<TabType>("list");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [, setAvailableEmployees] = useState<User[]>([]);
-  const [filterDate, setFilterDate] = useState<string>('');
-  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterDate, setFilterDate] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
   const [filters, setFilters] = useState<AppointmentFilters>({});
 
   // Hooks para obtener datos
@@ -56,7 +62,6 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
-
   // Cargar datos iniciales
   useEffect(() => {
     // Cargar todos los datos necesarios
@@ -65,13 +70,13 @@ const AppointmentsPage: React.FC = () => {
     fetchUsers();
 
     // Configurar filtro por defecto (hoy)
-    const today = format(new Date(), 'yyyy-MM-dd');
+    const today = format(new Date(), "yyyy-MM-dd");
     setFilterDate(today);
 
     // Cargar citas iniciales
     const initialFilters: AppointmentFilters = {
       date_from: today,
-      date_to: today
+      date_to: today,
     };
     setFilters(initialFilters);
     fetchAppointments(initialFilters);
@@ -89,24 +94,24 @@ const AppointmentsPage: React.FC = () => {
     setActiveTab(tab);
 
     // Si cambiamos a calendario, cargar todas las citas del mes actual
-    if (tab === 'calendar') {
+    if (tab === "calendar") {
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
       const calendarFilters: AppointmentFilters = {
-        date_from: format(firstDay, 'yyyy-MM-dd'),
-        date_to: format(lastDay, 'yyyy-MM-dd')
+        date_from: format(firstDay, "yyyy-MM-dd"),
+        date_to: format(lastDay, "yyyy-MM-dd"),
       };
 
       setFilters(calendarFilters);
     } else {
       // Si volvemos a lista, usar filtro de fecha única
-      const today = format(new Date(), 'yyyy-MM-dd');
+      const today = format(new Date(), "yyyy-MM-dd");
 
       const listFilters: AppointmentFilters = {
         date_from: filterDate || today,
-        date_to: filterDate || today
+        date_to: filterDate || today,
       };
 
       if (filterStatus) {
@@ -123,10 +128,14 @@ const AppointmentsPage: React.FC = () => {
     setIsModalOpen(true);
 
     if (date && time) {
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      console.log(time)
+      const formattedDate = format(date, "yyyy-MM-dd");
+      console.log(time);
       setFilterDate(formattedDate);
-      setFilters({ ...filters, date_from: formattedDate, date_to: formattedDate });
+      setFilters({
+        ...filters,
+        date_from: formattedDate,
+        date_to: formattedDate,
+      });
     }
 
     // Si proporcionaron fecha y hora, pasar como valores iniciales al modal
@@ -149,24 +158,24 @@ const AppointmentsPage: React.FC = () => {
   // Eliminar una cita con confirmación
   const handleDeleteAppointment = async (id: number) => {
     const result = await Swal.fire({
-      title: '¿Eliminar cita?',
-      text: 'Esta acción no se puede deshacer',
-      icon: 'warning',
+      title: "¿Eliminar cita?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
     });
 
     if (result.isConfirmed) {
       try {
         await deleteAppointment(id);
         setShowDetail(false);
-        toast.success('Cita eliminada correctamente');
+        toast.success("Cita eliminada correctamente");
       } catch (error) {
-        console.error('Error al eliminar cita:', error);
-        toast.error('Ocurrió un error al eliminar la cita');
+        console.error("Error al eliminar cita:", error);
+        toast.error("Ocurrió un error al eliminar la cita");
       }
     }
   };
@@ -176,35 +185,43 @@ const AppointmentsPage: React.FC = () => {
     try {
       await changeAppointmentStatus(id, status);
       setShowDetail(false);
-      toast.success(`Estado de la cita actualizado a: ${getStatusText(status)}`);
+      toast.success(
+        `Estado de la cita actualizado a: ${getStatusText(status)}`
+      );
     } catch (error) {
-      console.error('Error al cambiar estado:', error);
-      toast.error('Ocurrió un error al cambiar el estado de la cita');
+      console.error("Error al cambiar estado:", error);
+      toast.error("Ocurrió un error al cambiar el estado de la cita");
     }
   };
 
   // Guardar una cita (crear o actualizar)
-  const handleSaveAppointment = async (appointmentData: AppointmentFormData) => {
+  const handleSaveAppointment = async (
+    appointmentData: AppointmentFormData
+  ) => {
     setIsModalOpen(false);
 
     try {
       if (selectedAppointment) {
         // Actualizar cita existente
         await updateAppointment(selectedAppointment.id, appointmentData);
-        toast.success('Cita actualizada correctamente');
+        toast.success("Cita actualizada correctamente");
       } else {
         // Crear nueva cita
         await createAppointment(appointmentData);
-        toast.success('Cita creada correctamente');
+        toast.success("Cita creada correctamente");
       }
     } catch (error) {
-      console.error('Error al guardar cita:', error);
-      toast.error('Ocurrió un error al guardar la cita');
+      console.error("Error al guardar cita:", error);
+      toast.error("Ocurrió un error al guardar la cita");
     }
   };
 
   // Verificar disponibilidad de empleados
-  const handleCheckAvailability = async (date: string, startTime: string, serviceId: number) => {
+  const handleCheckAvailability = async (
+    date: string,
+    startTime: string,
+    serviceId: number
+  ) => {
     try {
       // Usar la función corregida que toma exactamente tres parámetros
       const availableEmployeesResult = await getAvailableEmployees(
@@ -219,18 +236,23 @@ const AppointmentsPage: React.FC = () => {
       // Actualizar el estado con los empleados disponibles
       setAvailableEmployees(availableEmployeesResult);
     } catch (error) {
-      console.error('Error al verificar disponibilidad:', error);
+      console.error("Error al verificar disponibilidad:", error);
     }
   };
 
   // Obtener texto del estado
   const getStatusText = (status: string): string => {
     switch (status) {
-      case 'pending': return 'Pendiente';
-      case 'confirmed': return 'Confirmada';
-      case 'cancelled': return 'Cancelada';
-      case 'completed': return 'Completada';
-      default: return status;
+      case "pending":
+        return "Pendiente";
+      case "confirmed":
+        return "Confirmada";
+      case "cancelled":
+        return "Cancelada";
+      case "completed":
+        return "Completada";
+      default:
+        return status;
     }
   };
 
@@ -261,7 +283,7 @@ const AppointmentsPage: React.FC = () => {
 
   // Manejar clic en fecha en el calendario
   const handleCalendarDateClick = (date: Date) => {
-    const formattedDate = format(date, 'yyyy-MM-dd');
+    const formattedDate = format(date, "yyyy-MM-dd");
     setFilterDate(formattedDate);
 
     // Actualizar filtros para ver citas de ese día
@@ -271,7 +293,7 @@ const AppointmentsPage: React.FC = () => {
     setFilters(newFilters);
 
     // Cambiar a la vista de lista
-    setActiveTab('list');
+    setActiveTab("list");
   };
 
   // Crear nueva cita desde el calendario
@@ -283,38 +305,38 @@ const AppointmentsPage: React.FC = () => {
   const appointmentColumnHelper = createColumnHelper<Appointment>();
 
   const appointmentColumns = [
-    appointmentColumnHelper.accessor('client_name', {
-      header: 'Cliente',
-      cell: info => info.getValue(),
+    appointmentColumnHelper.accessor("client_name", {
+      header: "Cliente",
+      cell: (info) => info.getValue(),
     }),
-    appointmentColumnHelper.accessor('service_name', {
-      header: 'Servicio',
-      cell: info => info.getValue(),
+    appointmentColumnHelper.accessor("service_name", {
+      header: "Servicio",
+      cell: (info) => info.getValue(),
     }),
-    appointmentColumnHelper.accessor('employee_name', {
-      header: 'Empleado',
-      cell: info => info.getValue(),
+    appointmentColumnHelper.accessor("employee_name", {
+      header: "Empleado",
+      cell: (info) => info.getValue(),
     }),
-    appointmentColumnHelper.accessor('date', {
-      header: 'Fecha',
-      cell: info => formatDate(info.getValue()),
+    appointmentColumnHelper.accessor("date", {
+      header: "Fecha",
+      cell: (info) => formatDate(info.getValue()),
     }),
-    appointmentColumnHelper.accessor('start_time', {
-      header: 'Hora',
-      cell: info => `${info.getValue()} - ${info.row.original.end_time}`,
+    appointmentColumnHelper.accessor("start_time", {
+      header: "Hora",
+      cell: (info) => `${info.getValue()} - ${info.row.original.end_time}`,
     }),
-    appointmentColumnHelper.accessor('status', {
-      header: 'Estado',
-      cell: info => (
+    appointmentColumnHelper.accessor("status", {
+      header: "Estado",
+      cell: (info) => (
         <span className={`status-badge status-${info.getValue()}`}>
           {getStatusText(info.getValue())}
         </span>
       ),
     }),
     appointmentColumnHelper.display({
-      id: 'actions',
-      header: 'Acciones',
-      cell: info => (
+      id: "actions",
+      header: "Acciones",
+      cell: (info) => (
         <button
           className="view-button"
           onClick={() => handleViewAppointment(info.row.original)}
@@ -329,7 +351,6 @@ const AppointmentsPage: React.FC = () => {
     <div className="appointments-page">
       <div className="page-header">
         <h2>Gestión de Citas</h2>
-        <button className="add-button" onClick={() => handleAddAppointment()}>Nueva Cita</button>
       </div>
 
       {appointmentsError && (
@@ -341,21 +362,21 @@ const AppointmentsPage: React.FC = () => {
       {/* Pestañas */}
       <div className="tab-navigation">
         <button
-          className={`tab-button ${activeTab === 'list' ? 'active' : ''}`}
-          onClick={() => handleTabChange('list')}
+          className={`tab-button ${activeTab === "list" ? "active" : ""}`}
+          onClick={() => handleTabChange("list")}
         >
           Lista de Citas
         </button>
         <button
-          className={`tab-button ${activeTab === 'calendar' ? 'active' : ''}`}
-          onClick={() => handleTabChange('calendar')}
+          className={`tab-button ${activeTab === "calendar" ? "active" : ""}`}
+          onClick={() => handleTabChange("calendar")}
         >
           Calendario
         </button>
       </div>
 
       {/* Vista de Lista */}
-      {activeTab === 'list' && (
+      {activeTab === "list" && (
         <>
           {/* Filtros */}
           <div className="filters-container">
@@ -385,6 +406,14 @@ const AppointmentsPage: React.FC = () => {
                 <option value="completed">Completada</option>
               </select>
             </div>
+            <div className="button-container">
+              <button
+                className="add-button"
+                onClick={() => handleAddAppointment()}
+              >
+                <AddIcon fontSize="small"></AddIcon>  Crear nueva Cita
+              </button>
+            </div>
           </div>
 
           {/* Lista de citas */}
@@ -394,7 +423,12 @@ const AppointmentsPage: React.FC = () => {
             ) : appointments.length === 0 ? (
               <div className="empty-state">
                 <p>No hay citas para los filtros seleccionados</p>
-                <button className="add-button" onClick={() => handleAddAppointment()}>Crear Nueva Cita</button>
+                <button
+                  className="add-button"
+                  onClick={() => handleAddAppointment()}
+                >
+                  Crear Nueva Cita
+                </button>
               </div>
             ) : (
               <DataTable
@@ -408,12 +442,13 @@ const AppointmentsPage: React.FC = () => {
       )}
 
       {/* Vista de Calendario */}
-      {activeTab === 'calendar' && (
+      {activeTab === "calendar" && (
         <CalendarView
           appointments={appointments}
           onDateClick={handleCalendarDateClick}
           onEventClick={handleViewAppointment}
           onNewAppointment={handleNewAppointmentFromCalendar}
+          handleAddAppointment={handleAddAppointment} 
         />
       )}
 
@@ -424,7 +459,7 @@ const AppointmentsPage: React.FC = () => {
           clients={clients}
           services={services}
           employees={employees}
-          allAppointments={appointments} 
+          allAppointments={appointments}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveAppointment}
           onCheckAvailability={handleCheckAvailability}
@@ -437,7 +472,9 @@ const AppointmentsPage: React.FC = () => {
           <AppointmentDetail
             appointment={selectedAppointment}
             onClose={() => setShowDetail(false)}
-            onChangeStatus={(status: string) => handleChangeStatus(selectedAppointment.id, status)}
+            onChangeStatus={(status: string) =>
+              handleChangeStatus(selectedAppointment.id, status)
+            }
             onEdit={() => handleEditAppointment(selectedAppointment)}
             onDelete={() => handleDeleteAppointment(selectedAppointment.id)}
           />

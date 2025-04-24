@@ -7,19 +7,22 @@ import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
 import { Appointment } from '../../hooks/useAppointments';
 import '../../assets/styles/appointments/calendarView.css';
+import AddIcon from '@mui/icons-material/Add';
 
 interface CalendarViewProps {
   appointments: Appointment[];
   onDateClick: (date: Date) => void;
   onEventClick: (appointment: Appointment) => void;
   onNewAppointment: (date: Date, time: string) => void;
+  handleAddAppointment: () => void; // Handler para el botón de nueva cita
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({ 
   appointments, 
   onDateClick,
   onEventClick,
-  onNewAppointment
+  onNewAppointment,
+  handleAddAppointment
 }) => {
   const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'>('timeGridWeek');
   const calendarRef = useRef<FullCalendar>(null);
@@ -76,26 +79,35 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   return (
     <div className="calendar-container">
       <div className="calendar-header">
-        <h3>Calendario de Citas</h3>
-        <div className="view-selector">
-          {/* Botones invertidos: día, semana, mes */}
-          <button 
-            className={calendarView === 'timeGridDay' ? 'active' : ''} 
-            onClick={() => changeView('timeGridDay')}
+        <div className="calendar-title-section">
+          <h3>Calendario de Citas</h3>
+          <div className="view-selector mt-3">
+            <button 
+              className={calendarView === 'timeGridDay' ? 'active' : ''} 
+              onClick={() => changeView('timeGridDay')}
+            >
+              Día
+            </button>
+            <button 
+              className={calendarView === 'timeGridWeek' ? 'active' : ''} 
+              onClick={() => changeView('timeGridWeek')}
+            >
+              Semana
+            </button>
+            <button 
+              className={calendarView === 'dayGridMonth' ? 'active' : ''} 
+              onClick={() => changeView('dayGridMonth')}
+            >
+              Mes
+            </button>
+          </div>
+        </div>
+        <div className="calendar-actions">
+          <button
+            className="add-button"
+            onClick={handleAddAppointment}
           >
-            Día
-          </button>
-          <button 
-            className={calendarView === 'timeGridWeek' ? 'active' : ''} 
-            onClick={() => changeView('timeGridWeek')}
-          >
-            Semana
-          </button>
-          <button 
-            className={calendarView === 'dayGridMonth' ? 'active' : ''} 
-            onClick={() => changeView('dayGridMonth')}
-          >
-            Mes
+            <AddIcon fontSize="small" /> Crear nueva Cita
           </button>
         </div>
       </div>
