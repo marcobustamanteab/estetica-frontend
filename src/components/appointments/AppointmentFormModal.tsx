@@ -1,14 +1,14 @@
-// Modificación al componente AppointmentFormModal
-
-import React, { useState, useEffect } from 'react';
+// src/components/appointments/AppointmentFormModal.tsx
+import React, { useState, useEffect, useRef } from 'react';
 import { Appointment } from '../../hooks/useAppointments';
 import { Client } from '../../hooks/useClients';
-import { Service } from '../../hooks/useServices';
+import { Service, ServiceCategory } from '../../hooks/useServices';
 import { User } from '../../hooks/useUsers';
 import { AppointmentFormValues, getInitialAppointmentFormValues, validateAppointmentForm } from '../../forms/appointmentsFormValues';
 import '../common/modal.css';
 import '../../assets/styles/appointments/appointmentForm.css';
 import { checkEmployeeAvailability, isOverlapping } from '../../services/availabilityService';
+import { format } from 'date-fns';
 
 interface AppointmentFormModalProps {
   appointment: Appointment | null;
@@ -37,37 +37,111 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [conflictingAppointment, setConflictingAppointment] = useState<Appointment | null>(null);
   const [cancelledAppointments, setCancelledAppointments] = useState<Appointment[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  
+  // Referencias para los campos de input que necesitamos manipular
+  const startTimeInputRef = useRef<HTMLInputElement>(null);
+  const endTimeInputRef = useRef<HTMLInputElement>(null);
+
+  // Obtener fecha y hora actual para las restricciones
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const now = new Date();
+  const currentHourStr = format(now, 'HH:mm');
+  const minTime = format(now, 'HH:mm');
 
   // Solo mostrar clientes activos
   const activeClients = clients.filter(client => client.is_active);
-
   const activeUsers = employees.filter(user => user.is_active);
   const activeServices = services.filter(service => service.is_active);
 
+  // Extraer las categorías únicas de los servicios
   useEffect(() => {
-    setFormData(getInitialAppointmentFormValues(appointment));
+    if (services.length > 0) {
+      // Crear un mapa para evitar categorías duplicadas
+      const categoriesMap = new Map<number, ServiceCategory>();
+      
+      services.forEach(service => {
+        if (service.category && !categoriesMap.has(service.category)) {
+          categoriesMap.set(service.category, {
+            id: service.category,
+            name: service.category_name || 'Sin nombre',
+            description: '',
+            is_active: true
+          });
+        }
+      });
+      
+      // Convertir el mapa a array y ordenar por nombre
+      const categoriesArray = Array.from(categoriesMap.values()).sort((a, b) => 
+        a.name.localeCompare(b.name)
+      );
+      
+      setCategories(categoriesArray);
+    }
+  }, [services]);
 
-    // Seleccionar el servicio actual si está editando
+  // Filtrar servicios cuando cambia la categoría seleccionada
+  useEffect(() => {
+    if (selectedCategoryId) {
+      const servicesInCategory = activeServices.filter(
+        service => service.category === selectedCategoryId
+      );
+      setFilteredServices(servicesInCategory);
+    } else {
+      setFilteredServices(activeServices);
+    }
+  }, [selectedCategoryId, activeServices]);
+
+  useEffect(() => {
+    // Si estamos editando una cita pasada, usamos esa fecha, de lo contrario usamos el valor por defecto
+    const initialData = getInitialAppointmentFormValues(appointment);
+    
+    // Si es una nueva cita, establecer la fecha como hoy por defecto
+    if (!appointment) {
+      initialData.date = today;
+    }
+    
+    setFormData(initialData);
+
+    // Si estamos editando, seleccionar el servicio y la categoría actuales
     if (appointment) {
       const service = services.find(s => s.id === appointment.service) || null;
       setSelectedService(service);
+      
+      if (service && service.category) {
+        setSelectedCategoryId(service.category);
+      }
     }
-  }, [appointment, services]);
+  }, [appointment, services, today]);
 
-  // Cuando cambia el servicio, actualizar la hora de fin basado en la duración
+  // Cuando cambia el servicio o la hora de inicio, actualizar la hora de fin basado en la duración
   useEffect(() => {
     if (selectedService && formData.start_time) {
-      const [hours, minutes] = formData.start_time.split(':').map(Number);
-      const startDate = new Date();
-      startDate.setHours(hours, minutes, 0, 0);
+      try {
+        // Convertir la hora de inicio a un objeto Date para poder sumar minutos
+        const [hours, minutes] = formData.start_time.split(':').map(Number);
+        const startDate = new Date();
+        startDate.setHours(hours, minutes, 0, 0);
 
-      const endDate = new Date(startDate.getTime() + selectedService.duration * 60000);
-      const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+        // Sumar la duración del servicio
+        const endDate = new Date(startDate.getTime() + selectedService.duration * 60000);
+        const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
 
-      setFormData(prev => ({
-        ...prev,
-        end_time: endTime
-      }));
+        // Actualizar el formulario con la nueva hora de fin
+        setFormData(prev => ({
+          ...prev,
+          end_time: endTime
+        }));
+        
+        // Actualizar directamente el input si existe
+        if (endTimeInputRef.current) {
+          endTimeInputRef.current.value = endTime;
+        }
+      } catch (error) {
+        console.error("Error calculando la hora de fin:", error);
+      }
     }
   }, [selectedService, formData.start_time]);
 
@@ -109,9 +183,9 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
       // Buscar citas canceladas para este empleado en este horario
       const cancelledAppts = allAppointments.filter(
         a => a.employee === formData.employee && 
-             a.date === formData.date && 
-             a.status === 'cancelled' &&
-             isOverlapping(formData.start_time, formData.end_time, a.start_time, a.end_time)
+           a.date === formData.date && 
+           a.status === 'cancelled' &&
+           isOverlapping(formData.start_time, formData.end_time, a.start_time, a.end_time)
       );
       
       setCancelledAppointments(cancelledAppts);
@@ -123,14 +197,88 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     }
   }, [formData.employee, formData.date, formData.start_time, formData.end_time, allAppointments, appointment, employees]);
 
+  // Validar la fecha y hora seleccionadas
+  useEffect(() => {
+    // Si la fecha es anterior a hoy, mostrar error
+    if (formData.date && formData.date < today && !appointment) {
+      setErrors(prev => ({
+        ...prev,
+        date: 'No se pueden agendar citas en fechas pasadas'
+      }));
+    } 
+    // Si es hoy y la hora seleccionada es anterior a la hora actual
+    else if (formData.date === today && formData.start_time && formData.start_time < minTime && !appointment) {
+      setErrors(prev => ({
+        ...prev,
+        start_time: 'No se pueden agendar citas en horarios pasados'
+      }));
+    } else {
+      // Limpiar errores si todo está bien
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.date;
+        delete newErrors.start_time;
+        return newErrors;
+      });
+    }
+  }, [formData.date, formData.start_time, today, minTime, appointment]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    // Manejar cambio de categoría
+    if (name === 'category') {
+      const categoryId = value ? Number(value) : null;
+      setSelectedCategoryId(categoryId);
+      
+      // Al cambiar la categoría, resetear el servicio seleccionado
+      setFormData(prev => ({
+        ...prev,
+        service: 0
+      }));
+      setSelectedService(null);
+      return;
+    }
 
     // Manejar servicios para calcular automáticamente la hora de fin
     if (name === 'service') {
       const serviceId = Number(value);
       const service = services.find(s => s.id === serviceId) || null;
       setSelectedService(service);
+      
+      // Si ya hay una hora de inicio, calcular la hora de fin
+      if (service && formData.start_time) {
+        try {
+          const [hours, minutes] = formData.start_time.split(':').map(Number);
+          const startDate = new Date();
+          startDate.setHours(hours, minutes, 0, 0);
+          
+          const endDate = new Date(startDate.getTime() + service.duration * 60000);
+          const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+          
+          setFormData(prev => ({
+            ...prev,
+            end_time: endTime,
+            service: serviceId
+          }));
+          
+          if (endTimeInputRef.current) {
+            endTimeInputRef.current.value = endTime;
+          }
+        } catch (error) {
+          console.error("Error calculando la hora de fin:", error);
+          setFormData(prev => ({
+            ...prev,
+            service: serviceId
+          }));
+        }
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          service: serviceId
+        }));
+      }
+      return;
     }
 
     // Cuando cambia la fecha o la hora, verificar disponibilidad
@@ -144,9 +292,66 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
       }
     }
 
+    // Validar fecha pasada
+    if (name === 'date' && value < today && !appointment) {
+      setErrors(prev => ({
+        ...prev,
+        date: 'No se pueden agendar citas en fechas pasadas'
+      }));
+    } else if (name === 'date') {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.date;
+        return newErrors;
+      });
+    }
+
+    // Validar hora pasada si es hoy
+    if (name === 'start_time' && formData.date === today && value < minTime && !appointment) {
+      setErrors(prev => ({
+        ...prev,
+        start_time: 'No se pueden agendar citas en horarios pasados'
+      }));
+    } else if (name === 'start_time') {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.start_time;
+        return newErrors;
+      });
+      
+      // Si tenemos un servicio seleccionado, actualizar la hora de fin
+      if (selectedService) {
+        try {
+          const [hours, minutes] = value.split(':').map(Number);
+          const startDate = new Date();
+          startDate.setHours(hours, minutes, 0, 0);
+          
+          const endDate = new Date(startDate.getTime() + selectedService.duration * 60000);
+          const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+          
+          setFormData(prev => ({
+            ...prev,
+            start_time: value,
+            end_time: endTime
+          }));
+          
+          if (endTimeInputRef.current) {
+            endTimeInputRef.current.value = endTime;
+          }
+        } catch (error) {
+          console.error("Error calculando la hora de fin:", error);
+          setFormData(prev => ({
+            ...prev,
+            start_time: value
+          }));
+        }
+        return;
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'service' || name === 'client' || name === 'employee' ? Number(value) : value
     }));
   };
 
@@ -155,15 +360,30 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
 
     // Si hay un conflicto de disponibilidad, mostrar error
     if (availabilityError) {
-      // Podemos optar por impedir el envío o permitirlo con una confirmación
-      // Aquí optamos por impedir el envío
+      return;
+    }
+
+    // Validar fecha y hora
+    if (formData.date < today && !appointment) {
+      setErrors(prev => ({
+        ...prev,
+        date: 'No se pueden agendar citas en fechas pasadas'
+      }));
+      return;
+    }
+
+    if (formData.date === today && formData.start_time < minTime && !appointment) {
+      setErrors(prev => ({
+        ...prev,
+        start_time: 'No se pueden agendar citas en horarios pasados'
+      }));
       return;
     }
 
     const formErrors = validateAppointmentForm(formData);
-    setErrors(formErrors);
+    setErrors(prev => ({ ...prev, ...formErrors }));
 
-    if (Object.keys(formErrors).length > 0) return;
+    if (Object.keys(errors).length > 0) return;
 
     onSave(formData);
   };
@@ -204,7 +424,6 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               className={errors.client ? 'form-input error' : 'form-input'}
             >
               <option value="0">Seleccione un cliente...</option>
-              {/* Filtrar para mostrar solo clientes activos */}
               {activeClients.map(client => (
                 <option key={client.id} value={client.id}>
                   {client.first_name} {client.last_name}
@@ -214,6 +433,26 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             {errors.client && <span className="error-message">{errors.client}</span>}
           </div>
 
+          {/* Selector de categoría */}
+          <div className="form-group">
+            <label htmlFor="category">Categoría de Servicio</label>
+            <select
+              id="category"
+              name="category"
+              value={selectedCategoryId || ''}
+              onChange={handleChange}
+              className="form-input"
+            >
+              <option value="">Seleccione una categoría...</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Selector de servicio filtrado por categoría */}
           <div className="form-group">
             <label htmlFor="service">Servicio</label>
             <select
@@ -222,9 +461,10 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               value={formData.service}
               onChange={handleChange}
               className={errors.service ? 'form-input error' : 'form-input'}
+              disabled={!selectedCategoryId}
             >
               <option value="0">Seleccione un servicio...</option>
-              {activeServices.map(service => (
+              {filteredServices.map(service => (
                 <option key={service.id} value={service.id}>
                   {service.name} (${service.price} - {service.duration} min)
                 </option>
@@ -249,6 +489,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 value={formData.date}
                 onChange={handleChange}
                 className={errors.date ? 'form-input error' : 'form-input'}
+                min={today} // Restringir a fechas futuras
               />
               {errors.date && <span className="error-message">{errors.date}</span>}
             </div>
@@ -262,8 +503,15 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 value={formData.start_time}
                 onChange={handleChange}
                 className={errors.start_time ? 'form-input error' : 'form-input'}
+                ref={startTimeInputRef}
+                min={formData.date === today ? minTime : "06:00"}
+                max="23:59"
+                step="60" // Permitir cualquier minuto
               />
               {errors.start_time && <span className="error-message">{errors.start_time}</span>}
+              {formData.date === today && (
+                <span className="help-text">Mínimo: {currentHourStr} (hora actual)</span>
+              )}
             </div>
 
             <div className="form-group">
@@ -276,6 +524,10 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 onChange={handleChange}
                 className={errors.end_time ? 'form-input error' : 'form-input'}
                 readOnly={!!selectedService} // Hacer solo lectura si hay servicio seleccionado
+                ref={endTimeInputRef}
+                min={formData.start_time}
+                max="23:59"
+                step="60" // Permitir cualquier minuto
               />
               {errors.end_time && <span className="error-message">{errors.end_time}</span>}
               {selectedService && (
@@ -352,8 +604,8 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             <button type="button" className="cancel-button" onClick={onClose}>Cancelar</button>
             <button
               type="submit"
-              className={availabilityError ? "save-button disabled" : "save-button"}
-              disabled={!!availabilityError}
+              className={availabilityError || Object.keys(errors).length > 0 ? "save-button disabled" : "save-button"}
+              disabled={!!availabilityError || Object.keys(errors).length > 0}
             >
               Guardar
             </button>
