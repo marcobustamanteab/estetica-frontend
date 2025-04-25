@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -8,7 +8,6 @@ import esLocale from '@fullcalendar/core/locales/es';
 import { Appointment } from '../../hooks/useAppointments';
 import '../../assets/styles/appointments/calendarView.css';
 import AddIcon from '@mui/icons-material/Add';
-import { isBefore, startOfDay } from 'date-fns';
 
 interface CalendarViewProps {
   appointments: Appointment[];
@@ -27,37 +26,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 }) => {
   const [calendarView, setCalendarView] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'>('timeGridWeek');
   const calendarRef = useRef<FullCalendar>(null);
-  const [minTime, setMinTime] = useState<string>("07:00:00");
-  const validRange = {
-    start: startOfDay(new Date())
-  };
-
-  // Configurar la hora mínima para hoy cuando sea el día actual
-  useEffect(() => {
-    // Actualizar la hora mínima para hoy si es necesario
-    if (calendarView === 'timeGridDay' || calendarView === 'timeGridWeek') {
-      // Obtener la fecha actual del calendario
-      if (calendarRef.current) {
-        const calendarApi = calendarRef.current.getApi();
-        const currentDate = calendarApi.getDate();
-        
-        // Si la fecha visible es hoy, establecer la hora mínima como la hora actual
-        if (isSameDay(currentDate, new Date())) {
-          const now = new Date();
-          const currentHour = now.getHours();
-          const currentMinute = now.getMinutes();
-          // Redondear a la siguiente media hora
-          const roundedMinute = currentMinute < 30 ? 30 : 0;
-          const roundedHour = currentMinute < 30 ? currentHour : currentHour + 1;
-          
-          setMinTime(`${roundedHour.toString().padStart(2, '0')}:${roundedMinute.toString().padStart(2, '0')}:00`);
-        } else {
-          // Para otros días, hora mínima es el inicio del día laboral
-          setMinTime("07:00:00");
-        }
-      }
-    }
-  }, [calendarView]);
 
   // Convertir las citas al formato que entiende FullCalendar
   const events = appointments.map(appointment => {
@@ -81,15 +49,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     };
   });
 
-  // Función auxiliar para comprobar si dos fechas son el mismo día
-  const isSameDay = (date1: Date, date2: Date): boolean => {
-    return (
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate()
-    );
-  };
-
   // Manejar clic en evento (cita)
   const handleEventClick = (info: any) => {
     const appointment = info.event.extendedProps.appointment;
@@ -98,29 +57,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   // Manejar clic en fecha
   const handleDateClick = (info: any) => {
-    // Ignorar clics en fechas pasadas
-    const clickedDate = new Date(info.date);
-    const today = startOfDay(new Date());
-    
-    if (isBefore(clickedDate, today)) {
-      // Si es una fecha pasada, no hacer nada o mostrar mensaje
-      return;
-    }
-    
     onDateClick(info.date);
   };
 
   // Manejar creación de nueva cita
   const handleDateSelect = (info: any) => {
-    // Ignorar selecciones en fechas/horas pasadas
-    const selectedStart = new Date(info.start);
-    const now = new Date();
-    
-    if (isBefore(selectedStart, now)) {
-      // Si es un tiempo pasado, no hacer nada o mostrar mensaje
-      return;
-    }
-    
     const date = info.start;
     const time = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
     onNewAppointment(date, time);
@@ -132,24 +73,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       calendarApi.changeView(view);
-      
-      // Actualizar minTime si es necesario
-      if (view === 'timeGridDay' || view === 'timeGridWeek') {
-        const currentDate = calendarApi.getDate();
-        
-        if (isSameDay(currentDate, new Date())) {
-          const now = new Date();
-          const currentHour = now.getHours();
-          const currentMinute = now.getMinutes();
-          // Redondear a la siguiente media hora
-          const roundedMinute = currentMinute < 30 ? 30 : 0;
-          const roundedHour = currentMinute < 30 ? currentHour : currentHour + 1;
-          
-          setMinTime(`${roundedHour.toString().padStart(2, '0')}:${roundedMinute.toString().padStart(2, '0')}:00`);
-        } else {
-          setMinTime("07:00:00");
-        }
-      }
     }
   };
 
@@ -208,25 +131,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           select={handleDateSelect}
           editable={false}
           dayMaxEvents={true}
-          slotMinTime={minTime}
+          slotMinTime="07:00:00"
           slotMaxTime="21:00:00"
           allDaySlot={false}
           slotDuration="00:30:00"
           stickyHeaderDates={true}
           height="auto"
           contentHeight={700}
-          validRange={validRange}
-          selectConstraint={validRange}
-          selectAllow={(selectInfo) => {
-            // No permitir selecciones en el pasado
-            return !isBefore(selectInfo.start, new Date());
-          }}
-          dayCellClassNames={(args) => {
-            // Añadir clase para días pasados
-            const cellDate = args.date;
-            const today = startOfDay(new Date());
-            return isBefore(cellDate, today) ? 'past-day' : '';
-          }}
         />
       </div>
     </div>
