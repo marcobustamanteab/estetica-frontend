@@ -395,7 +395,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
           <h3>{appointment ? 'Editar Cita' : 'Nueva Cita'}</h3>
           <button className="close-button" onClick={onClose}>&times;</button>
         </div>
-
+  
         <form onSubmit={handleSubmit} className="form">
           {availabilityError && (
             <div className="availability-alert">
@@ -413,72 +413,100 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               )}
             </div>
           )}
-
-          <div className="form-group">
-            <label htmlFor="client">Cliente</label>
-            <select
-              id="client"
-              name="client"
-              value={formData.client}
-              onChange={handleChange}
-              className={errors.client ? 'form-input error' : 'form-input'}
-            >
-              <option value="0">Seleccione un cliente...</option>
-              {activeClients.map(client => (
-                <option key={client.id} value={client.id}>
-                  {client.first_name} {client.last_name}
-                </option>
-              ))}
-            </select>
-            {errors.client && <span className="error-message">{errors.client}</span>}
+  
+          {/* Primera fila: Categoría y Servicio */}
+          <div className="form-row">
+            {/* Selector de categoría */}
+            <div className="form-group">
+              <label htmlFor="category">Categoría de Servicio</label>
+              <select
+                id="category"
+                name="category"
+                value={selectedCategoryId || ''}
+                onChange={handleChange}
+                className="form-input"
+              >
+                <option value="">Seleccione una categoría...</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+  
+            {/* Selector de servicio filtrado por categoría */}
+            <div className="form-group">
+              <label htmlFor="service">Servicio</label>
+              <select
+                id="service"
+                name="service"
+                value={formData.service}
+                onChange={handleChange}
+                className={errors.service ? 'form-input error' : 'form-input'}
+                disabled={!selectedCategoryId}
+              >
+                <option value="0">Seleccione un servicio...</option>
+                {filteredServices.map(service => (
+                  <option key={service.id} value={service.id}>
+                    {service.name} (${service.price} - {service.duration} min)
+                  </option>
+                ))}
+              </select>
+              {errors.service && <span className="error-message">{errors.service}</span>}
+            </div>
           </div>
-
-          {/* Selector de categoría */}
-          <div className="form-group">
-            <label htmlFor="category">Categoría de Servicio</label>
-            <select
-              id="category"
-              name="category"
-              value={selectedCategoryId || ''}
-              onChange={handleChange}
-              className="form-input"
-            >
-              <option value="">Seleccione una categoría...</option>
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+  
+          {/* Segunda fila: Empleado y Cliente */}
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="employee">Empleado</label>
+              <select
+                id="employee"
+                name="employee"
+                value={formData.employee}
+                onChange={handleChange}
+                className={errors.employee ? 'form-input error' : 'form-input'}
+              >
+                <option value="0">Seleccione un empleado...</option>
+                {activeUsers.map(employee => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.first_name} {employee.last_name}
+                  </option>
+                ))}
+              </select>
+              {errors.employee && <span className="error-message">{errors.employee}</span>}
+            </div>
+  
+            <div className="form-group">
+              <label htmlFor="client">Cliente</label>
+              <select
+                id="client"
+                name="client"
+                value={formData.client}
+                onChange={handleChange}
+                className={errors.client ? 'form-input error' : 'form-input'}
+              >
+                <option value="0">Seleccione un cliente...</option>
+                {activeClients.map(client => (
+                  <option key={client.id} value={client.id}>
+                    {client.first_name} {client.last_name}
+                  </option>
+                ))}
+              </select>
+              {errors.client && <span className="error-message">{errors.client}</span>}
+            </div>
           </div>
-
-          {/* Selector de servicio filtrado por categoría */}
-          <div className="form-group">
-            <label htmlFor="service">Servicio</label>
-            <select
-              id="service"
-              name="service"
-              value={formData.service}
-              onChange={handleChange}
-              className={errors.service ? 'form-input error' : 'form-input'}
-              disabled={!selectedCategoryId}
-            >
-              <option value="0">Seleccione un servicio...</option>
-              {filteredServices.map(service => (
-                <option key={service.id} value={service.id}>
-                  {service.name} (${service.price} - {service.duration} min)
-                </option>
-              ))}
-            </select>
-            {errors.service && <span className="error-message">{errors.service}</span>}
-            {selectedService && (
-              <div className="service-info">
-                <p><strong>Duración:</strong> {selectedService.duration} minutos</p>
-                <p><strong>Precio:</strong> ${selectedService.price}</p>
-              </div>
-            )}
-          </div>
-
+  
+          {/* Información del servicio seleccionado */}
+          {selectedService && (
+            <div className="service-info">
+              <p><strong>Duración:</strong> {selectedService.duration} minutos</p>
+              <p><strong>Precio:</strong> ${selectedService.price}</p>
+            </div>
+          )}
+  
+          {/* Tercera fila: Fecha y Horas (se mantiene como estaba) */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="date">Fecha</label>
@@ -493,7 +521,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               />
               {errors.date && <span className="error-message">{errors.date}</span>}
             </div>
-
+  
             <div className="form-group">
               <label htmlFor="start_time">Hora de inicio</label>
               <input
@@ -513,7 +541,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 <span className="help-text">Mínimo: {currentHourStr} (hora actual)</span>
               )}
             </div>
-
+  
             <div className="form-group">
               <label htmlFor="end_time">Hora de fin</label>
               <input
@@ -535,26 +563,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               )}
             </div>
           </div>
-
-          <div className="form-group">
-            <label htmlFor="employee">Empleado</label>
-            <select
-              id="employee"
-              name="employee"
-              value={formData.employee}
-              onChange={handleChange}
-              className={errors.employee ? 'form-input error' : 'form-input'}
-            >
-              <option value="0">Seleccione un empleado...</option>
-              {activeUsers.map(employee => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.first_name} {employee.last_name}
-                </option>
-              ))}
-            </select>
-            {errors.employee && <span className="error-message">{errors.employee}</span>}
-          </div>
-
+  
           {cancelledAppointments.length > 0 && (
             <div className="cancelled-appointments-info">
               <h4>Nota: Citas canceladas en este horario</h4>
@@ -571,7 +580,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               </ul>
             </div>
           )}
-
+  
           {!appointment && (
             <div className="form-group">
               <label htmlFor="status">Estado</label>
@@ -587,7 +596,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               </select>
             </div>
           )}
-
+  
           <div className="form-group">
             <label htmlFor="notes">Notas adicionales</label>
             <textarea
@@ -599,7 +608,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               rows={3}
             />
           </div>
-
+  
           <div className="form-actions">
             <button type="button" className="cancel-button" onClick={onClose}>Cancelar</button>
             <button
