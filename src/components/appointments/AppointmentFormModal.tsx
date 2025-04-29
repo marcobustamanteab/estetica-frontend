@@ -1,5 +1,4 @@
-// src/components/appointments/AppointmentFormModal.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Appointment } from '../../hooks/useAppointments';
 import { Client } from '../../hooks/useClients';
 import { Service, ServiceCategory } from '../../hooks/useServices';
