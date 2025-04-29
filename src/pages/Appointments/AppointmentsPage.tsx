@@ -35,7 +35,7 @@ const AppointmentsPage: React.FC = () => {
   const [filterDate, setFilterDate] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filters, setFilters] = useState<AppointmentFilters>({});
-  const setAvailableServices = useState<Service[]>([]);
+  const [, setAvailableServices] = useState<Service[]>([]);
 
   // Hooks para obtener datos
   const {
