@@ -9,7 +9,7 @@ import {
 } from "../../hooks/useAppointments";
 import { getAvailableEmployees } from "../../services/availabilityService";
 import { useClients } from "../../hooks/useClients";
-import { useServices } from "../../hooks/useServices";
+import { useServices, Service } from "../../hooks/useServices";
 import { useUsers, User } from "../../hooks/useUsers";
 import AppointmentFormModal from "../../components/appointments/AppointmentFormModal";
 import AppointmentDetail from "../../components/appointments/AppointmentDetail";
@@ -36,6 +36,7 @@ const AppointmentsPage: React.FC = () => {
   const [filterDate, setFilterDate] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filters, setFilters] = useState<AppointmentFilters>({});
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
 
   // Hooks para obtener datos
   const {
@@ -47,6 +48,8 @@ const AppointmentsPage: React.FC = () => {
     updateAppointment,
     deleteAppointment,
     changeAppointmentStatus,
+    checkEmployeeAvailability,
+    fetchAvailableServices
   } = useAppointments();
 
   const { clients, fetchClients } = useClients();
@@ -68,6 +71,13 @@ const AppointmentsPage: React.FC = () => {
     fetchClients();
     fetchServices();
     fetchUsers();
+    
+    // Cargar servicios disponibles para citas (con categorías activas)
+    const loadAvailableServices = async () => {
+      const services = await fetchAvailableServices();
+      setAvailableServices(services);
+    };
+    loadAvailableServices();
 
     // Configurar filtro por defecto (hoy)
     const today = format(new Date(), "yyyy-MM-dd");
@@ -129,7 +139,6 @@ const AppointmentsPage: React.FC = () => {
 
     if (date && time) {
       const formattedDate = format(date, "yyyy-MM-dd");
-      console.log(time);
       setFilterDate(formattedDate);
       setFilters({
         ...filters,
@@ -137,13 +146,16 @@ const AppointmentsPage: React.FC = () => {
         date_to: formattedDate,
       });
     }
-
-    // Si proporcionaron fecha y hora, pasar como valores iniciales al modal
-    // Esto requeriría modificar el componente AppointmentFormModal para aceptar valores iniciales
   };
 
   // Abrir modal para editar una cita existente
   const handleEditAppointment = (appointment: Appointment) => {
+    // Verificar si la cita está completada
+    if (appointment.status === 'completed') {
+      toast.error('Las citas completadas no pueden ser editadas.');
+      return;
+    }
+    
     setSelectedAppointment(appointment);
     setShowDetail(false);
     setIsModalOpen(true);
@@ -157,6 +169,13 @@ const AppointmentsPage: React.FC = () => {
 
   // Eliminar una cita con confirmación
   const handleDeleteAppointment = async (id: number) => {
+    // Verificar si la cita está completada antes de mostrar el diálogo
+    const appointmentToDelete = appointments.find(app => app.id === id);
+    if (appointmentToDelete && appointmentToDelete.status === 'completed') {
+      toast.error('Las citas completadas no pueden ser eliminadas.');
+      return;
+    }
+  
     const result = await Swal.fire({
       title: "¿Eliminar cita?",
       text: "Esta acción no se puede deshacer",
@@ -167,15 +186,20 @@ const AppointmentsPage: React.FC = () => {
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     });
-
+  
     if (result.isConfirmed) {
       try {
         await deleteAppointment(id);
         setShowDetail(false);
         toast.success("Cita eliminada correctamente");
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error al eliminar cita:", error);
-        toast.error("Ocurrió un error al eliminar la cita");
+        // Mostrar mensaje de error del backend si existe
+        if (error.response?.data?.error) {
+          toast.error(error.response.data.error);
+        } else {
+          toast.error("Ocurrió un error al eliminar la cita");
+        }
       }
     }
   };
@@ -183,14 +207,30 @@ const AppointmentsPage: React.FC = () => {
   // Cambiar el estado de una cita
   const handleChangeStatus = async (id: number, status: string) => {
     try {
+      // Buscar la cita en el array de citas
+      const appointmentToUpdate = appointments.find(app => app.id === id);
+      
+      // Verificar si la cita existe y está completada
+      if (appointmentToUpdate && appointmentToUpdate.status === 'completed') {
+        toast.error('Las citas completadas no pueden cambiar de estado.');
+        return;
+      }
+      
       await changeAppointmentStatus(id, status);
       setShowDetail(false);
       toast.success(
         `Estado de la cita actualizado a: ${getStatusText(status)}`
       );
-    } catch (error) {
+      // Recargar las citas
+      fetchAppointments(filters);
+    } catch (error: any) {
       console.error("Error al cambiar estado:", error);
-      toast.error("Ocurrió un error al cambiar el estado de la cita");
+      // Mostrar mensaje de error del backend si existe
+      if (error.response?.data?.error) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error("Ocurrió un error al cambiar el estado de la cita");
+      }
     }
   };
 
@@ -210,6 +250,8 @@ const AppointmentsPage: React.FC = () => {
         await createAppointment(appointmentData);
         toast.success("Cita creada correctamente");
       }
+      // Recargar las citas
+      fetchAppointments(filters);
     } catch (error) {
       console.error("Error al guardar cita:", error);
       toast.error("Ocurrió un error al guardar la cita");
@@ -223,17 +265,11 @@ const AppointmentsPage: React.FC = () => {
     serviceId: number
   ) => {
     try {
-      // Usar la función corregida que toma exactamente tres parámetros
-      const availableEmployeesResult = await getAvailableEmployees(
+      const availableEmployeesResult = await checkEmployeeAvailability(
         date,
         startTime,
-        serviceId,
-        employees,
-        appointments,
-        services
+        serviceId
       );
-
-      // Actualizar el estado con los empleados disponibles
       setAvailableEmployees(availableEmployeesResult);
     } catch (error) {
       console.error("Error al verificar disponibilidad:", error);
@@ -411,7 +447,7 @@ const AppointmentsPage: React.FC = () => {
                 className="add-button"
                 onClick={() => handleAddAppointment()}
               >
-                <AddIcon fontSize="small"></AddIcon>  Crear nueva Cita
+                <AddIcon fontSize="small" /> Crear nueva Cita
               </button>
             </div>
           </div>
@@ -448,7 +484,7 @@ const AppointmentsPage: React.FC = () => {
           onDateClick={handleCalendarDateClick}
           onEventClick={handleViewAppointment}
           onNewAppointment={handleNewAppointmentFromCalendar}
-          handleAddAppointment={handleAddAppointment} 
+          handleAddAppointment={handleAddAppointment}
         />
       )}
 
@@ -457,7 +493,7 @@ const AppointmentsPage: React.FC = () => {
         <AppointmentFormModal
           appointment={selectedAppointment}
           clients={clients}
-          services={services}
+          services={services} // Pasamos todos los servicios para mantener compatibilidad
           employees={employees}
           allAppointments={appointments}
           onClose={() => setIsModalOpen(false)}

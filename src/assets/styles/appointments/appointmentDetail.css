@@ -204,3 +204,32 @@
       flex-direction: column;
     }
   }
+
+  .appointment-completed-message {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #d1fae5; /* Fondo verde suave */
+    border: 1px solid #10b981; /* Borde verde */
+    border-radius: 8px;
+    color: #065f46; /* Texto verde oscuro */
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .appointment-completed-message .success-icon {
+    font-size: 24px;
+    color: #10b981; /* Verde intenso para el icono */
+  }
+  
+  .appointment-completed-message p {
+    margin: 0;
+    flex: 1;
+    line-height: 1.5;
+  }
+  
+  .appointment-completed-message strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 16px;
+  }

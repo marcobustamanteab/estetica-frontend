@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Appointment } from '../../hooks/useAppointments';
+import { Appointment, useAppointments } from '../../hooks/useAppointments';
 import { Client } from '../../hooks/useClients';
 import { Service, ServiceCategory } from '../../hooks/useServices';
 import { User } from '../../hooks/useUsers';
@@ -39,6 +39,10 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
+  
+  // Usar el hook de citas para obtener los servicios disponibles
+  const { fetchAvailableServices } = useAppointments();
   
   // Referencias para los campos de input que necesitamos manipular
   const startTimeInputRef = useRef<HTMLInputElement>(null);
@@ -53,19 +57,46 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   // Solo mostrar clientes activos
   const activeClients = clients.filter(client => client.is_active);
   const activeUsers = employees.filter(user => user.is_active);
-  const activeServices = services.filter(service => service.is_active);
-
-  // Extraer las categorías únicas de los servicios
+  
+  // Cargar servicios disponibles para agendar (categoría activa + servicio activo)
   useEffect(() => {
-    if (services.length > 0) {
+    const loadAvailableServices = async () => {
+      try {
+        // Obtener servicios disponibles desde el endpoint específico
+        const availableServicesList = await fetchAvailableServices();
+        
+        // Si estamos editando, asegurar que el servicio actual esté incluido aunque no esté disponible
+        if (appointment && appointment.service) {
+          const currentService = services.find(s => s.id === appointment.service);
+          if (currentService && !availableServicesList.some(s => s.id === currentService.id)) {
+            setAvailableServices([...availableServicesList, currentService]);
+          } else {
+            setAvailableServices(availableServicesList);
+          }
+        } else {
+          setAvailableServices(availableServicesList);
+        }
+      } catch (error) {
+        console.error('Error cargando servicios disponibles:', error);
+        const activeServicesList = services.filter(s => s.is_active);
+        setAvailableServices(activeServicesList);
+      }
+    };
+    
+    loadAvailableServices();
+  }, [appointment, services]);
+
+  // Extraer las categorías únicas de los servicios disponibles
+  useEffect(() => {
+    if (availableServices.length > 0) {
       // Crear un mapa para evitar categorías duplicadas
       const categoriesMap = new Map<number, ServiceCategory>();
       
-      services.forEach(service => {
-        if (service.category && !categoriesMap.has(service.category)) {
+      availableServices.forEach(service => {
+        if (service.category && !categoriesMap.has(service.category) && service.category_name) {
           categoriesMap.set(service.category, {
             id: service.category,
-            name: service.category_name || 'Sin nombre',
+            name: service.category_name,
             description: '',
             is_active: true
           });
@@ -78,20 +109,28 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
       );
       
       setCategories(categoriesArray);
+      
+      // Si estamos editando, seleccionar la categoría del servicio actual
+      if (appointment && appointment.service) {
+        const service = services.find(s => s.id === appointment.service);
+        if (service && service.category) {
+          setSelectedCategoryId(service.category);
+        }
+      }
     }
-  }, [services]);
+  }, [availableServices, appointment, services]);
 
   // Filtrar servicios cuando cambia la categoría seleccionada
   useEffect(() => {
     if (selectedCategoryId) {
-      const servicesInCategory = activeServices.filter(
+      const servicesInCategory = availableServices.filter(
         service => service.category === selectedCategoryId
       );
       setFilteredServices(servicesInCategory);
     } else {
-      setFilteredServices(activeServices);
+      setFilteredServices(availableServices);
     }
-  }, [selectedCategoryId, activeServices]);
+  }, [selectedCategoryId, availableServices]);
 
   useEffect(() => {
     // Si estamos editando una cita pasada, usamos esa fecha, de lo contrario usamos el valor por defecto
@@ -242,7 +281,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     // Manejar servicios para calcular automáticamente la hora de fin
     if (name === 'service') {
       const serviceId = Number(value);
-      const service = services.find(s => s.id === serviceId) || null;
+      const service = availableServices.find(s => s.id === serviceId) || null;
       setSelectedService(service);
       
       // Si ya hay una hora de inicio, calcular la hora de fin
@@ -380,7 +419,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     }
 
     const formErrors = validateAppointmentForm(formData);
-    setErrors(prev => ({ ...prev, ...formErrors }));
+    setErrors(prevErrors => ({ ...prevErrors, ...formErrors }));
 
     if (Object.keys(errors).length > 0) return;
 
@@ -505,7 +544,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             </div>
           )}
   
-          {/* Tercera fila: Fecha y Horas (se mantiene como estaba) */}
+          {/* Tercera fila: Fecha y Horas */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="date">Fecha</label>

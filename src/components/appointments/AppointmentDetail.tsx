@@ -3,6 +3,7 @@ import { Appointment } from '../../hooks/useAppointments';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import '../../assets/styles/appointments/appointmentDetail.css';
+import { CheckCircle } from 'lucide-react'; // Importamos icono de check
 
 interface AppointmentDetailProps {
   appointment: Appointment;
@@ -36,6 +37,9 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
       return dateString;
     }
   };
+  
+  // Verificar si la cita está completada
+  const isCompleted = appointment.status === 'completed';
   
   const getStatusClass = (status: string): string => {
     switch (status) {
@@ -108,42 +112,56 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
         )}
       </div>
       
-      <div className="appointment-actions">
-        <h4>Cambiar Estado</h4>
-        <div className="status-actions">
-          {appointment.status !== 'confirmed' && (
-            <button 
-              className="status-button confirmed"
-              onClick={() => onChangeStatus('confirmed')}
-            >
-              Confirmar
-            </button>
-          )}
+      {/* Mostrar acciones de cambio de estado solo si la cita NO está completada */}
+      {!isCompleted ? (
+        <div className="appointment-actions">
+          <h4>Cambiar Estado</h4>
+          <div className="status-actions">
+            {appointment.status !== 'confirmed' && (
+              <button 
+                className="status-button confirmed"
+                onClick={() => onChangeStatus('confirmed')}
+              >
+                Confirmar
+              </button>
+            )}
+            
+            {appointment.status !== 'cancelled' && (
+              <button 
+                className="status-button cancelled"
+                onClick={() => onChangeStatus('cancelled')}
+              >
+                Cancelar
+              </button>
+            )}
+            
+            {appointment.status !== 'completed' && (
+              <button 
+                className="status-button completed"
+                onClick={() => onChangeStatus('completed')}
+              >
+                Completar
+              </button>
+            )}
+          </div>
           
-          {appointment.status !== 'cancelled' && (
-            <button 
-              className="status-button cancelled"
-              onClick={() => onChangeStatus('cancelled')}
-            >
-              Cancelar
-            </button>
-          )}
-          
-          {appointment.status !== 'completed' && (
-            <button 
-              className="status-button completed"
-              onClick={() => onChangeStatus('completed')}
-            >
-              Completar
-            </button>
-          )}
+          <div className="management-actions">
+            <button className="edit-button" onClick={onEdit}>Editar</button>
+            <button className="delete-button" onClick={onDelete}>Eliminar</button>
+          </div>
         </div>
-        
-        <div className="management-actions">
-          <button className="edit-button" onClick={onEdit}>Editar</button>
-          <button className="delete-button" onClick={onDelete}>Eliminar</button>
+      ) : (
+        /* Para citas completadas, mostrar un mensaje informativo con estilo mejorado */
+        <div className="appointment-completed-message">
+          <span className="success-icon">
+            <CheckCircle size={28} />
+          </span>
+          <p>
+            <strong>Esta cita ha sido completada.</strong>
+            Las citas completadas no pueden ser editadas ni cambiar su estado.
+          </p>
         </div>
-      </div>
+      )}
     </div>
   );
 };

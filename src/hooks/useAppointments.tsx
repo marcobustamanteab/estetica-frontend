@@ -1,22 +1,20 @@
-// src/hooks/useAppointments.tsx
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useLoading } from '../context/LoadingContext';
 import { User } from './useUsers';
+import { Service } from './useServices';
 
-// Tipo para Axios
 type AxiosInstance = ReturnType<typeof axios.create>;
 
-// Definir la base URL para la API
 const API_BASE_URL = 
   import.meta.env.PROD
     ? (import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app')
     : 'http://localhost:8000';
 
 const API_URL = `${API_BASE_URL}/api/appointments/`;
+const SERVICES_API_URL = `${API_BASE_URL}/api/services/`;
 
-// Tipos para manejar las citas
 export interface Appointment {
     id: number;
     client: number;
@@ -56,6 +54,7 @@ export interface AppointmentsHook {
     deleteAppointment: (id: number) => Promise<boolean>;
     changeAppointmentStatus: (id: number, status: string) => Promise<Appointment>;
     checkEmployeeAvailability: (date: string, startTime: string, serviceId: number) => Promise<User[]>;
+    fetchAvailableServices: () => Promise<Service[]>;
 }
 
 export interface AppointmentFilters {
@@ -76,7 +75,6 @@ export const useAppointments = (): AppointmentsHook => {
     const { logout } = useAuth();
     const { showLoading, hideLoading } = useLoading();
 
-    // Crear una instancia de axios con interceptores
     const createAxiosInstance = useCallback((): AxiosInstance => {
         const instance = axios.create({
             baseURL: '',
@@ -109,7 +107,6 @@ export const useAppointments = (): AppointmentsHook => {
         return instance;
     }, [logout]);
 
-    // Cargar citas, opcionalmente con filtros
     const fetchAppointments = useCallback(async (filters?: AppointmentFilters): Promise<void> => {
         setLoading(true);
         setError(null);
@@ -119,7 +116,6 @@ export const useAppointments = (): AppointmentsHook => {
             const axiosInstance = createAxiosInstance();
             let url = API_URL;
 
-            // Construir query params para filtros
             if (filters) {
                 const queryParams = new URLSearchParams();
 
@@ -147,7 +143,6 @@ export const useAppointments = (): AppointmentsHook => {
         }
     }, [createAxiosInstance, showLoading, hideLoading]);
 
-    // Obtener una cita por ID
     const getAppointmentById = useCallback(async (id: number): Promise<Appointment> => {
         setLoading(true);
         setError(null);
@@ -167,7 +162,6 @@ export const useAppointments = (): AppointmentsHook => {
         }
     }, [createAxiosInstance, showLoading, hideLoading]);
 
-    // Crear una nueva cita
     const createAppointment = useCallback(async (appointmentData: AppointmentFormData): Promise<Appointment> => {
         setLoading(true);
         setError(null);
@@ -188,7 +182,6 @@ export const useAppointments = (): AppointmentsHook => {
         }
     }, [createAxiosInstance, showLoading, hideLoading]);
 
-    // Actualizar una cita existente
     const updateAppointment = useCallback(async (id: number, appointmentData: AppointmentFormData): Promise<Appointment> => {
         setLoading(true);
         setError(null);
@@ -197,7 +190,6 @@ export const useAppointments = (): AppointmentsHook => {
         try {
             const axiosInstance = createAxiosInstance();
             const response = await axiosInstance.put<Appointment>(`${API_URL}${id}/`, appointmentData);
-            // Actualizar la lista de citas
             setAppointments(prevAppointments =>
                 prevAppointments.map(appointment => appointment.id === id ? response.data : appointment)
             );
@@ -212,7 +204,6 @@ export const useAppointments = (): AppointmentsHook => {
         }
     }, [createAxiosInstance, showLoading, hideLoading]);
 
-    // Eliminar una cita
     const deleteAppointment = useCallback(async (id: number): Promise<boolean> => {
         setLoading(true);
         setError(null);
@@ -221,7 +212,6 @@ export const useAppointments = (): AppointmentsHook => {
         try {
             const axiosInstance = createAxiosInstance();
             await axiosInstance.delete(`${API_URL}${id}/`);
-            // Actualizar la lista de citas eliminando la cita
             setAppointments(prevAppointments => prevAppointments.filter(appointment => appointment.id !== id));
             return true;
         } catch (error) {
@@ -234,7 +224,6 @@ export const useAppointments = (): AppointmentsHook => {
         }
     }, [createAxiosInstance, showLoading, hideLoading]);
 
-    // Cambiar el estado de una cita
     const changeAppointmentStatus = useCallback(async (id: number, status: string): Promise<Appointment> => {
         setLoading(true);
         setError(null);
@@ -258,7 +247,6 @@ export const useAppointments = (): AppointmentsHook => {
         }
     }, [createAxiosInstance, showLoading, hideLoading]);
 
-    // Verificar disponibilidad de empleados
     const checkEmployeeAvailability = useCallback(async (date: string, startTime: string, serviceId: number): Promise<User[]> => {
         setLoading(true);
         setError(null);
@@ -280,6 +268,27 @@ export const useAppointments = (): AppointmentsHook => {
         }
     }, [createAxiosInstance, showLoading, hideLoading]);
 
+    // Nuevo método para obtener servicios disponibles para citas
+    const fetchAvailableServices = useCallback(async (): Promise<Service[]> => {
+        setLoading(true);
+        setError(null);
+        showLoading('Cargando servicios disponibles...');
+
+        try {
+            const axiosInstance = createAxiosInstance();
+            const url = `${SERVICES_API_URL}available_for_appointments/`;
+            const response = await axiosInstance.get<Service[]>(url);
+            return response.data;
+        } catch (error) {
+            setError('Error al cargar los servicios disponibles');
+            console.error('Error al cargar servicios disponibles:', error);
+            return [];
+        } finally {
+            setLoading(false);
+            hideLoading();
+        }
+    }, [createAxiosInstance, showLoading, hideLoading]);
+
     return {
         appointments,
         loading,
@@ -290,6 +299,7 @@ export const useAppointments = (): AppointmentsHook => {
         updateAppointment,
         deleteAppointment,
         changeAppointmentStatus,
-        checkEmployeeAvailability
+        checkEmployeeAvailability,
+        fetchAvailableServices
     };
 };
