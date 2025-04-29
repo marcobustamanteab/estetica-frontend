@@ -7,7 +7,6 @@ import {
   AppointmentFormData,
   AppointmentFilters,
 } from "../../hooks/useAppointments";
-import { getAvailableEmployees } from "../../services/availabilityService";
 import { useClients } from "../../hooks/useClients";
 import { useServices, Service } from "../../hooks/useServices";
 import { useUsers, User } from "../../hooks/useUsers";
@@ -36,7 +35,7 @@ const AppointmentsPage: React.FC = () => {
   const [filterDate, setFilterDate] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filters, setFilters] = useState<AppointmentFilters>({});
-  const [availableServices, setAvailableServices] = useState<Service[]>([]);
+  const setAvailableServices = useState<Service[]>([]);
 
   // Hooks para obtener datos
   const {
