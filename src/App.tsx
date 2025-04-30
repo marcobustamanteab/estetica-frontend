@@ -33,7 +33,6 @@ const ProtectedRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => 
   return <Layout>{element}</Layout>;
 };
 
-// Componente para la página de usuarios principal (podría ser un panel de control o resumen)
 const UsersIndexPage: React.FC = () => {
   return (
     <div className="users-index-page">
@@ -42,7 +41,6 @@ const UsersIndexPage: React.FC = () => {
       </div>
       <div className="users-dashboard">
         <p>Selecciona una opción del menú para gestionar usuarios.</p>
-        {/* Aquí podrías agregar tarjetas o enlaces rápidos a las diferentes secciones */}
       </div>
     </div>
   );
@@ -53,11 +51,11 @@ const App: React.FC = () => {
     <AuthProvider>
       <LoadingProvider>
         <Router>
-          {/* Componente para actualizar el título de la pestaña */}
+
           <DocumentTitle />
           
           <Routes>
-            {/* Rutas públicas (sin Layout) */}
+            {/* Rutas públicas */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
