@@ -13,7 +13,7 @@ import SettingsPage from './pages/SettingsPage';
 import Spinner from './components/common/Spinner';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ServicesPage from './pages/Services.tsx/ServicesPage';
+import ServicesPage from './pages/Services/ServicesPage';
 import AppointmentsPage from './pages/Appointments/AppointmentsPage';
 import RolesPage from './pages/Users/RolesPage';
 import DocumentTitle from './components/common/DocumentTitle';
