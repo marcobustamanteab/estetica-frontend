@@ -11,9 +11,14 @@ import '../../assets/styles/dashboard/miniCalendar.css';
 interface MiniCalendarProps {
   appointments: Appointment[];
   onDateClick: (date: string) => void;
+  onAppointmentClick: (appointment: Appointment) => void; // Nuevo prop para manejar clics en citas
 }
 
-const MiniCalendar: React.FC<MiniCalendarProps> = ({ appointments, onDateClick }) => {
+const MiniCalendar: React.FC<MiniCalendarProps> = ({ 
+  appointments, 
+  onDateClick,
+  onAppointmentClick
+}) => {
   const calendarRef = useRef<FullCalendar>(null);
   const [activeView, setActiveView] = useState<'dayGridMonth' | 'timeGridWeek'>('dayGridMonth');
 
@@ -37,15 +42,14 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ appointments, onDateClick }
     // Crear el objeto de evento
     return {
       id: appointment.id.toString(),
-      title: `${appointment.client_name}`,
+      title: `${appointment.client_name} - ${appointment.service_name}`,
       start: `${appointment.date}T${appointment.start_time}`,
       end: `${appointment.date}T${appointment.end_time}`,
       backgroundColor,
       borderColor,
       textColor: '#fff',
       extendedProps: {
-        status: appointment.status,
-        service: appointment.service_name
+        appointment: appointment // Guarda toda la información de la cita para acceder a ella luego
       }
     };
   });
@@ -54,6 +58,15 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ appointments, onDateClick }
   const handleDateClick = (info: any) => {
     const clickedDate = info.dateStr;
     onDateClick(clickedDate);
+  };
+
+  // Manejar clic en evento (cita)
+  const handleEventClick = (info: any) => {
+    // Acceder a la cita completa desde las propiedades extendidas
+    const appointment = info.event.extendedProps.appointment;
+    if (appointment) {
+      onAppointmentClick(appointment);
+    }
   };
 
   // Cambiar vista (mes o semana)
@@ -123,6 +136,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ appointments, onDateClick }
           locale={esLocale}
           events={events}
           dateClick={handleDateClick}
+          eventClick={handleEventClick} // Activar clic en eventos
           headerToolbar={{
             left: 'prev',
             center: 'title',
@@ -145,7 +159,8 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ appointments, onDateClick }
           }}
           eventContent={(eventInfo) => {
             return (
-              <div className="fc-event-custom-content">
+              <div className="fc-event-custom-content" 
+                   title={`${eventInfo.event.extendedProps.appointment.client_name} - ${eventInfo.event.extendedProps.appointment.service_name}`}>
                 <div className="fc-event-time">
                   {eventInfo.timeText}
                 </div>

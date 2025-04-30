@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { Appointment } from '../../hooks/useAppointments';
-import { format, parseISO, isToday, isTomorrow, compareAsc } from 'date-fns';
+import { format, parseISO, isToday, isTomorrow, isAfter, startOfDay, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Clock } from 'lucide-react';
 import '../../assets/styles/dashboard/upcomingAppointments.css';
@@ -15,11 +15,34 @@ const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({
   appointments, 
   onAppointmentClick 
 }) => {
+  // Filtrar solo citas futuras o de hoy
+  const futureAppointments = appointments.filter(appointment => {
+    try {
+      const appointmentDate = parseISO(appointment.date);
+      const today = startOfDay(new Date());
+      
+      // Incluir citas de hoy o futuras, excluyendo las canceladas
+      return (isAfter(appointmentDate, today) || isToday(appointmentDate)) && 
+             appointment.status !== 'cancelled' &&
+             appointment.status !== 'completed';
+    } catch (error) {
+      console.error("Error procesando fecha de cita:", appointment.date);
+      return false;
+    }
+  });
+
   // Ordenar citas por fecha y hora
-  const sortedAppointments = [...appointments].sort((a, b) => {
-    const dateA = new Date(`${a.date}T${a.start_time}`);
-    const dateB = new Date(`${b.date}T${b.start_time}`);
-    return dateA.getTime() - dateB.getTime();
+  const sortedAppointments = [...futureAppointments].sort((a, b) => {
+    // Comparar primero por fecha
+    const dateA = parseISO(a.date);
+    const dateB = parseISO(b.date);
+    
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA.getTime() - dateB.getTime();
+    }
+    
+    // Si las fechas son iguales, comparar por hora
+    return a.start_time.localeCompare(b.start_time);
   });
 
   // Tomar solo las próximas 6 citas
@@ -36,7 +59,8 @@ const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({
       } else {
         return format(date, "EEE d MMM", { locale: es });
       }
-    } catch (_) {
+    } catch (error) {
+      console.error("Error formateando fecha:", dateString, error);
       return dateString;
     }
   };
@@ -90,7 +114,7 @@ const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = ({
     if (isTomorrowB && !isTomorrowA && !isTodayA) return 1;
     
     // Para el resto, orden cronológico normal
-    return compareAsc(dateA, dateB);
+    return dateA.getTime() - dateB.getTime();
   });
 
   return (

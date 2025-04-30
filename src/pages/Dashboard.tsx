@@ -109,16 +109,18 @@ const Dashboard: React.FC = () => {
     navigate(`/agenda?date=${date}`);
   };
 
-  // Manejar clic en cita
+  // Manejar clic en cita (tanto desde UpcomingAppointments como desde MiniCalendar)
   const handleAppointmentClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowAppointmentDetail(true);
   };
 
   // Manejar cambio de estado de cita
-  const handleChangeStatus = async (id: number, status: string) => {
+  const handleChangeStatus = async (status: string) => {
+    if (!selectedAppointment) return;
+    
     try {
-      await changeAppointmentStatus(id, status);
+      await changeAppointmentStatus(selectedAppointment.id, status);
       setShowAppointmentDetail(false);
       
       // Recargar citas
@@ -133,6 +135,20 @@ const Dashboard: React.FC = () => {
       fetchAppointments(filters);
     } catch (error) {
       console.error('Error al cambiar estado:', error);
+    }
+  };
+
+  // Manejar edición de cita
+  const handleEditAppointment = () => {
+    if (selectedAppointment) {
+      navigate(`/agenda?edit=${selectedAppointment.id}`);
+    }
+  };
+
+  // Manejar eliminación de cita
+  const handleDeleteAppointment = () => {
+    if (selectedAppointment) {
+      navigate(`/agenda?delete=${selectedAppointment.id}`);
     }
   };
 
@@ -174,12 +190,13 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
       
-      {/* Nuevos widgets: Calendario y Próximas Citas */}
+      {/* Widgets: Calendario y Próximas Citas */}
       <div className="dashboard-widgets">
         <div className="mini-calendar-widget">
           <MiniCalendar 
             appointments={appointments}
             onDateClick={handleDateClick}
+            onAppointmentClick={handleAppointmentClick}
           />
         </div>
         <div className="upcoming-appointments-widget">
@@ -196,11 +213,9 @@ const Dashboard: React.FC = () => {
           <AppointmentDetail
             appointment={selectedAppointment}
             onClose={() => setShowAppointmentDetail(false)}
-            onChangeStatus={(status) => handleChangeStatus(selectedAppointment.id, status)}
-            onEdit={() => navigate(`/agenda?edit=${selectedAppointment.id}`)}
-            onDelete={() => {
-              navigate(`/agenda?delete=${selectedAppointment.id}`);
-            }}
+            onChangeStatus={handleChangeStatus}
+            onEdit={handleEditAppointment}
+            onDelete={handleDeleteAppointment}
           />
         </div>
       )}
