@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { Appointment } from '../../hooks/useAppointments';
-import { format, parseISO, isToday, isTomorrow, isAfter, startOfDay, isBefore } from 'date-fns';
+import { format, parseISO, isToday, isTomorrow, isAfter, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Clock } from 'lucide-react';
 import '../../assets/styles/dashboard/upcomingAppointments.css';
