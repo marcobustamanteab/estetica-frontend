@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Appointment } from '../../hooks/useAppointments';
+import { useServices } from '../../hooks/useServices';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import '../../assets/styles/appointments/appointmentDetail.css';
-import { CheckCircle } from 'lucide-react'; // Importamos icono de check
+import { CheckCircle } from 'lucide-react';
 
 interface AppointmentDetailProps {
   appointment: Appointment;
@@ -20,17 +21,73 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
   onEdit,
   onDelete
 }) => {
+  // Usar el hook de servicios para obtener servicios y categorías
+  const { services, categories, fetchServices, fetchCategories } = useServices();
+  const [categoryName, setCategoryName] = useState<string>("");
+  const [serviceDetails, setServiceDetails] = useState({
+    price: 0,
+    duration: 0
+  });
+  const [loading, setLoading] = useState(false);
+  const hasAttemptedLoad = useRef(false);
+
+  // Cargar servicios y categorías una sola vez cuando se muestra el componente
+  useEffect(() => {
+    const loadServicesAndCategories = async () => {
+      if (hasAttemptedLoad.current) return;
+      
+      hasAttemptedLoad.current = true;
+      
+      // Solo cargar si no hay datos
+      if (services.length === 0 || categories.length === 0) {
+        setLoading(true);
+        try {
+          await Promise.all([
+            fetchServices(),
+            fetchCategories()
+          ]);
+        } catch (error) {
+          console.error('Error loading services and categories:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    loadServicesAndCategories();
+  }, [fetchServices, fetchCategories, services.length, categories.length]);
+
+  // Encontrar el servicio y la categoría correspondiente
+  useEffect(() => {
+    if (services.length > 0 && categories.length > 0) {
+      // Buscar el servicio de la cita
+      const service = services.find(s => s.id === appointment.service);
+      
+      if (service) {
+        // Guardar detalles del servicio
+        setServiceDetails({
+          price: service.price,
+          duration: service.duration
+        });
+        
+        // Buscar la categoría del servicio
+        if (typeof service.category === 'number') {
+          const category = categories.find(c => c.id === service.category);
+          if (category) {
+            setCategoryName(category.name);
+          }
+        }
+      }
+    }
+  }, [appointment, services, categories]);
+  
   // Formatear fecha para mostrar
   const formatDate = (dateString: string): string => {
     try {
-      // Usar parseISO que maneja correctamente fechas en formato ISO (YYYY-MM-DD)
       const date = parseISO(dateString);
-      
-      // Verificar que la fecha sea válida
       if (isNaN(date.getTime())) {
         throw new Error('Fecha inválida');
       }
-      
       return format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
     } catch (error) {
       console.error("Error al formatear fecha:", error, dateString);
@@ -69,17 +126,33 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
       </div>
       
       <div className="appointment-content">
+        {/* Categoría y Servicio */}
         <div className="detail-row">
-          <div className="detail-item">
-            <h4>Cliente</h4>
-            <p>{appointment.client_name}</p>
-          </div>
+          {categoryName && (
+            <div className="detail-item category-item">
+              <h4>Categoría</h4>
+              <p className="category-name">{categoryName}</p>
+            </div>
+          )}
           <div className="detail-item">
             <h4>Servicio</h4>
             <p>{appointment.service_name}</p>
           </div>
         </div>
         
+        {/* Atendido por y Cliente */}
+        <div className="detail-row">
+          <div className="detail-item">
+            <h4>Atendido por</h4>
+            <p>{appointment.employee_name}</p>
+          </div>
+          <div className="detail-item">
+            <h4>Cliente</h4>
+            <p>{appointment.client_name}</p>
+          </div>
+        </div>
+        
+        {/* Fecha y Horario */}
         <div className="detail-row">
           <div className="detail-item">
             <h4>Fecha</h4>
@@ -87,15 +160,12 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
           </div>
           <div className="detail-item">
             <h4>Horario</h4>
-            <p>{appointment.start_time} - {appointment.end_time}</p>
+            <p>{appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}</p>
           </div>
         </div>
         
+        {/* Estado solo */}
         <div className="detail-row">
-          <div className="detail-item">
-            <h4>Empleado</h4>
-            <p>{appointment.employee_name}</p>
-          </div>
           <div className="detail-item">
             <h4>Estado</h4>
             <p className={`status-badge ${getStatusClass(appointment.status)}`}>
@@ -104,15 +174,35 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
           </div>
         </div>
         
+        {/* Información del servicio (precio y duración) */}
+        {serviceDetails.price > 0 && (
+          <div className="detail-row service-details">
+            <div className="detail-item">
+              <h4>Precio</h4>
+              <p>${serviceDetails.price}</p>
+            </div>
+            <div className="detail-item">
+              <h4>Duración</h4>
+              <p>{serviceDetails.duration} minutos</p>
+            </div>
+          </div>
+        )}
+        
         {appointment.notes && (
           <div className="detail-notes">
             <h4>Notas</h4>
             <p>{appointment.notes}</p>
           </div>
         )}
+        
+        {/* Mostrar mensaje de carga si corresponde */}
+        {loading && (
+          <div className="loading-message" style={{textAlign: 'center', padding: '10px', color: '#666'}}>
+            Cargando información completa...
+          </div>
+        )}
       </div>
       
-      {/* Mostrar acciones de cambio de estado solo si la cita NO está completada */}
       {!isCompleted ? (
         <div className="appointment-actions">
           <h4>Cambiar Estado</h4>
@@ -151,7 +241,6 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
           </div>
         </div>
       ) : (
-        /* Para citas completadas, mostrar un mensaje informativo con estilo mejorado */
         <div className="appointment-completed-message">
           <span className="success-icon">
             <CheckCircle size={28} />
