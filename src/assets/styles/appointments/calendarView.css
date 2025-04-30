@@ -67,8 +67,6 @@
   font-weight: 600;
 }
 
-/* PERSONALIZACIÓN DE BOTONES DE NAVEGACIÓN */
-/* Estilo base para todos los botones de navegación */
 .fc .fc-button-primary {
   background-color: #f1f5f9 !important;
   border-color: #e2e8f0 !important;
@@ -86,7 +84,6 @@
   color: #0f172a !important;
 }
 
-/* Estilo para el botón today cuando está activo (estamos en el día actual) */
 .fc .fc-today-button.fc-button-active,
 .fc .fc-day-today + .fc-today-button,
 .fc-day-today .fc-today-button {
@@ -147,4 +144,27 @@
   .calendar-wrapper {
     overflow-x: auto;
   }
+}
+
+.fc-popover {
+  z-index: 1000 !important; /* Debe ser menor que tu modal */
+}
+
+.fc-daygrid-more-popover,
+.fc-popover-body,
+.fc-more-popover {
+  z-index: 1000 !important;
+}
+
+/* Asegúrate de que tu modal tenga mayor z-index */
+.modal-overlay, 
+.detail-overlay {
+  z-index: 2000 !important; 
+}
+
+/* Para los elementos del popup de eventos múltiples */
+.fc-more-link,
+.fc-daygrid-more,
+.fc-popover {
+  z-index: 1000 !important;
 }
