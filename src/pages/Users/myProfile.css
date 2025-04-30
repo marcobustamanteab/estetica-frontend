@@ -1,0 +1,88 @@
+/* src/pages/MyProfilePage.css */
+.my-profile-page {
+    display: flex;
+    gap: 24px;
+    padding: 40px;
+    background-color: #f9fafb;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* CARD IZQUIERDA */
+  .profile-card {
+    flex: 1;
+    display: flex;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .profile-avatar img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #d1d5db;
+  }
+  
+  .profile-info {
+    margin-left: 24px;
+    flex: 1;
+  }
+  
+  .profile-name {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .profile-role {
+    font-size: 16px;
+    color: #6b7280;
+    margin-bottom: 16px;
+  }
+  
+  .profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .profile-detail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #4b5563;
+    font-size: 14px;
+  }
+  
+  /* CARD DERECHA */
+  .info-card {
+    flex: 1;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  
+  .info-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #374151;
+  }
+  
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  

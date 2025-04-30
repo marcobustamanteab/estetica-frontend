@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { JSX, useState } from 'react';
+import React, { JSX, useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { FiHome, FiUsers, FiUserCheck, FiCalendar, FiBarChart2, FiSettings, FiScissors, FiChevronDown, FiChevronRight, FiUserPlus, FiShield } from 'react-icons/fi';
 import avatarImage from '../../assets/img/avatar001.jpeg';
@@ -32,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       subMenus: [
         { path: '/usuarios/administracion', icon: <FiUserPlus size={20} />, label: 'Administración de Usuarios' },
         { path: '/usuarios/roles', icon: <FiShield size={20} />, label: 'Administración de Roles' },
+        { path: '/usuarios/miperfil', icon: <FiUserCheck size={20} />, label: 'Mi Perfil' },
       ]
     },
     { path: '/clientes', icon: <FiUserCheck size={20} />, label: 'Clientes' },
@@ -41,7 +42,6 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
     { path: '/mantenedores', icon: <FiSettings size={20} />, label: 'Mantenedores' },
   ];
 
-  // Función para determinar el rol del usuario
   const getUserRole = () => {
     if (user?.is_staff || user?.groups?.includes('Administrador')) {
       return 'Administrador';
@@ -63,6 +63,12 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       }
     });
   };
+
+  useEffect(() => {
+    if (!expanded) {
+      setExpandedMenus([]); // Colapsar todos los submenús cuando se colapsa la sidebar
+    }
+  }, [expanded]);
 
   // Verificar si un menú está expandido
   const isMenuExpanded = (path: string) => {
