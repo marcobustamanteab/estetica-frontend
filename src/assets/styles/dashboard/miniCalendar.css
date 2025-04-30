@@ -9,6 +9,16 @@
   flex-direction: column;
 }
 
+.fc-event {
+  cursor: pointer !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fc-event:hover {
+  transform: scale(1.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 .widget-title {
   margin-top: 0;
   margin-bottom: 20px;
@@ -90,6 +100,10 @@
   background-color: #f8fafc;
   color: #0f172a;
   z-index: 1;
+}
+
+.fc-day-today {
+  border: 1px solid #0d9488 !important;
 }
 
 .view-button.active {
