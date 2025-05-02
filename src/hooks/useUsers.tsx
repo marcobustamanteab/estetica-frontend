@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -134,13 +135,45 @@ export const useUsers = (): UsersHook => {
     showLoading('Creando usuario...');
     
     try {
+      // Asegúrate de que groups sea un array (incluso vacío)
+      const formattedUserData = {
+        ...userData,
+        groups: Array.isArray(userData.groups) ? userData.groups : []
+      };
+      
+      // Registro de depuración
+      console.log('Datos enviados al crear usuario:', formattedUserData);
+      
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.post<User>('', userData);
-      setUsers(prevUsers => [...prevUsers, response.data]);
-      return response.data;
-    } catch (error) {
+      
+      // Primero creamos el usuario básico
+      const response = await axiosInstance.post<User>('', formattedUserData);
+      
+      let updatedUser = response.data;
+      
+      // Si hay grupos para asignar y el usuario no es staff, actualizamos los grupos
+      if (formattedUserData.groups && formattedUserData.groups.length > 0 && !formattedUserData.is_staff) {
+        console.log(`Asignando roles al usuario ${updatedUser.id}:`, formattedUserData.groups);
+        
+        // Hacer una segunda llamada para asignar grupos usando PATCH
+        const groupUpdateResponse = await axiosInstance.patch<User>(`${updatedUser.id}/`, { 
+          groups: formattedUserData.groups 
+        });
+        
+        updatedUser = groupUpdateResponse.data;
+      }
+      
+      // Actualizar la lista de usuarios
+      setUsers(prevUsers => [...prevUsers, updatedUser]);
+      
+      return updatedUser;
+    } catch (error: any) {
       setError('Error al crear el usuario');
       console.error('Error al crear usuario:', error);
+      // Mostrar más detalles del error
+      if (error.response) {
+        console.error('Respuesta del servidor:', error.response.data);
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -155,14 +188,44 @@ export const useUsers = (): UsersHook => {
     showLoading('Actualizando usuario...');
     
     try {
+      // Asegúrate de que groups sea un array (incluso vacío)
+      const formattedUserData = {
+        ...userData,
+        groups: Array.isArray(userData.groups) ? userData.groups : []
+      };
+      
+      // Registro de depuración
+      console.log('Datos enviados al actualizar usuario:', formattedUserData);
+      
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.put<User>(`${id}/`, userData);
+      const response = await axiosInstance.put<User>(`${id}/`, formattedUserData);
+      
+      // Si la actualización básica es exitosa pero hay grupos para actualizar
+      let updatedUser = response.data;
+      
+      // Si hay grupos en la respuesta, verificamos si necesitamos una actualización adicional
+      if (!updatedUser.groups && formattedUserData.groups && formattedUserData.groups.length > 0 && !formattedUserData.is_staff) {
+        console.log(`Actualizando roles del usuario ${id}:`, formattedUserData.groups);
+        
+        // Hacer una segunda llamada para actualizar grupos usando PATCH
+        const groupUpdateResponse = await axiosInstance.patch<User>(`${id}/`, { 
+          groups: formattedUserData.groups 
+        });
+        
+        updatedUser = groupUpdateResponse.data;
+      }
+      
       // Actualizar la lista de usuarios
-      setUsers(prevUsers => prevUsers.map(user => user.id === id ? response.data : user));
-      return response.data;
-    } catch (error) {
+      setUsers(prevUsers => prevUsers.map(user => user.id === id ? updatedUser : user));
+      
+      return updatedUser;
+    } catch (error: any) {
       setError('Error al actualizar el usuario');
       console.error(`Error al actualizar usuario con ID ${id}:`, error);
+      // Mostrar más detalles del error
+      if (error.response) {
+        console.error('Respuesta del servidor:', error.response.data);
+      }
       throw error;
     } finally {
       setLoading(false);

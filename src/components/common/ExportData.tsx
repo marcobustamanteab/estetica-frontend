@@ -6,14 +6,11 @@ import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import './exportData.css';
+import { ExportColumn } from '../../types/ExportColumn';
 
 interface ExportDataProps {
   data: any[];
-  columns: {
-    header: string;
-    accessor: string;
-    formatFn?: (value: any) => string;
-  }[];
+  columns: ExportColumn[];
   fileName: string;
   title?: string;
   showCSV?: boolean;
@@ -41,13 +38,13 @@ const ExportData: React.FC<ExportDataProps> = ({
         // Manejar accesores simples (strings) o complejos (con puntos)
         if (column.accessor.includes('.')) {
           const accessorPath = column.accessor.split('.');
-          value = accessorPath.reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : null, item);
+          value = accessorPath.reduce((obj: { [x: string]: any; }, key: string | number) => (obj && obj[key] !== undefined) ? obj[key] : null, item);
         } else {
           value = item[column.accessor];
         }
         
         // Aplicar función de formato si existe
-        row[column.header] = column.formatFn ? column.formatFn(value) : value;
+        row[column.header] = column.formatFn ? column.formatFn(value, item) : value;
       });
       
       return row;

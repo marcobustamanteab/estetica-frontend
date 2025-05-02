@@ -1,4 +1,3 @@
-// src/components/users/RolePermissionsModal.tsx
 import React, { useState, useEffect } from 'react';
 import { Group, Permission } from '../../hooks/useGroups';
 import '../common/modal.css';

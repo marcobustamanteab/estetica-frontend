@@ -1,6 +1,6 @@
-// src/pages/users/RolesPage.tsx
-import React, { useState, useEffect } from 'react';
-import { useGroups, Group, GroupFormData } from '../../hooks/useGroups';
+import { useState, useEffect } from 'react';
+import { useGroups, Group } from '../../hooks/useGroups';
+import { RoleFormValues } from '../../forms/roleFormValues';
 import DataTable from '../../components/common/DataTable';
 import RoleFormModal from '../../components/users/RoleFormModal';
 import RolePermissionsModal from '../../components/users/RolePermissionsModal';
@@ -33,7 +33,6 @@ const RolesPage: React.FC = () => {
   useEffect(() => {
     fetchGroups();
     fetchPermissions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   // Abrir modal para crear un nuevo rol
@@ -79,17 +78,11 @@ const RolesPage: React.FC = () => {
   };
   
   // Guardar un rol (crear o actualizar)
-  const handleSaveRole = async (roleData: GroupFormData) => {
+  const handleSaveRole = async (roleData: RoleFormValues) => {
     setIsFormModalOpen(false);
     
     try {
       if (selectedRole) {
-        if (!selectedRole.id) {
-          toast.error('No se puede actualizar: rol sin ID válido');
-          console.error("Intento de actualizar rol sin ID:", selectedRole);
-          return;
-        }
-        
         // Actualizar rol existente
         await updateGroup(selectedRole.id, roleData);
         toast.success('Rol actualizado correctamente');
@@ -99,7 +92,7 @@ const RolesPage: React.FC = () => {
         toast.success('Rol creado correctamente');
       }
       
-      // Añadir esta línea para recargar explícitamente los roles
+      // Recargar roles
       await fetchGroups();
       
     } catch (error) {

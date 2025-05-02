@@ -1,49 +1,38 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
-import { Group, GroupFormData } from '../../hooks/useGroups';
+import { Group } from '../../hooks/useGroups';
+import { RoleFormValues, getInitialRoleFormValues, validateRoleForm } from '../../forms/roleFormValues';
 import '../common/modal.css';
 
 interface RoleFormModalProps {
   role: Group | null;
   onClose: () => void;
-  onSave: (roleData: GroupFormData) => void;
+  onSave: (roleData: RoleFormValues) => void;
 }
 
 const RoleFormModal: React.FC<RoleFormModalProps> = ({ role, onClose, onSave }) => {
-  const [formData, setFormData] = useState<GroupFormData>({
-    name: '',
-  });
-  
+  const [formData, setFormData] = useState<RoleFormValues>(getInitialRoleFormValues(role));
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   useEffect(() => {
-    if (role) {
-      setFormData({
-        name: role.name,
-      });
-    }
+    setFormData(getInitialRoleFormValues(role));
   }, [role]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       [name]: value
     }));
   };
   
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.name) newErrors.name = 'El nombre del rol es obligatorio';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    const formErrors = validateRoleForm(formData);
+    setErrors(formErrors);
+    
+    if (Object.keys(formErrors).length > 0) return;
     
     onSave(formData);
   };

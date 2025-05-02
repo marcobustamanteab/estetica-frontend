@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect, useCallback } from 'react';
 import { useUsers, User, UserFormData } from '../../hooks/useUsers';
+import { useGroups } from '../../hooks/useGroups';
 import UserFormModal from '../../components/users/UserFormModal';
 import DataTable from '../../components/common/DataTable';
 import SwitchToggle from '../../components/common/SwitchToggle';
@@ -9,6 +11,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { ExportColumn } from '../../types/ExportColumn';
 import './usersPage.css';
 
 const UsersPage: React.FC = () => {
@@ -17,8 +20,8 @@ const UsersPage: React.FC = () => {
   
   const { 
     users, 
-    loading,
-    error,
+    loading: usersLoading,
+    error: usersError,
     fetchUsers, 
     createUser, 
     updateUser, 
@@ -26,22 +29,34 @@ const UsersPage: React.FC = () => {
     toggleUserStatus 
   } = useUsers();
   
-  useEffect(() => {
-    fetchUsers();
+  const {
+    groups,
+    loading: groupsLoading,
+    fetchGroups
+  } = useGroups();
+  
+  // Cargar datos solo una vez al montar el componente
+  const loadInitialData = useCallback(async () => {
+    await Promise.all([
+      fetchUsers(),
+      fetchGroups()
+    ]);
   }, []);
+  
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
   
   const handleAddUser = () => {
     setSelectedUser(null);
     setIsModalOpen(true);
   };
   
-  // Abrir modal para editar un usuario existente
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
   
-  // Eliminar un usuario con confirmación
   const handleDeleteUser = async (id: number) => {
     const result = await Swal.fire({
       title: '¿Eliminar usuario?',
@@ -65,9 +80,7 @@ const UsersPage: React.FC = () => {
     }
   };
   
-  // Cambiar el estado de un usuario con confirmación
   const handleToggleStatus = async (id: number, isActive: boolean) => {
-    // Usar SweetAlert2 para la confirmación
     const result = await Swal.fire({
       title: `¿${isActive ? 'Desactivar' : 'Activar'} usuario?`,
       text: `¿Estás seguro que deseas ${isActive ? 'desactivar' : 'activar'} este usuario?`,
@@ -90,26 +103,52 @@ const UsersPage: React.FC = () => {
     }
   };
   
-  // Guardar un usuario (crear o actualizar)
   const handleSaveUser = async (userData: UserFormData) => {
     setIsModalOpen(false);
     
     try {
       if (selectedUser) {
-        // Actualizar usuario existente
         await updateUser(selectedUser.id, userData);
         toast.success('Usuario actualizado correctamente');
       } else {
-        // Crear nuevo usuario
         await createUser(userData);
         toast.success('Usuario creado correctamente');
       }
+      
+      // Recargar la lista de usuarios después de crear/actualizar
+      fetchUsers();
     } catch (error) {
       console.error('Error al guardar usuario:', error);
       toast.error('Ocurrió un error al guardar el usuario');
     }
   };
 
+  // Función para obtener los nombres de los roles de un usuario
+  const getUserRoles = (user: User) => {
+    if (!user.groups || user.groups.length === 0) return [];
+    
+    return user.groups.map(groupId => {
+      const group = groups.find(g => g.id === groupId);
+      return group ? group.name : 'Rol desconocido';
+    });
+  };
+
+  // Colores para las pills de roles
+  const rolePillColors = [
+    { bg: '#E0F2FE', text: '#0369A1' }, // Azul claro
+    { bg: '#D1FAE5', text: '#059669' }, // Verde claro
+    { bg: '#FCE7F3', text: '#DB2777' }, // Rosa claro
+    { bg: '#FEF3C7', text: '#D97706' }, // Amarillo claro
+    { bg: '#E0E7FF', text: '#4F46E5' }, // Indigo claro
+  ];
+
+  // Asignar un color consistente basado en el nombre del rol
+  const getRolePillColor = (roleName: string) => {
+    // Usar una suma de códigos de caracteres para asignar consistentemente el mismo color a un rol
+    const charSum = roleName.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return rolePillColors[charSum % rolePillColors.length];
+  };
+  
   // Definir columnas para DataTable usando columnHelper
   const columnHelper = createColumnHelper<User>();
   
@@ -131,15 +170,35 @@ const UsersPage: React.FC = () => {
       header: 'Nombre',
       cell: info => info.getValue(),
     }),
-    columnHelper.accessor(row => row.is_staff ? 'Administrador' : 'Empleado', {
-      id: 'role',
-      header: 'Rol',
-      cell: info => info.getValue(),
+    columnHelper.accessor(row => row.is_staff ? ['Administrador'] : getUserRoles(row), {
+      id: 'roles',
+      header: 'Roles',
+      cell: info => {
+        const roles = info.getValue();
+        if (!roles || roles.length === 0) return <span className="no-roles">Sin roles</span>;
+        
+        return (
+          <div className="role-pills">
+            {roles.map((role, index) => {
+              const { bg, text } = getRolePillColor(role);
+              return (
+                <span 
+                  key={index} 
+                  className="role-pill"
+                  style={{ backgroundColor: bg, color: text }}
+                >
+                  {role}
+                </span>
+              );
+            })}
+          </div>
+        );
+      },
     }),
     columnHelper.accessor('is_active', {
       header: 'Estado',
       cell: info => (
-        <span className={`status-pill ${info.getValue() ? 'active' : 'inactive'}`}>
+        <span className={`status-badge ${info.getValue() ? 'active' : 'inactive'}`}>
           {info.getValue() ? 'Activo' : 'Inactivo'}
         </span>
       ),
@@ -174,35 +233,48 @@ const UsersPage: React.FC = () => {
   ];
 
   // Definir las columnas para exportación
-  const exportColumns = [
+  const exportColumns: ExportColumn[] = [
     { header: 'ID', accessor: 'id' },
     { header: 'Nombre de Usuario', accessor: 'username' },
     { header: 'Email', accessor: 'email' },
-    { header: 'Nombre', accessor: 'first_name', formatFn: (value: string | null) => value || 'No especificado' },
-    { header: 'Apellido', accessor: 'last_name', formatFn: (value: string | null) => value || 'No especificado' },
+    { header: 'Nombre', accessor: 'first_name', formatFn: (value: any) => value || 'No especificado' },
+    { header: 'Apellido', accessor: 'last_name', formatFn: (value: any) => value || 'No especificado' },
+    // Para Roles, usamos el accessor 'groups' y formateamos en la función
     { 
-      header: 'Rol', 
-      accessor: 'is_staff',
-      formatFn: (value: boolean) => value ? 'Administrador' : 'Empleado'
+      header: 'Roles', 
+      accessor: 'groups', 
+      formatFn: (value: number[], row: { is_staff: any; }) => {
+        if (row.is_staff) return 'Administrador';
+        if (!value || value.length === 0) return 'Sin roles';
+        
+        const roleNames = value.map((groupId: number) => {
+          const group = groups.find(g => g.id === groupId);
+          return group ? group.name : 'Rol desconocido';
+        });
+        
+        return roleNames.join(', ');
+      }
     },
-    { header: 'Estado', accessor: 'is_active', formatFn: (value: boolean) => value ? 'Activo' : 'Inactivo' },
-    { header: 'Última conexión', accessor: 'last_login', formatFn: (value: string | null) => value || 'Nunca' }
+    { header: 'Estado', accessor: 'is_active', formatFn: (value: any) => value ? 'Activo' : 'Inactivo' },
+    { header: 'Última conexión', accessor: 'last_login', formatFn: (value: any) => value || 'Nunca' }
   ];
 
   return (
     <div className="users-page">
       <div className="page-header">
         <h2>Administración de Usuarios</h2>
-        <button className="add-button" onClick={handleAddUser}><AddIcon fontSize="small" /> Nuevo Usuario</button>
+        <button className="add-button" onClick={handleAddUser}>
+          <AddIcon fontSize="small" /> Nuevo Usuario
+        </button>
       </div>
       
-      {error && (
+      {usersError && (
         <div className="error-alert">
-          <p>{error}</p>
+          <p>{usersError}</p>
         </div>
       )}
       
-      {loading && users.length === 0 ? (
+      {(usersLoading && users.length === 0) || groupsLoading ? (
         <p className="loading-message">Cargando usuarios...</p>
       ) : (
         <DataTable 
@@ -217,6 +289,7 @@ const UsersPage: React.FC = () => {
         />
       )}
       
+      {/* Solo mostrar el modal cuando isModalOpen es true */}
       {isModalOpen && (
         <UserFormModal
           user={selectedUser}

@@ -12,7 +12,8 @@ import {
   ColumnFiltersState,
 } from '@tanstack/react-table';
 import './dataTable.css';
-import ExportData from './ExportData'; 
+import ExportData from './ExportData';
+import { ExportColumn } from '../../types/ExportColumn';
 
 interface DataTableProps<T> {
   columns: ColumnDef<T, any>[];
@@ -21,11 +22,7 @@ interface DataTableProps<T> {
   pageSize?: number;
   filterPlaceholder?: string;
   exportConfig?: {
-    columns: {
-      header: string;
-      accessor: string;
-      formatFn?: (value: any) => string;
-    }[];
+    columns: ExportColumn[];
     fileName: string;
   };
 }

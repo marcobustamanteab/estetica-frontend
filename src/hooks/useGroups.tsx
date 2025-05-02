@@ -1,36 +1,45 @@
-// src/hooks/useGroups.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useLoading } from '../context/LoadingContext';
 
-// Tipos para permisos
-export interface ContentType {
-  id: number;
-  app_label: string;
-  model: string;
-}
+// Tipo para Axios
+type AxiosInstance = ReturnType<typeof axios.create>;
 
+// Definir la base URL para la API de grupos
+const API_BASE_URL = 
+  import.meta.env.PROD
+    ? (import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app')
+    : 'http://localhost:8000';
+
+const API_URL = `${API_BASE_URL}/api/auth/groups/`;
+const PERMISSIONS_URL = `${API_BASE_URL}/api/auth/permissions/`;
+
+// Tipos
 export interface Permission {
   id: number;
   name: string;
   codename: string;
-  content_type: ContentType;
+  content_type: {
+    id: number;
+    app_label: string;
+    model: string;
+  };
 }
 
-// Tipos para grupos
 export interface Group {
   id: number;
   name: string;
-  permissions?: Permission[];
-  user_set?: {id: number; username: string}[];
+  permissions: Permission[];
+  user_set?: number[]; // IDs de usuarios que tienen este rol
 }
 
 export interface GroupFormData {
   name: string;
 }
 
-// Hook para gestionar grupos
+// Hook para manejar grupos y roles
 export const useGroups = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [availablePermissions, setAvailablePermissions] = useState<Permission[]>([]);
@@ -40,10 +49,10 @@ export const useGroups = () => {
   const { logout } = useAuth();
   const { showLoading, hideLoading } = useLoading();
   
-  // Crear instancia de axios con interceptores
-  const createAxiosInstance = useCallback(() => {
+  // Crear una instancia de axios con interceptores
+  const createAxiosInstance = useCallback((): AxiosInstance => {
     const instance = axios.create({
-      baseURL: 'http://localhost:8000/api/auth/',
+      baseURL: '', // Se añadirá la URL específica en cada solicitud
     });
     
     instance.interceptors.request.use(
@@ -70,56 +79,71 @@ export const useGroups = () => {
     return instance;
   }, [logout]);
   
-  // Cargar grupos
-  const fetchGroups = useCallback(async () => {
+  // Cargar todos los grupos
+  const fetchGroups = useCallback(async (): Promise<Group[]> => {
     setLoading(true);
     setError(null);
     showLoading('Cargando roles...');
     
     try {
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.get<Group[]>('groups/');
+      const response = await axiosInstance.get<Group[]>(API_URL);
       setGroups(response.data);
-    } catch (error) {
-      setError('Error al cargar los roles');
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 
+                         error.response?.data?.message || 
+                         'Error al cargar los roles';
+      setError(errorMessage);
       console.error('Error al cargar roles:', error);
+      return [];
     } finally {
       setLoading(false);
       hideLoading();
     }
   }, [createAxiosInstance, showLoading, hideLoading]);
   
-  // Cargar permisos disponibles
-  const fetchPermissions = useCallback(async () => {
-    setLoading(true);
-    showLoading('Cargando permisos...');
-    
-    try {
-      const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.get<Permission[]>('permissions/');
-      setAvailablePermissions(response.data);
-    } catch (error) {
-      console.error('Error al cargar permisos:', error);
-    } finally {
-      setLoading(false);
-      hideLoading();
-    }
-  }, [createAxiosInstance, showLoading, hideLoading]);
-  
-  // Obtener un grupo por ID
-  const getGroupById = useCallback(async (id: number) => {
+  // Obtener un grupo específico
+  const fetchGroup = useCallback(async (id: number): Promise<Group | null> => {
     setLoading(true);
     setError(null);
     showLoading('Cargando detalles del rol...');
     
     try {
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.get<Group>(`groups/${id}/`);
+      const response = await axiosInstance.get<Group>(`${API_URL}${id}/`);
       return response.data;
-    } catch (error) {
-      setError('Error al obtener los detalles del rol');
-      console.error(`Error al obtener rol con ID ${id}:`, error);
-      throw error;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 
+                         error.response?.data?.message || 
+                         'Error al cargar el rol';
+      setError(errorMessage);
+      console.error('Error fetching group:', error);
+      return null;
+    } finally {
+      setLoading(false);
+      hideLoading();
+    }
+  }, [createAxiosInstance, showLoading, hideLoading]);
+  
+  // Obtener todos los permisos disponibles
+  const fetchPermissions = useCallback(async (): Promise<Permission[]> => {
+    setLoading(true);
+    setError(null);
+    showLoading('Cargando permisos...');
+    
+    try {
+      const axiosInstance = createAxiosInstance();
+      const response = await axiosInstance.get<Permission[]>(PERMISSIONS_URL);
+      setAvailablePermissions(response.data);
+      return response.data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 
+                         error.response?.data?.message || 
+                         'Error al cargar los permisos';
+      setError(errorMessage);
+      console.error('Error fetching permissions:', error);
+      return [];
     } finally {
       setLoading(false);
       hideLoading();
@@ -127,19 +151,22 @@ export const useGroups = () => {
   }, [createAxiosInstance, showLoading, hideLoading]);
   
   // Crear un nuevo grupo
-  const createGroup = useCallback(async (groupData: GroupFormData) => {
+  const createGroup = useCallback(async (groupData: GroupFormData): Promise<Group> => {
     setLoading(true);
     setError(null);
     showLoading('Creando rol...');
     
     try {
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.post<Group>('groups/', groupData);
+      const response = await axiosInstance.post<Group>(API_URL, groupData);
       setGroups(prevGroups => [...prevGroups, response.data]);
       return response.data;
-    } catch (error) {
-      setError('Error al crear el rol');
-      console.error('Error al crear rol:', error);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 
+                         error.response?.data?.message || 
+                         'Error al crear el rol';
+      setError(errorMessage);
+      console.error('Error creating group:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -148,20 +175,26 @@ export const useGroups = () => {
   }, [createAxiosInstance, showLoading, hideLoading]);
   
   // Actualizar un grupo existente
-  const updateGroup = useCallback(async (id: number, groupData: GroupFormData) => {
+  const updateGroup = useCallback(async (id: number, groupData: GroupFormData): Promise<Group> => {
     setLoading(true);
     setError(null);
     showLoading('Actualizando rol...');
     
     try {
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.put<Group>(`groups/${id}/`, groupData);
-      // Actualizar la lista de grupos
-      setGroups(prevGroups => prevGroups.map(group => group.id === id ? response.data : group));
+      const response = await axiosInstance.put<Group>(`${API_URL}${id}/`, groupData);
+      setGroups(prevGroups => 
+        prevGroups.map(group => 
+          group.id === id ? { ...group, ...response.data } : group
+        )
+      );
       return response.data;
-    } catch (error) {
-      setError('Error al actualizar el rol');
-      console.error(`Error al actualizar rol con ID ${id}:`, error);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 
+                         error.response?.data?.message || 
+                         'Error al actualizar el rol';
+      setError(errorMessage);
+      console.error('Error updating group:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -170,20 +203,22 @@ export const useGroups = () => {
   }, [createAxiosInstance, showLoading, hideLoading]);
   
   // Eliminar un grupo
-  const deleteGroup = useCallback(async (id: number) => {
+  const deleteGroup = useCallback(async (id: number): Promise<boolean> => {
     setLoading(true);
     setError(null);
     showLoading('Eliminando rol...');
     
     try {
       const axiosInstance = createAxiosInstance();
-      await axiosInstance.delete(`groups/${id}/`);
-      // Actualizar la lista de grupos
+      await axiosInstance.delete(`${API_URL}${id}/`);
       setGroups(prevGroups => prevGroups.filter(group => group.id !== id));
       return true;
-    } catch (error) {
-      setError('Error al eliminar el rol');
-      console.error(`Error al eliminar rol con ID ${id}:`, error);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 
+                         error.response?.data?.message || 
+                         'Error al eliminar el rol';
+      setError(errorMessage);
+      console.error('Error deleting group:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -192,32 +227,31 @@ export const useGroups = () => {
   }, [createAxiosInstance, showLoading, hideLoading]);
   
   // Actualizar permisos de un grupo
-  const updateGroupPermissions = useCallback(async (id: number, permissionIds: number[]) => {
+  const updateGroupPermissions = useCallback(async (id: number, permissionIds: number[]): Promise<boolean> => {
     setLoading(true);
     setError(null);
-    showLoading('Actualizando permisos...');
+    showLoading('Actualizando permisos del rol...');
     
     try {
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.put<Group>(`groups/${id}/permissions/`, {
-        permissions: permissionIds
-      });
+      await axiosInstance.put(`${API_URL}${id}/permissions/`, { permissions: permissionIds });
       
-      // Actualizar la lista de grupos
-      setGroups(prevGroups => 
-        prevGroups.map(group => group.id === id ? response.data : group)
-      );
+      // Actualizar la lista de grupos después de modificar los permisos
+      await fetchGroups();
       
-      return response.data;
-    } catch (error) {
-      setError('Error al actualizar los permisos');
-      console.error(`Error al actualizar permisos del rol con ID ${id}:`, error);
+      return true;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || 
+                         error.response?.data?.message || 
+                         'Error al actualizar los permisos';
+      setError(errorMessage);
+      console.error('Error updating group permissions:', error);
       throw error;
     } finally {
       setLoading(false);
       hideLoading();
     }
-  }, [createAxiosInstance, showLoading, hideLoading]);
+  }, [createAxiosInstance, fetchGroups, showLoading, hideLoading]);
   
   return {
     groups,
@@ -225,8 +259,8 @@ export const useGroups = () => {
     loading,
     error,
     fetchGroups,
+    fetchGroup,
     fetchPermissions,
-    getGroupById,
     createGroup,
     updateGroup,
     deleteGroup,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserFormData } from '../../hooks/useUsers';
 import { useGroups } from '../../hooks/useGroups';
+import '../common/modal.css';
 import '../../assets/styles/users/userFormModal.css';
 
 interface UserFormModalProps {
@@ -24,25 +25,10 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSave }) 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { groups, fetchGroups, loading: groupsLoading } = useGroups();
   
-  // Cargar roles disponibles una sola vez al montar el componente
+  // Cargar roles disponibles al montar el componente
   useEffect(() => {
-    // Usamos una bandera para evitar llamadas repetidas
-    let isMounted = true;
-    
-    const loadGroups = async () => {
-      if (isMounted) {
-        await fetchGroups();
-      }
-    };
-    
-    loadGroups();
-    
-    // Cleanup function para establecer isMounted a false cuando el componente se desmonte
-    return () => {
-      isMounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Array de dependencias vacío para ejecutar solo al montar
+    fetchGroups();
+  }, []);
   
   // Si estamos editando, cargar los datos del usuario
   useEffect(() => {
@@ -58,7 +44,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSave }) 
         // No incluimos password al editar
       });
     }
-  }, [user]);
+  }, []);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -113,10 +99,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSave }) 
       newErrors.email = 'Formato de correo electrónico inválido';
     }
     
-    // Elimina la validación de la longitud de la contraseña
-    
     // Validar rol si no es administrador
-    if (!formData.is_staff && formData.groups && formData.groups.length === 0) {
+    if (!formData.is_staff && (!formData.groups || formData.groups.length === 0)) {
       newErrors.groups = 'Debe seleccionar al menos un rol';
     }
     
@@ -142,7 +126,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSave }) 
   
   return (
     <div className="modal-overlay">
-      <div className="modal-container">
+      <div className="modal-container user-form-modal">
         <div className="modal-header">
           <h3>{user ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
           <button className="close-button" onClick={onClose}>&times;</button>
@@ -250,12 +234,17 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSave }) 
                 />
                 <span className="checkbox-text">Administrador</span>
               </label>
+              {formData.is_staff && (
+                <div className="admin-help-text">
+                  Al habilitar esta opción, el usuario tendrá acceso completo al sistema.
+                </div>
+              )}
             </div>
           </div>
           
           {/* Selector de roles (solo visible si no es administrador) */}
           {!formData.is_staff && (
-            <div className="form-group">
+            <div className="form-group roles-group">
               <label htmlFor="groups">
                 Roles <span className="required">*</span>
                 <span className="help-text"> (Selecciona uno o más roles)</span>
@@ -270,7 +259,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSave }) 
                     multiple
                     value={formData.groups ? formData.groups.map(id => id.toString()) : []}
                     onChange={handleRoleChange}
-                    className={errors.groups ? 'form-input error' : 'form-input'}
+                    className={errors.groups ? 'form-input error roles-select' : 'form-input roles-select'}
                     size={Math.min(4, groups.length || 1)}
                   >
                     {groups.map(group => (
