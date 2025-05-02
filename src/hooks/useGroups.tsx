@@ -32,7 +32,8 @@ export interface Group {
   id: number;
   name: string;
   permissions: Permission[];
-  user_set?: number[]; // IDs de usuarios que tienen este rol
+  user_set?: number[]; // 
+  user_count?: number;
 }
 
 export interface GroupFormData {

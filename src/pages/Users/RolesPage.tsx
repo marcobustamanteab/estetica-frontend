@@ -11,11 +11,13 @@ import SecurityIcon from '@mui/icons-material/Security';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import './rolesPage.css';
+import { useUsers } from '../../hooks/useUsers';
 
 const RolesPage: React.FC = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Group | null>(null);
+  const { users } = useUsers();
   
   const { 
     groups, 
@@ -35,6 +37,36 @@ const RolesPage: React.FC = () => {
     fetchPermissions();
   }, []);
   
+  useEffect(() => {
+    if (groups.length > 0) {
+      console.log('DEBUG - Groups data structure:', groups);
+      
+      // Check if user_count property exists in the groups
+      const hasUserCount = groups.some(group => 'user_count' in group);
+      console.log('DEBUG - Has user_count property:', hasUserCount);
+      
+      // Check the first group's structure
+      if (groups.length > 0) {
+        console.log('DEBUG - First group properties:', Object.keys(groups[0]));
+        console.log('DEBUG - First group full data:', groups[0]);
+      }
+    }
+    
+    if (users.length > 0) {
+      console.log('DEBUG - Users data structure:', users);
+      
+      // Check if users have groups property
+      const hasGroups = users.some(user => user.groups && Array.isArray(user.groups));
+      console.log('DEBUG - Users have groups property:', hasGroups);
+      
+      // Check the first user's structure
+      if (users.length > 0) {
+        console.log('DEBUG - First user properties:', Object.keys(users[0]));
+        console.log('DEBUG - First user groups data:', users[0].groups);
+      }
+    }
+  }, [groups, users]);
+
   // Abrir modal para crear un nuevo rol
   const handleAddRole = () => {
     setSelectedRole(null);
@@ -131,7 +163,7 @@ const RolesPage: React.FC = () => {
     columnHelper.display({
       id: 'usersCount',
       header: 'Usuarios asignados',
-      cell: info => info.row.original.user_set?.length || 0,
+      cell: info => info.row.original.user_count || 0,
     }),
     columnHelper.display({
       id: 'permissionsCount',
