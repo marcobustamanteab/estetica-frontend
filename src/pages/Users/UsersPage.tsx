@@ -126,8 +126,20 @@ const UsersPage: React.FC = () => {
   // Función para obtener los nombres de los roles de un usuario
   const getUserRoles = (user: User) => {
     if (!user.groups || user.groups.length === 0) return [];
+  
+    // Check first item to determine the structure
+    const firstItem = user.groups[0];
     
-    return user.groups.map(group => group.name);
+    // If groups are objects with name property
+    if (typeof firstItem === 'object' && firstItem !== null && 'name' in firstItem) {
+      return user.groups.map(group => (group as {name: string}).name);
+    }
+    
+    // If groups are just IDs
+    return user.groups.map(groupId => {
+      const group = groups.find(g => g.id === (typeof groupId === 'object' ? (groupId as {id: number}).id : groupId));
+      return group ? group.name : 'Rol desconocido';
+    });
   };
 
   // Colores para las pills de roles

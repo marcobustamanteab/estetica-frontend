@@ -34,6 +34,7 @@ export interface Group {
   permissions: Permission[];
   user_set?: number[]; // 
   user_count?: number;
+  groups?: {id: number, name:string}[] //
 }
 
 export interface GroupFormData {
