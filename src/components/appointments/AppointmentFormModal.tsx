@@ -15,6 +15,7 @@ import {
   isOverlapping,
 } from "../../services/availabilityService";
 import { format } from "date-fns";
+import { useGroups } from "../../hooks/useGroups";
 
 interface AppointmentFormModalProps {
   appointment: Appointment | null;
@@ -62,6 +63,9 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [availableServices, setAvailableServices] = useState<Service[]>([]);
   const { fetchCategoriesByEmployee } = useServices();
+  const [filteredCategories, setFilteredCategories] = useState<
+    ServiceCategory[]
+  >([]);
 
   // Usar el hook de citas para obtener los servicios disponibles
   const { fetchAvailableServices } = useAppointments();
@@ -150,6 +154,12 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
       }
     }
   }, [availableServices, appointment, services]);
+
+  const { fetchGroups, groups } = useGroups();
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
   // Filtrar servicios cuando cambia la categoría seleccionada
   useEffect(() => {
@@ -545,10 +555,21 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     }));
     setSelectedService(null);
 
-    // Si se seleccionó un empleado válido, cargar categorías disponibles
+    // Si se seleccionó un empleado válido
     if (employeeId > 0) {
-      // Asumimos que tienes acceso a la función fetchCategoriesByEmployee desde props o hooks
-      fetchCategoriesByEmployee(employeeId);
+      // Cargar categorías por empleado
+      fetchCategoriesByEmployee(employeeId)
+        .then((employeeCategories) => {
+          setFilteredCategories(employeeCategories);
+        })
+        .catch((error) => {
+          console.error("Error al cargar categorías para el empleado:", error);
+          // Si hay error, mostrar todas las categorías como fallback
+          setFilteredCategories(categories);
+        });
+    } else {
+      // Si no hay empleado seleccionado, no mostrar categorías
+      setFilteredCategories([]);
     }
   };
 
@@ -596,12 +617,26 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               className={errors.employee ? "form-input error" : "form-input"}
             >
               <option value="0">Seleccione un empleado...</option>
-              {activeUsers.map(employee => (
+              {activeUsers.map((employee) => (
                 <option key={employee.id} value={employee.id}>
                   {employee.first_name} {employee.last_name}
-                  {employee.groups && Array.isArray(employee.groups) && employee.groups.length > 0 && (
-                    ` (${employee.groups.map((group: {id: number, name: string}) => group.name).join('/')})`
-                  )}
+                  {employee.groups &&
+                    Array.isArray(employee.groups) &&
+                    employee.groups.length > 0 &&
+                    ` (${employee.groups
+                      .map((group) => {
+                        if (
+                          typeof group === "object" &&
+                          group !== null &&
+                          "name" in group
+                        ) {
+                          return group.name;
+                        }
+                        // Buscar el grupo por ID
+                        const foundGroup = groups.find((g) => g.id === group);
+                        return foundGroup ? foundGroup.name : `Rol ${group}`;
+                      })
+                      .join("/")})`}
                 </option>
               ))}
             </select>
@@ -624,7 +659,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 disabled={!formData.employee} // Deshabilitar hasta que se seleccione empleado
               >
                 <option value="">Seleccione una categoría...</option>
-                {categories.map((category) => (
+                {filteredCategories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
@@ -703,7 +738,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 value={formData.date}
                 onChange={handleChange}
                 className={errors.date ? "form-input error" : "form-input"}
-                min={today} // Restringir a fechas futuras
+                min={today}
               />
               {errors.date && (
                 <span className="error-message">{errors.date}</span>
@@ -724,7 +759,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 ref={startTimeInputRef}
                 min={formData.date === today ? minTime : "06:00"}
                 max="23:59"
-                step="60" // Permitir cualquier minuto
+                step="60"
               />
               {errors.start_time && (
                 <span className="error-message">{errors.start_time}</span>
@@ -745,11 +780,11 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 value={formData.end_time}
                 onChange={handleChange}
                 className={errors.end_time ? "form-input error" : "form-input"}
-                readOnly={!!selectedService} // Hacer solo lectura si hay servicio seleccionado
+                readOnly={!!selectedService}
                 ref={endTimeInputRef}
                 min={formData.start_time}
                 max="23:59"
-                step="60" // Permitir cualquier minuto
+                step="60"
               />
               {errors.end_time && (
                 <span className="error-message">{errors.end_time}</span>

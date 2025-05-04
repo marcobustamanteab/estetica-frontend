@@ -44,7 +44,6 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
         last_name: user.last_name || "",
         is_active: user.is_active,
         is_staff: user.is_staff,
-        // Extract IDs from groups
         groups: user.groups
           ? user.groups.map((group) =>
               typeof group === "object" ? group.id : group
