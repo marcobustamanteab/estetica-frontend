@@ -31,6 +31,7 @@ export interface ServiceCategory {
   name: string;
   description: string | null;
   is_active: boolean;
+  allowed_roles?: {id: number, name: string}[];
 }
 
 export interface Service {
@@ -59,7 +60,9 @@ export interface CategoryFormData {
   name: string;
   description?: string;
   is_active?: boolean;
+  roles?: number[]; 
 }
+
 
 export interface ServicesHook {
   services: Service[];
@@ -78,6 +81,7 @@ export interface ServicesHook {
   updateCategory: (id: number, categoryData: CategoryFormData) => Promise<ServiceCategory>;
   deleteCategory: (id: number) => Promise<boolean>;
   toggleCategoryStatus: (id: number, isActive: boolean) => Promise<ServiceCategory>;
+  fetchCategoriesByEmployee: (employeeId: number) => Promise<ServiceCategory[]>;
 }
 
 export const useServices = (): ServicesHook => {
@@ -163,6 +167,29 @@ export const useServices = (): ServicesHook => {
     } catch (error) {
       setError('Error al cargar las categorías');
       console.error('Error al cargar categorías:', error);
+    } finally {
+      setLoading(false);
+      hideLoading();
+    }
+  }, [createAxiosInstance, showLoading, hideLoading]);
+
+  // Cargar categorías según el empleado seleccionado
+  const fetchCategoriesByEmployee = useCallback(async (employeeId: number): Promise<ServiceCategory[]> => {
+    setLoading(true);
+    setError(null);
+    showLoading('Cargando categorías disponibles...');
+    
+    try {
+      const axiosInstance = createAxiosInstance();
+      const response = await axiosInstance.get<ServiceCategory[]>(CATEGORIES_URL, {
+        params: { employee_id: employeeId }
+      });
+      setCategories(response.data); // Actualizar el estado con las categorías filtradas
+      return response.data;
+    } catch (error) {
+      setError('Error al cargar las categorías por empleado');
+      console.error('Error al cargar categorías por empleado:', error);
+      return []; // Retornar array vacío en caso de error
     } finally {
       setLoading(false);
       hideLoading();
@@ -308,9 +335,38 @@ export const useServices = (): ServicesHook => {
     
     try {
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.post<ServiceCategory>(CATEGORIES_URL, categoryData);
-      setCategories(prevCategories => [...prevCategories, response.data]);
-      return response.data;
+      
+      // Extraer los roles antes de enviar los datos de la categoría
+      const { roles, ...categoryDataWithoutRoles } = categoryData;
+      
+      console.log("Creando categoría con datos:", categoryDataWithoutRoles);
+      
+      // Paso 1: Crear la categoría
+      const response = await axiosInstance.post<ServiceCategory>(CATEGORIES_URL, categoryDataWithoutRoles);
+      const newCategory = response.data;
+      
+      console.log("Categoría creada:", newCategory);
+      
+      // Paso 2: Si hay roles seleccionados, usar el nuevo endpoint
+      if (roles && roles.length > 0) {
+        try {
+          console.log("Asignando roles:", roles, "a categoría ID:", newCategory.id);
+          
+          // Usar el nuevo endpoint para asignar roles
+          await axiosInstance.post(
+            `${CATEGORIES_URL}${newCategory.id}/assign_roles/`, 
+            { roles: roles }
+          );
+          
+          console.log("Roles asignados correctamente");
+        } catch (roleError) {
+          console.error('Error al asignar roles a la categoría:', roleError);
+        }
+      }
+      
+      // Recargar categorías para obtener datos actualizados
+      await fetchCategories();
+      return newCategory;
     } catch (error) {
       setError('Error al crear la categoría');
       console.error('Error al crear categoría:', error);
@@ -319,7 +375,7 @@ export const useServices = (): ServicesHook => {
       setLoading(false);
       hideLoading();
     }
-  }, [createAxiosInstance, showLoading, hideLoading]);
+  }, [createAxiosInstance, showLoading, hideLoading, fetchCategories]);
   
   // Actualizar una categoría existente
   const updateCategory = useCallback(async (id: number, categoryData: CategoryFormData): Promise<ServiceCategory> => {
@@ -329,9 +385,34 @@ export const useServices = (): ServicesHook => {
     
     try {
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.put<ServiceCategory>(`${CATEGORIES_URL}${id}/`, categoryData);
+      
+      // Extraer los roles antes de enviar los datos de la categoría
+      const { roles, ...categoryDataWithoutRoles } = categoryData;
+      
+      // Actualizar datos básicos de la categoría
+      const response = await axiosInstance.put<ServiceCategory>(`${CATEGORIES_URL}${id}/`, categoryDataWithoutRoles);
+      
+      // Si hay roles seleccionados, asignarlos
+      if (roles && roles.length > 0) {
+        try {
+          // Usar el endpoint para asignar roles
+          await axiosInstance.post(
+            `${CATEGORIES_URL}${id}/assign_roles/`, 
+            { roles: roles }
+          );
+        } catch (roleError) {
+          console.error('Error al asignar roles en la actualización:', roleError);
+        }
+      }
+      
+      // Recargar categorías para tener datos actualizados
+      await fetchCategories();
+      
       // Actualizar la lista de categorías
-      setCategories(prevCategories => prevCategories.map(category => category.id === id ? response.data : category));
+      setCategories(prevCategories => 
+        prevCategories.map(category => category.id === id ? response.data : category)
+      );
+      
       return response.data;
     } catch (error) {
       setError('Error al actualizar la categoría');
@@ -341,7 +422,7 @@ export const useServices = (): ServicesHook => {
       setLoading(false);
       hideLoading();
     }
-  }, [createAxiosInstance, showLoading, hideLoading]);
+  }, [createAxiosInstance, showLoading, hideLoading, fetchCategories]);
   
   // Eliminar una categoría
   const deleteCategory = useCallback(async (id: number): Promise<boolean> => {
@@ -407,6 +488,7 @@ export const useServices = (): ServicesHook => {
     createCategory,
     updateCategory,
     deleteCategory,
-    toggleCategoryStatus
+    toggleCategoryStatus,
+    fetchCategoriesByEmployee
   };
 };

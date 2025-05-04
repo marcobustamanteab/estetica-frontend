@@ -64,10 +64,9 @@ const App: React.FC = () => {
             
             {/* Rutas de Usuarios con submenús */}
             <Route path="/usuarios" element={<ProtectedRoute element={<UsersIndexPage />} />} />
-            <Route path="/usuarios/administracion" element={<ProtectedRoute element={<UsersPage />} />} />
-            <Route path="/usuarios/roles" element={<ProtectedRoute element={<RolesPage />} />} />
             <Route path="/usuarios/miperfil" element={<ProtectedRoute element={<MyProfilePage />} />} />
-            
+            <Route path="/usuarios/administracion" element={<ProtectedRoute element={<UsersPage />} />} />
+            <Route path="/usuarios/roles" element={<ProtectedRoute element={<RolesPage />} />} />            
             {/* otras rutas */}
             <Route path="/clientes" element={<ProtectedRoute element={<ClientsPage />} />} />
             <Route path="/servicios" element={<ProtectedRoute element={<ServicesPage />} />} /> 

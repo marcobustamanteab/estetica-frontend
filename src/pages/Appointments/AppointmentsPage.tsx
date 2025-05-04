@@ -48,11 +48,11 @@ const AppointmentsPage: React.FC = () => {
     deleteAppointment,
     changeAppointmentStatus,
     checkEmployeeAvailability,
-    fetchAvailableServices
+    fetchAvailableServices,
   } = useAppointments();
 
   const { clients, fetchClients } = useClients();
-  const { services, fetchServices } = useServices();
+  const { services, fetchServices, fetchCategoriesByEmployee } = useServices();
   const { users: employees, fetchUsers } = useUsers();
 
   const formatDate = (dateString: string): string => {
@@ -490,15 +490,16 @@ const AppointmentsPage: React.FC = () => {
       {/* Modal para crear/editar cita */}
       {isModalOpen && (
         <AppointmentFormModal
-          appointment={selectedAppointment}
-          clients={clients}
-          services={services} // Pasamos todos los servicios para mantener compatibilidad
-          employees={employees}
-          allAppointments={appointments}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveAppointment}
-          onCheckAvailability={handleCheckAvailability}
-        />
+        appointment={selectedAppointment}
+        clients={clients}
+        services={services}
+        employees={employees}
+        allAppointments={appointments}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveAppointment}
+        onCheckAvailability={handleCheckAvailability}
+        fetchCategoriesByEmployee={fetchCategoriesByEmployee}
+      />
       )}
 
       {/* Detalles de cita */}

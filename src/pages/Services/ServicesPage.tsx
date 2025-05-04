@@ -14,6 +14,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import './services.css';
+import { useGroups } from '../../hooks/useGroups';
 
 const ServicesPage: React.FC = () => {
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
@@ -21,6 +22,7 @@ const ServicesPage: React.FC = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const { groups, fetchGroups } = useGroups();
   
   const { 
     services, 
@@ -42,7 +44,9 @@ const ServicesPage: React.FC = () => {
   useEffect(() => {
     fetchCategories();
     fetchServices();
+    fetchGroups();
   }, []);
+
   
   // Cuando cambia la categoría seleccionada, actualizar los servicios
   useEffect(() => {
@@ -204,6 +208,8 @@ const ServicesPage: React.FC = () => {
     setIsCategoryModalOpen(false);
     
     try {
+      console.log('Guardando categoría con datos:', categoryData); 
+      
       if (selectedCategory) {
         // Actualizar categoría existente
         await updateCategory(selectedCategory.id, categoryData);
@@ -302,6 +308,35 @@ const ServicesPage: React.FC = () => {
     categoryColumnHelper.accessor('description', {
       header: 'Descripción',
       cell: info => info.getValue() || '-',
+    }),
+    categoryColumnHelper.accessor(row => row.allowed_roles, {
+      id: 'roles',
+      header: 'Roles Asignados',
+      cell: info => {
+        const roles = info.getValue();
+        if (!roles || roles.length === 0) return <span className="no-roles">Sin roles asignados</span>;
+        
+        return (
+          <div className="role-pills">
+            {roles.map((role: {id: number, name: string}, index: number) => (
+              <span 
+                key={index} 
+                className="role-pill"
+                style={{ 
+                  backgroundColor: '#E0F2FE', 
+                  color: '#0369A1',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  marginRight: '4px'
+                }}
+              >
+                {role.name}
+              </span>
+            ))}
+          </div>
+        );
+      },
     }),
     categoryColumnHelper.accessor('is_active', {
       header: 'Estado',
@@ -466,6 +501,7 @@ const ServicesPage: React.FC = () => {
       {isCategoryModalOpen && (
         <CategoryFormModal
           category={selectedCategory}
+          availableRoles={groups}
           onClose={() => setIsCategoryModalOpen(false)}
           onSave={handleSaveCategory}
         />

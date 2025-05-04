@@ -30,9 +30,9 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       icon: <FiUsers size={20} />, 
       label: 'Usuarios',
       subMenus: [
+        { path: '/usuarios/miperfil', icon: <FiUserCheck size={20} />, label: 'Mi Perfil' },
         { path: '/usuarios/administracion', icon: <FiUserPlus size={20} />, label: 'Administración de Usuarios' },
         { path: '/usuarios/roles', icon: <FiShield size={20} />, label: 'Administración de Roles' },
-        { path: '/usuarios/miperfil', icon: <FiUserCheck size={20} />, label: 'Mi Perfil' },
       ]
     },
     { path: '/clientes', icon: <FiUserCheck size={20} />, label: 'Clientes' },

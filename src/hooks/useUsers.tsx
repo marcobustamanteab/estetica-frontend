@@ -25,7 +25,7 @@ export interface User {
   is_active: boolean;
   is_staff: boolean;
   profile_image?: string;
-  groups?: number[];
+  groups?: {id: number, name: string}[];
 }
 
 export interface UserFormData {

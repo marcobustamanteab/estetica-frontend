@@ -73,19 +73,16 @@ const RolesPage: React.FC = () => {
     setIsFormModalOpen(true);
   };
   
-  // Abrir modal para editar un rol existente
   const handleEditRole = (role: Group) => {
     setSelectedRole(role);
     setIsFormModalOpen(true);
   };
   
-  // Abrir modal para gestionar permisos de un rol
   const handleManagePermissions = (role: Group) => {
     setSelectedRole(role);
     setIsPermissionsModalOpen(true);
   };
   
-  // Eliminar un rol con confirmación
   const handleDeleteRole = async (id: number) => {
     const result = await Swal.fire({
       title: '¿Eliminar rol?',
@@ -109,22 +106,18 @@ const RolesPage: React.FC = () => {
     }
   };
   
-  // Guardar un rol (crear o actualizar)
   const handleSaveRole = async (roleData: RoleFormValues) => {
     setIsFormModalOpen(false);
     
     try {
       if (selectedRole) {
-        // Actualizar rol existente
         await updateGroup(selectedRole.id, roleData);
         toast.success('Rol actualizado correctamente');
       } else {
-        // Crear nuevo rol
         await createGroup(roleData);
         toast.success('Rol creado correctamente');
       }
       
-      // Recargar roles
       await fetchGroups();
       
     } catch (error) {
@@ -133,7 +126,6 @@ const RolesPage: React.FC = () => {
     }
   };
   
-  // Guardar permisos de un rol
   const handleSavePermissions = async (permissions: number[]) => {
     setIsPermissionsModalOpen(false);
     
@@ -148,7 +140,6 @@ const RolesPage: React.FC = () => {
     }
   };
 
-  // Definir columnas para DataTable
   const columnHelper = createColumnHelper<Group>();
   
   const columns = [
@@ -163,7 +154,7 @@ const RolesPage: React.FC = () => {
     columnHelper.display({
       id: 'usersCount',
       header: 'Usuarios asignados',
-      cell: info => info.row.original.user_count || 0,
+      cell: info => info.row.original.user_count,
     }),
     columnHelper.display({
       id: 'permissionsCount',
