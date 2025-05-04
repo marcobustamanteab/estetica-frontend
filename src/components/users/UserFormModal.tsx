@@ -40,8 +40,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ user, onClose, onSave }) 
         last_name: user.last_name || '',
         is_active: user.is_active,
         is_staff: user.is_staff,
-        groups: user.groups || [],
-        // No incluimos password al editar
+        groups: user.groups ? user.groups.map(group => group.id) : [],
       });
     }
   }, []);

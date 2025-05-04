@@ -127,10 +127,7 @@ const UsersPage: React.FC = () => {
   const getUserRoles = (user: User) => {
     if (!user.groups || user.groups.length === 0) return [];
     
-    return user.groups.map(groupId => {
-      const group = groups.find(g => g.id === groupId);
-      return group ? group.name : 'Rol desconocido';
-    });
+    return user.groups.map(group => group.name);
   };
 
   // Colores para las pills de roles
