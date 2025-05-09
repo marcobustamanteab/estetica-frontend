@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/hooks/useServices.tsx
 import { useState, useCallback } from 'react';
 import axios from 'axios';
@@ -347,20 +348,28 @@ export const useServices = (): ServicesHook => {
       
       console.log("Categoría creada:", newCategory);
       
-      // Paso 2: Si hay roles seleccionados, usar el nuevo endpoint
+      // Paso 2: Si hay roles seleccionados, asignarlos
       if (roles && roles.length > 0) {
+        console.log("Asignando roles:", roles, "a categoría ID:", newCategory.id);
+        
         try {
-          console.log("Asignando roles:", roles, "a categoría ID:", newCategory.id);
-          
-          // Usar el nuevo endpoint para asignar roles
-          await axiosInstance.post(
+          // Usar el endpoint para asignar roles con el formato correcto
+          const roleResponse = await axiosInstance.post(
             `${CATEGORIES_URL}${newCategory.id}/assign_roles/`, 
-            { roles: roles }
+            { roles: roles } // Asegúrate de que este formato coincida con lo que espera el backend
           );
           
-          console.log("Roles asignados correctamente");
-        } catch (roleError) {
+          console.log("Roles asignados correctamente:", roleResponse.data);
+        } catch (roleError: any) {
           console.error('Error al asignar roles a la categoría:', roleError);
+          
+          // Mejor manejo de errores
+          if (roleError.response?.data) {
+            console.error('Detalles del error:', roleError.response.data);
+          }
+          
+          // Propagar el error para que la UI muestre que algo falló
+          throw new Error(`Error al asignar roles: ${roleError.message}`);
         }
       }
       
