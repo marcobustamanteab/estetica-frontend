@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Appointment, useAppointments } from "../../hooks/useAppointments";
-import { Client } from "../../hooks/useClients";
+import { Client, ClientFormData, useClients } from "../../hooks/useClients";
 import { Service, ServiceCategory, useServices } from "../../hooks/useServices";
 import { User } from "../../hooks/useUsers";
 import {
@@ -16,6 +16,9 @@ import {
 } from "../../services/availabilityService";
 import { format } from "date-fns";
 import { useGroups } from "../../hooks/useGroups";
+import ClientsSearchSelect from "../clients/ClientsSearchSelect";
+import ClientFormModal from "../clients/ClientFormModal";
+import { toast } from "react-toastify";
 
 interface AppointmentFormModalProps {
   appointment: Appointment | null;
@@ -81,8 +84,13 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const minTime = format(now, "HH:mm");
 
   // Solo mostrar clientes activos
-  const activeClients = clients.filter((client) => client.is_active);
+  // const activeClients = clients.filter((client) => client.is_active);
   const activeUsers = employees.filter((user) => user.is_active);
+
+  // Crear nuevo cliente
+  const { createClient, fetchClients } = useClients();
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [activeClientsList, setActiveClientsList] = useState<Client[]>([]);
 
   // Cargar servicios disponibles para agendar (categoría activa + servicio activo)
   useEffect(() => {
@@ -336,6 +344,41 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
       });
     }
   }, [formData.date, formData.start_time, today, minTime, appointment]);
+
+  useEffect(() => {
+    const filteredClients = clients.filter((client) => client.is_active);
+    setActiveClientsList(filteredClients);
+  }, [clients]);
+
+  const handleCreateClient = async (clientData: ClientFormData) => {
+    try {
+      // 1. Crear el cliente
+      const newClient = await createClient(clientData);
+      
+      // 2. Forzar recarga de clientes
+      await fetchClients();
+      
+      // 3. Añadir manualmente el cliente a la lista local también
+      // (para asegurarnos de que está actualizada, incluso si fetchClients falla)
+      setActiveClientsList(prevList => [...prevList, newClient]);
+      
+      // 4. Actualizar selección
+      setFormData(prev => ({
+        ...prev,
+        client: newClient.id
+      }));
+      
+      // 5. Cerrar modal y mostrar mensaje
+      setShowClientModal(false);
+      toast.success(`Cliente ${newClient.first_name} ${newClient.last_name} creado y seleccionado`);
+      
+      return newClient.id;
+    } catch (error) {
+      console.error("Error al crear cliente:", error);
+      toast.error("Ocurrió un error al crear el cliente");
+      return 0;
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -606,7 +649,29 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             </div>
           )}
 
-          {/* Primera fila: Empleado */}
+          {/* primera fila: Cliente */}
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="client">Cliente</label>
+              <ClientsSearchSelect
+                clients={activeClientsList}
+                value={formData.client}
+                onChange={(clientId) =>
+                  setFormData((prev) => ({ ...prev, client: clientId }))
+                }
+                onAddNew={() => setShowClientModal(true)}
+                disabled={false}
+                error={!!errors.client}
+                id="client"
+                name="client"
+              />
+              {errors.client && (
+                <span className="error-message">{errors.client}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Segunda fila: Empleado */}
           <div className="form-group">
             <label htmlFor="employee">Empleado</label>
             <select
@@ -645,7 +710,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             )}
           </div>
 
-          {/* Segunda fila: Categoría y Servicio */}
+          {/* Tercera fila: Categoría y Servicio */}
           <div className="form-row">
             {/* Selector de categoría */}
             <div className="form-group">
@@ -687,30 +752,6 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               </select>
               {errors.service && (
                 <span className="error-message">{errors.service}</span>
-              )}
-            </div>
-          </div>
-
-          {/* Tercera fila: Cliente */}
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="client">Cliente</label>
-              <select
-                id="client"
-                name="client"
-                value={formData.client}
-                onChange={handleChange}
-                className={errors.client ? "form-input error" : "form-input"}
-              >
-                <option value="0">Seleccione un cliente...</option>
-                {activeClients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.first_name} {client.last_name}
-                  </option>
-                ))}
-              </select>
-              {errors.client && (
-                <span className="error-message">{errors.client}</span>
               )}
             </div>
           </div>
@@ -863,6 +904,13 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             </button>
           </div>
         </form>
+        {showClientModal && (
+          <ClientFormModal
+            client={null}
+            onClose={() => setShowClientModal(false)}
+            onSave={handleCreateClient}
+          />
+        )}
       </div>
     </div>
   );
