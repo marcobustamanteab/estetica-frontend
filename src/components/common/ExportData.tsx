@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/components/common/ExportData.tsx
-import React from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import './exportData.css';
 import { ExportColumn } from '../../types/ExportColumn';
+import { Download, FileText, FileSpreadsheet, File } from 'lucide-react';
 
 interface ExportDataProps {
   data: any[];
@@ -27,6 +28,23 @@ const ExportData: React.FC<ExportDataProps> = ({
   showExcel = true,
   showPDF = true,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar el dropdown cuando se hace clic fuera de él
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   // Prepara los datos para exportar según las columnas especificadas
   const prepareData = () => {
     return data.map(item => {
@@ -73,6 +91,7 @@ const ExportData: React.FC<ExportDataProps> = ({
     // Crear y descargar el archivo
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     saveAs(blob, `${fileName}.csv`);
+    setIsOpen(false);
   };
 
   // Exporta los datos a formato Excel
@@ -89,6 +108,7 @@ const ExportData: React.FC<ExportDataProps> = ({
     // Crear blob y descargar
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(blob, `${fileName}.xlsx`);
+    setIsOpen(false);
   };
 
   // Exporta los datos a formato PDF
@@ -127,28 +147,44 @@ const ExportData: React.FC<ExportDataProps> = ({
     
     // Descargar PDF
     doc.save(`${fileName}.pdf`);
+    setIsOpen(false);
   };
 
   return (
-    <div className="export-data-container">
-      {title && <div className="export-title">{title}</div>}
-      <div className="export-buttons">
-        {showCSV && (
-          <button className="export-button csv" onClick={exportToCSV}>
-            CSV
-          </button>
-        )}
-        {showExcel && (
-          <button className="export-button excel" onClick={exportToExcel}>
-            Excel
-          </button>
-        )}
-        {showPDF && (
-          <button className="export-button pdf" onClick={exportToPDF}>
-            PDF
-          </button>
-        )}
-      </div>
+    <div className="export-data-container" ref={dropdownRef}>
+      <button 
+        className="export-main-button" 
+        onClick={() => setIsOpen(!isOpen)}
+        title="Exportar datos"
+      >
+        <Download size={16} />
+        <span>Exportar</span>
+      </button>
+      
+      {isOpen && (
+        <div className="export-dropdown">
+          {showCSV && (
+            <button className="export-option" onClick={exportToCSV}>
+              <FileText size={16} />
+              <span>CSV</span>
+            </button>
+          )}
+          
+          {showExcel && (
+            <button className="export-option" onClick={exportToExcel}>
+              <FileSpreadsheet size={16} />
+              <span>Excel</span>
+            </button>
+          )}
+          
+          {showPDF && (
+            <button className="export-option" onClick={exportToPDF}>
+              <File size={16} />
+              <span>PDF</span>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

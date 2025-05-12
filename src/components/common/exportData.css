@@ -1,71 +1,99 @@
 /* src/components/common/exportData.css */
 .export-data-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  position: relative;
+  display: inline-block;
+}
+
+.export-main-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.export-main-button:hover {
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.export-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  width: 140px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background-color: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #334155;
+  font-size: 14px;
+}
+
+.export-option:hover {
+  background-color: #f8fafc;
+}
+
+/* Estilos para los íconos específicos */
+.export-option:nth-child(1) {
+  color: #15803d; /* Verde para CSV */
+}
+
+.export-option:nth-child(2) {
+  color: #0369a1; /* Azul para Excel */
+}
+
+.export-option:nth-child(3) {
+  color: #b91c1c; /* Rojo para PDF */
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .export-main-button {
+    padding: 8px 10px;
+    font-size: 13px;
   }
   
-  .export-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: #4b5563;
+  .export-dropdown {
+    width: 120px;
   }
   
-  .export-buttons {
-    display: flex;
-    gap: 8px;
+  .export-option {
+    padding: 8px 10px;
+    font-size: 13px;
   }
-  
-  .export-button {
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.2s;
-  }
-  
-  .export-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .export-button.csv {
-    background-color: #dcfce7;
-    color: #15803d;
-    border: 1px solid #16a34a;
-  }
-  
-  .export-button.csv:hover {
-    background-color: #bbf7d0;
-  }
-  
-  .export-button.excel {
-    background-color: #d1fae5;
-    color: #047857;
-    border: 1px solid #059669;
-  }
-  
-  .export-button.excel:hover {
-    background-color: #a7f3d0;
-  }
-  
-  .export-button.pdf {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #dc2626;
-  }
-  
-  .export-button.pdf:hover {
-    background-color: #fecaca;
-  }
-  
-  @media (max-width: 640px) {
-    .export-data-container {
-      margin-top: 10px;
-    }
-  }
+}
