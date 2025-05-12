@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useAppointments, Appointment, AppointmentFilters } from '../hooks/useAppointments';
@@ -6,18 +7,24 @@ import Counter from '../components/common/Counter';
 import MiniCalendar from '../components/dashboard/MiniCalendar';
 import UpcomingAppointments from '../components/dashboard/UpcomingAppoinments';
 import AppointmentDetail from '../components/appointments/AppointmentDetail';
+import AppointmentFormModal from '../components/appointments/AppointmentFormModal';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import './dashboard.css';
 import { useClients } from '../hooks/useClients';
 import { useServices } from '../hooks/useServices';
+import { useUsers } from '../hooks/useUsers';
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [, setSelectedDate] = useState<string>('');
   const [showAppointmentDetail, setShowAppointmentDetail] = useState(false);
+  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [newAppointmentDate, setNewAppointmentDate] = useState<Date | null>(null);
+  const [newAppointmentTime, setNewAppointmentTime] = useState<string>('');
   const { fetchClients, clients } = useClients();
+  const { fetchUsers, users } = useUsers();
   const { fetchServices, services } = useServices();
   const [totalClients, setTotalClients] = useState<number>(0);
   const [todayAppointments, setTodayAppointments] = useState<number>(0);
@@ -27,13 +34,17 @@ const Dashboard: React.FC = () => {
   const { 
     appointments, 
     fetchAppointments,
-    changeAppointmentStatus
+    changeAppointmentStatus,
+    createAppointment,
+    updateAppointment,
+    checkEmployeeAvailability
   } = useAppointments();
 
   // Cargar datos iniciales al montar el componente
   useEffect(() => {
     fetchClients();
     fetchServices();
+    fetchUsers();
     
     // Obtener fecha actual
     const today = new Date();
@@ -103,10 +114,21 @@ const Dashboard: React.FC = () => {
     setMonthlySales(monthlySalesTotal);
   }, [appointments, services]);
 
-  // Manejar clic en fecha del calendario
+  // Manejar clic en fecha del calendario - Ahora solo actualiza la fecha seleccionada
   const handleDateClick = (date: string) => {
     setSelectedDate(date);
     navigate(`/agenda?date=${date}`);
+  };
+
+  // Nuevo manejador para crear cita directamente desde el calendario
+  const handleNewAppointmentFromCalendar = (date: Date, time: string) => {
+    // Guardar la fecha y hora para el formulario
+    setNewAppointmentDate(date);
+    setNewAppointmentTime(time);
+    setSelectedAppointment(null);
+    
+    // Mostrar el formulario de cita
+    setShowAppointmentForm(true);
   };
 
   // Manejar clic en cita (tanto desde UpcomingAppointments como desde MiniCalendar)
@@ -149,6 +171,47 @@ const Dashboard: React.FC = () => {
   const handleDeleteAppointment = () => {
     if (selectedAppointment) {
       navigate(`/agenda?delete=${selectedAppointment.id}`);
+    }
+  };
+
+  // Manejar la verificación de disponibilidad de empleados
+  const handleCheckAvailability = async (
+    date: string,
+    startTime: string,
+    serviceId: number
+  ) => {
+    try {
+      await checkEmployeeAvailability(date, startTime, serviceId);
+    } catch (error) {
+      console.error('Error al verificar disponibilidad:', error);
+    }
+  };
+
+  // Manejar el guardado de una cita nueva
+  const handleSaveAppointment = async (formData: any) => {
+    setShowAppointmentForm(false);
+    
+    try {
+      if (selectedAppointment) {
+        // Actualizar cita existente
+        await updateAppointment(selectedAppointment.id, formData);
+      } else {
+        // Crear cita nueva
+        await createAppointment(formData);
+      }
+      
+      // Recargar citas
+      const today = new Date();
+      const firstDayOfMonth = startOfMonth(today);
+      const lastDayOfMonth = endOfMonth(today);
+      
+      const filters: AppointmentFilters = {
+        date_from: format(firstDayOfMonth, 'yyyy-MM-dd'),
+        date_to: format(lastDayOfMonth, 'yyyy-MM-dd')
+      };
+      fetchAppointments(filters);
+    } catch (error) {
+      console.error('Error al guardar cita:', error);
     }
   };
 
@@ -197,6 +260,7 @@ const Dashboard: React.FC = () => {
             appointments={appointments}
             onDateClick={handleDateClick}
             onAppointmentClick={handleAppointmentClick}
+            onNewAppointment={handleNewAppointmentFromCalendar}
           />
         </div>
         <div className="upcoming-appointments-widget">
@@ -216,6 +280,26 @@ const Dashboard: React.FC = () => {
             onChangeStatus={handleChangeStatus}
             onEdit={handleEditAppointment}
             onDelete={handleDeleteAppointment}
+          />
+        </div>
+      )}
+
+      {/* Modal para crear cita - Nuevo */}
+      {showAppointmentForm && (
+        <div className="detail-overlay">
+          <AppointmentFormModal
+            appointment={null}
+            clients={clients}
+            services={services}
+            employees={users}
+            allAppointments={appointments}
+            onClose={() => setShowAppointmentForm(false)}
+            onSave={handleSaveAppointment}
+            onCheckAvailability={handleCheckAvailability}
+            fetchCategoriesByEmployee={async () => []} // Función mínima para cumplir con la interfaz
+            // Pasar la fecha y hora preseleccionadas al formulario
+            initialDate={newAppointmentDate ? format(newAppointmentDate, 'yyyy-MM-dd') : ''}
+            initialTime={newAppointmentTime}
           />
         </div>
       )}

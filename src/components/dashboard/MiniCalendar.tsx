@@ -11,13 +11,15 @@ import '../../assets/styles/dashboard/miniCalendar.css';
 interface MiniCalendarProps {
   appointments: Appointment[];
   onDateClick: (date: string) => void;
-  onAppointmentClick: (appointment: Appointment) => void; // Nuevo prop para manejar clics en citas
+  onAppointmentClick: (appointment: Appointment) => void; 
+  onNewAppointment?: (date: Date, time: string) => void; // Nuevo prop opcional para crear citas directamente
 }
 
 const MiniCalendar: React.FC<MiniCalendarProps> = ({ 
   appointments, 
   onDateClick,
-  onAppointmentClick
+  onAppointmentClick,
+  onNewAppointment
 }) => {
   const calendarRef = useRef<FullCalendar>(null);
   const [activeView, setActiveView] = useState<'dayGridMonth' | 'timeGridWeek'>('dayGridMonth');
@@ -54,10 +56,27 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
     };
   });
 
-  // Manejar clic en fecha
+  // Manejar clic en fecha - Modificado para crear citas directamente
   const handleDateClick = (info: any) => {
     const clickedDate = info.dateStr;
-    onDateClick(clickedDate);
+    
+    // Si estamos en vista de mes, solo necesitamos la fecha
+    if (activeView === 'dayGridMonth') {
+      if (onNewAppointment) {
+        // Si el componente padre proporcionó onNewAppointment, usamos esa función
+        // para crear una cita para ese día con hora predeterminada (9:00 AM)
+        const date = new Date(clickedDate);
+        date.setHours(9, 0, 0); // Establecer a las 9:00 AM
+        onNewAppointment(date, '09:00');
+      } else {
+        // Comportamiento anterior como fallback
+        onDateClick(clickedDate);
+      }
+    } else {
+      // En vista semanal, si se hace clic en una celda sin hora específica
+      // usamos el comportamiento anterior
+      onDateClick(clickedDate);
+    }
   };
 
   // Manejar clic en evento (cita)
@@ -66,6 +85,20 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
     const appointment = info.event.extendedProps.appointment;
     if (appointment) {
       onAppointmentClick(appointment);
+    }
+  };
+
+  // Manejar selección de slot - Ahora manejamos la creación de citas directamente
+  const handleDateSelect = (info: any) => {
+    if (onNewAppointment) {
+      const date = info.start;
+      const time = `${date.getHours().toString().padStart(2, "0")}:${date
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`;
+      
+      // Llamar a la función para crear una nueva cita con la fecha y hora seleccionadas
+      onNewAppointment(date, time);
     }
   };
 
@@ -136,7 +169,9 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
           locale={esLocale}
           events={events}
           dateClick={handleDateClick}
-          eventClick={handleEventClick} // Activar clic en eventos
+          eventClick={handleEventClick}
+          selectable={true}
+          select={handleDateSelect}
           headerToolbar={{
             left: 'prev',
             center: 'title',
@@ -157,6 +192,14 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
             meridiem: false,
             hour12: false
           }}
+          // Agregar formato para etiquetas de slots
+          slotLabelFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            omitZeroMinute: false,
+            meridiem: false,
+            hour12: false
+          }}
           eventContent={(eventInfo) => {
             return (
               <div className="fc-event-custom-content" 
@@ -173,6 +216,10 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
           dayHeaderFormat={{
             weekday: 'short'
           }}
+          slotDuration={'00:30:00'}  // Intervalos de 30 minutos
+          slotMinTime={'07:00:00'}   // Hora de inicio
+          slotMaxTime={'21:00:00'}   // Hora de fin
+          allDaySlot={false}         // Ocultar el slot de "todo el día"
         />
       </div>
     </div>

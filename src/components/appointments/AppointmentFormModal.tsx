@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Appointment, useAppointments } from "../../hooks/useAppointments";
 import { Client, ClientFormData, useClients } from "../../hooks/useClients";
-import { Service, ServiceCategory, useServices } from "../../hooks/useServices";
+import { Service, ServiceCategory } from "../../hooks/useServices";
 import { User } from "../../hooks/useUsers";
 import {
   AppointmentFormValues,
@@ -34,6 +34,8 @@ interface AppointmentFormModalProps {
     serviceId: number
   ) => Promise<void>;
   fetchCategoriesByEmployee: (employeeId: number) => Promise<ServiceCategory[]>;
+  initialDate?: string;
+  initialTime?: string;
 }
 
 const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
@@ -45,6 +47,9 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   onClose,
   onSave,
   onCheckAvailability,
+  fetchCategoriesByEmployee,
+  initialDate,
+  initialTime
 }) => {
   const [formData, setFormData] = useState<AppointmentFormValues>(
     getInitialAppointmentFormValues(appointment)
@@ -65,7 +70,6 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [availableServices, setAvailableServices] = useState<Service[]>([]);
-  const { fetchCategoriesByEmployee } = useServices();
   const [filteredCategories, setFilteredCategories] = useState<
     ServiceCategory[]
   >([]);
@@ -84,7 +88,6 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const minTime = format(now, "HH:mm");
 
   // Solo mostrar clientes activos
-  // const activeClients = clients.filter((client) => client.is_active);
   const activeUsers = employees.filter((user) => user.is_active);
 
   // Crear nuevo cliente
@@ -95,6 +98,8 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   // Cargar servicios disponibles para agendar (categoría activa + servicio activo)
   useEffect(() => {
     const loadAvailableServices = async () => {
+      if (availableServices.length > 0) return;
+      
       try {
         // Obtener servicios disponibles desde el endpoint específico
         const availableServicesList = await fetchAvailableServices();
@@ -181,28 +186,37 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     }
   }, [selectedCategoryId, availableServices]);
 
+  // Inicializar formData con valores predeterminados o proporcionados
   useEffect(() => {
-    // Si estamos editando una cita pasada, usamos esa fecha, de lo contrario usamos el valor por defecto
+    // Primero obtenemos los datos iniciales según la cita (si existe)
     const initialData = getInitialAppointmentFormValues(appointment);
 
-    // Si es una nueva cita, establecer la fecha como hoy por defecto
-    if (!appointment) {
+    // Si es una nueva cita y tenemos una fecha inicial, la usamos
+    if (!appointment && initialDate) {
+      initialData.date = initialDate;
+    } else if (!appointment) {
+      // Si no hay fecha inicial ni estamos editando, usamos la fecha de hoy
       initialData.date = today;
     }
 
+    // Si es una nueva cita y tenemos una hora inicial, la usamos
+    if (!appointment && initialTime) {
+      initialData.start_time = initialTime;
+    }
+
+    // Establecer los datos del formulario
     setFormData(initialData);
 
     // Si estamos editando, seleccionar el servicio y la categoría actuales
     if (appointment) {
-      const service =
-        services.find((s) => s.id === appointment.service) || null;
+      const service = services.find((s) => s.id === appointment.service) || null;
       setSelectedService(service);
 
       if (service && service.category) {
         setSelectedCategoryId(service.category);
       }
     }
-  }, [appointment, services, today]);
+  }, [appointment, services, today, initialDate, initialTime]);
 
   // Cuando cambia el servicio o la hora de inicio, actualizar la hora de fin basado en la duración
   useEffect(() => {
@@ -576,7 +590,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     const formErrors = validateAppointmentForm(formData);
     setErrors((prevErrors) => ({ ...prevErrors, ...formErrors }));
 
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(formErrors).length > 0) return;
 
     onSave(formData);
   };

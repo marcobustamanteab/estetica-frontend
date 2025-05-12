@@ -36,6 +36,7 @@ const AppointmentsPage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filters, setFilters] = useState<AppointmentFilters>({});
   const [, setAvailableServices] = useState<Service[]>([]);
+  const [selectedTime, setSelectedTime] = useState<string>("");
 
   // Hooks para obtener datos
   const {
@@ -134,9 +135,16 @@ const AppointmentsPage: React.FC = () => {
   // Abrir modal para crear una nueva cita
   const handleAddAppointment = (date?: Date, time?: string) => {
     setSelectedAppointment(null);
+    
+    // Si se proporciona una hora, actualizar la hora seleccionada
+    if (time) {
+      setSelectedTime(time);
+    }
+    
+    // Mostrar el modal
     setIsModalOpen(true);
 
-    if (date && time) {
+    if (date) {
       const formattedDate = format(date, "yyyy-MM-dd");
       setFilterDate(formattedDate);
       setFilters({
@@ -316,23 +324,28 @@ const AppointmentsPage: React.FC = () => {
     setFilters(newFilters);
   };
 
-  // Manejar clic en fecha en el calendario
+  // Manejar clic en fecha en el calendario - Ahora abre directamente el modal
   const handleCalendarDateClick = (date: Date) => {
+    // Ahora en lugar de cambiar a la vista de lista, abrimos el modal
     const formattedDate = format(date, "yyyy-MM-dd");
+    
+    // Establecer una hora predeterminada (9:00 AM)
+    setSelectedTime("09:00");
+    
+    // Abrir modal con la fecha seleccionada
+    handleAddAppointment(date);
+    
+    // Actualizar filtros
     setFilterDate(formattedDate);
-
-    // Actualizar filtros para ver citas de ese día
     const newFilters = { ...filters };
     newFilters.date_from = formattedDate;
     newFilters.date_to = formattedDate;
     setFilters(newFilters);
-
-    // Cambiar a la vista de lista
-    setActiveTab("list");
   };
 
-  // Crear nueva cita desde el calendario
+  // Manejar creación de cita con hora específica desde el calendario
   const handleNewAppointmentFromCalendar = (date: Date, time: string) => {
+    setSelectedTime(time);
     handleAddAppointment(date, time);
   };
 
@@ -490,16 +503,18 @@ const AppointmentsPage: React.FC = () => {
       {/* Modal para crear/editar cita */}
       {isModalOpen && (
         <AppointmentFormModal
-        appointment={selectedAppointment}
-        clients={clients}
-        services={services}
-        employees={employees}
-        allAppointments={appointments}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveAppointment}
-        onCheckAvailability={handleCheckAvailability}
-        fetchCategoriesByEmployee={fetchCategoriesByEmployee}
-      />
+          appointment={selectedAppointment}
+          clients={clients}
+          services={services}
+          employees={employees}
+          allAppointments={appointments}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveAppointment}
+          onCheckAvailability={handleCheckAvailability}
+          fetchCategoriesByEmployee={fetchCategoriesByEmployee}
+          initialDate={filterDate}
+          initialTime={selectedTime || undefined}
+        />
       )}
 
       {/* Detalles de cita */}
