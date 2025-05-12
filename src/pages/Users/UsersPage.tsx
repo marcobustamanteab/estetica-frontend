@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
 import { useUsers, User, UserFormData } from '../../hooks/useUsers';
+import { useNavigate } from 'react-router-dom';
 import { useGroups } from '../../hooks/useGroups';
 import UserFormModal from '../../components/users/UserFormModal';
 import DataTable from '../../components/common/DataTable';
@@ -13,10 +14,31 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { ExportColumn } from '../../types/ExportColumn';
 import './usersPage.css';
+import { Eye } from 'lucide-react';
+
+const VIEW_PROFILE_STYLES = {
+  backgroundColor: '#e0f2fe', // Color azul claro
+  color: '#0369a1',           // Azul texto
+  border: '1px solid #0369a1', // Borde azul
+  width: '32px',
+  height: '32px',
+  borderRadius: '4px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  transition: 'all 0.2s',
+  marginRight: '4px',
+};
+
+// Dentro del componente UsersPage
+// Agregar esta función para manejar la visualización del perfil
+
 
 const UsersPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const navigate = useNavigate();
   
   const { 
     users, 
@@ -78,6 +100,11 @@ const UsersPage: React.FC = () => {
         toast.error('Ocurrió un error al eliminar el usuario');
       }
     }
+  };
+
+  const handleViewProfile = (userId: number) => {
+    // Navegar a la página de perfil del usuario
+    navigate(`/usuarios/perfil/${userId}`);
   };
   
   const handleToggleStatus = async (id: number, isActive: boolean) => {
@@ -215,8 +242,17 @@ const UsersPage: React.FC = () => {
     columnHelper.display({
       id: 'actions',
       header: 'Acciones',
-      cell: info => (
+      cell: (info) => (
         <div className="action-buttons">
+          {/* Nuevo botón para ver perfil */}
+          <button 
+            className="icon-button view-profile-button"
+            onClick={() => handleViewProfile(info.row.original.id)}
+            title="Ver perfil"
+            style={VIEW_PROFILE_STYLES}
+          >
+            <Eye size={16} />
+          </button>
           <SwitchToggle 
             isActive={info.row.original.is_active} 
             onChange={() => handleToggleStatus(info.row.original.id, info.row.original.is_active)}

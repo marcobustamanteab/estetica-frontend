@@ -17,6 +17,7 @@ import AppointmentsPage from './pages/Appointments/AppointmentsPage';
 import RolesPage from './pages/Users/RolesPage';
 import DocumentTitle from './components/common/DocumentTitle';
 import MyProfilePage from './pages/Users/MyProfilePage';
+import UserProfileView from './pages/Users/UserProfileView';
 
 // Componente que verifica autenticación y renderiza el Layout con el contenido apropiado
 const ProtectedRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
@@ -66,7 +67,8 @@ const App: React.FC = () => {
             <Route path="/usuarios" element={<ProtectedRoute element={<UsersIndexPage />} />} />
             <Route path="/usuarios/miperfil" element={<ProtectedRoute element={<MyProfilePage />} />} />
             <Route path="/usuarios/administracion" element={<ProtectedRoute element={<UsersPage />} />} />
-            <Route path="/usuarios/roles" element={<ProtectedRoute element={<RolesPage />} />} />            
+            <Route path="/usuarios/roles" element={<ProtectedRoute element={<RolesPage />} />} /> 
+            <Route path="/usuarios/perfil/:userId" element={<UserProfileView />} />           
             {/* otras rutas */}
             <Route path="/clientes" element={<ProtectedRoute element={<ClientsPage />} />} />
             <Route path="/servicios" element={<ProtectedRoute element={<ServicesPage />} />} /> 

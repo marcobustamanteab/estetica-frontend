@@ -8,6 +8,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SecurityIcon from '@mui/icons-material/Security';
+import AddIcon from '@mui/icons-material/Add';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import './rolesPage.css';
@@ -196,7 +197,7 @@ const RolesPage: React.FC = () => {
     <div className="roles-page">
       <div className="page-header">
         <h2>Administración de Roles</h2>
-        <button className="add-button" onClick={handleAddRole}>Nuevo Rol</button>
+        <button className="add-button" onClick={handleAddRole}><AddIcon fontSize="small" /> Nuevo Rol</button>
       </div>
       
       {error && (
