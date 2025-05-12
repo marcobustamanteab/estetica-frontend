@@ -48,10 +48,6 @@
   border-color: #0d9488;
 }
 
-.calendar-wrapper {
-  /* Estilos para el contenedor del calendario */
-}
-
 /* Personalizar algunos estilos de FullCalendar */
 :root {
   --fc-border-color: #e2e8f0;

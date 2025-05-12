@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useRef, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
@@ -20,7 +19,6 @@ interface CalendarViewProps {
 
 const CalendarView: React.FC<CalendarViewProps> = ({
   appointments,
-  onDateClick,
   onEventClick,
   onNewAppointment,
   handleAddAppointment,
