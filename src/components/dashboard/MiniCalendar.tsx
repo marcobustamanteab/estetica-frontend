@@ -73,14 +73,6 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
       // Crear una fecha completamente nueva con esos valores para evitar problemas de zona horaria
       const appointmentDate = new Date(year, month, day, 9, 0, 0);
       
-      // Imprimir para depuración
-      console.log("Fecha seleccionada:", {
-        original: info.date,
-        year, month, day,
-        appointmentDate,
-        formattedDate: appointmentDate.toISOString().split('T')[0]
-      });
-      
       onNewAppointment(appointmentDate, '09:00');
     } else {
       onDateClick(info.dateStr);
@@ -100,14 +92,6 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
     
     // Formato de hora
     const time = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
-    
-    console.log("Fecha/hora seleccionada:", {
-      original: date,
-      year, month, day, hours, minutes,
-      appointmentDate,
-      formattedDate: appointmentDate.toISOString().split('T')[0],
-      time
-    });
     
     if (onNewAppointment) {
       onNewAppointment(appointmentDate, time);

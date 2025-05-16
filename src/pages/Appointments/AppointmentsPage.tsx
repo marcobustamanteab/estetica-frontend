@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   useAppointments,
   Appointment,
@@ -19,14 +19,15 @@ import { format, parseISO } from "date-fns";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import "./appointments.css";
-import { es } from "date-fns/locale/es";
+import { es } from "date-fns/locale";
 import AddIcon from "@mui/icons-material/Add";
 
 // Tipo para las pestañas
-type TabType = "list" | "calendar";
+type TabType = "calendar" | "list";
 
 const AppointmentsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>("list");
+  // Cambio para que "calendar" sea la pestaña activa por defecto
+  const [activeTab, setActiveTab] = useState<TabType>("calendar");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
@@ -37,6 +38,10 @@ const AppointmentsPage: React.FC = () => {
   const [filters, setFilters] = useState<AppointmentFilters>({});
   const [, setAvailableServices] = useState<Service[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
+  // Referencia para el componente CalendarView
+  const calendarRef = useRef<any>(null);
+  // Variable para controlar si es necesario refrescar el calendario
+  const [calendarKey, setCalendarKey] = useState<number>(0);
 
   // Hooks para obtener datos
   const {
@@ -84,10 +89,16 @@ const AppointmentsPage: React.FC = () => {
     setFilterDate(today);
 
     // Cargar citas iniciales
+    // Como ahora la vista por defecto es calendario, cargamos las citas del mes actual
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
     const initialFilters: AppointmentFilters = {
-      date_from: today,
-      date_to: today,
+      date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
+      date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
     };
+    
     setFilters(initialFilters);
     fetchAppointments(initialFilters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,6 +126,9 @@ const AppointmentsPage: React.FC = () => {
       };
 
       setFilters(calendarFilters);
+      
+      // Forzar actualización del calendario
+      setCalendarKey(prev => prev + 1);
     } else {
       // Si volvemos a lista, usar filtro de fecha única
       const today = format(new Date(), "yyyy-MM-dd");
@@ -155,6 +169,13 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
+  // Función que se llama al cerrar el modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    // Forzar actualización del calendario cuando se cierra el modal
+    setCalendarKey(prev => prev + 1);
+  };
+
   // Abrir modal para editar una cita existente
   const handleEditAppointment = (appointment: Appointment) => {
     // Verificar si la cita está completada
@@ -172,6 +193,13 @@ const AppointmentsPage: React.FC = () => {
   const handleViewAppointment = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowDetail(true);
+  };
+
+  // Función que se llama al cerrar el detalle
+  const handleCloseDetail = () => {
+    setShowDetail(false);
+    // Forzar actualización del calendario cuando se cierra el detalle
+    setCalendarKey(prev => prev + 1);
   };
 
   // Eliminar una cita con confirmación
@@ -199,6 +227,8 @@ const AppointmentsPage: React.FC = () => {
         await deleteAppointment(id);
         setShowDetail(false);
         toast.success("Cita eliminada correctamente");
+        // Forzar actualización del calendario
+        setCalendarKey(prev => prev + 1);
       } catch (error: any) {
         console.error("Error al eliminar cita:", error);
         // Mostrar mensaje de error del backend si existe
@@ -230,6 +260,8 @@ const AppointmentsPage: React.FC = () => {
       );
       // Recargar las citas
       fetchAppointments(filters);
+      // Forzar actualización del calendario
+      setCalendarKey(prev => prev + 1);
     } catch (error: any) {
       console.error("Error al cambiar estado:", error);
       // Mostrar mensaje de error del backend si existe
@@ -259,6 +291,8 @@ const AppointmentsPage: React.FC = () => {
       }
       // Recargar las citas
       fetchAppointments(filters);
+      // Forzar actualización del calendario
+      setCalendarKey(prev => prev + 1);
     } catch (error) {
       console.error("Error al guardar cita:", error);
       toast.error("Ocurrió un error al guardar la cita");
@@ -410,18 +444,38 @@ const AppointmentsPage: React.FC = () => {
       {/* Pestañas */}
       <div className="tab-navigation">
         <button
-          className={`tab-button ${activeTab === "list" ? "active" : ""}`}
-          onClick={() => handleTabChange("list")}
-        >
-          Lista de Citas
-        </button>
-        <button
           className={`tab-button ${activeTab === "calendar" ? "active" : ""}`}
           onClick={() => handleTabChange("calendar")}
         >
           Calendario
         </button>
+        <button
+          className={`tab-button ${activeTab === "list" ? "active" : ""}`}
+          onClick={() => handleTabChange("list")}
+        >
+          Lista de Citas
+        </button>
+        <div className="button-container">
+          <button
+            className="add-button"
+            onClick={() => handleAddAppointment()}
+          >
+            <AddIcon fontSize="small" /> Crear nueva Cita
+          </button>
+        </div>
       </div>
+
+      {/* Vista de Calendario (ahora mostrada por defecto) */}
+      {activeTab === "calendar" && (
+        <CalendarView
+          key={calendarKey} // Usar una key para forzar recreación completa del componente
+          appointments={appointments}
+          onDateClick={handleCalendarDateClick}
+          onEventClick={handleViewAppointment}
+          onNewAppointment={handleNewAppointmentFromCalendar}
+          handleAddAppointment={handleAddAppointment}
+        />
+      )}
 
       {/* Vista de Lista */}
       {activeTab === "list" && (
@@ -454,14 +508,6 @@ const AppointmentsPage: React.FC = () => {
                 <option value="completed">Completada</option>
               </select>
             </div>
-            <div className="button-container">
-              <button
-                className="add-button"
-                onClick={() => handleAddAppointment()}
-              >
-                <AddIcon fontSize="small" /> Crear nueva Cita
-              </button>
-            </div>
           </div>
 
           {/* Lista de citas */}
@@ -489,17 +535,6 @@ const AppointmentsPage: React.FC = () => {
         </>
       )}
 
-      {/* Vista de Calendario */}
-      {activeTab === "calendar" && (
-        <CalendarView
-          appointments={appointments}
-          onDateClick={handleCalendarDateClick}
-          onEventClick={handleViewAppointment}
-          onNewAppointment={handleNewAppointmentFromCalendar}
-          handleAddAppointment={handleAddAppointment}
-        />
-      )}
-
       {/* Modal para crear/editar cita */}
       {isModalOpen && (
         <AppointmentFormModal
@@ -508,7 +543,7 @@ const AppointmentsPage: React.FC = () => {
           services={services}
           employees={employees}
           allAppointments={appointments}
-          onClose={() => setIsModalOpen(false)}
+          onClose={handleCloseModal}
           onSave={handleSaveAppointment}
           onCheckAvailability={handleCheckAvailability}
           fetchCategoriesByEmployee={fetchCategoriesByEmployee}
@@ -522,7 +557,7 @@ const AppointmentsPage: React.FC = () => {
         <div className="detail-overlay">
           <AppointmentDetail
             appointment={selectedAppointment}
-            onClose={() => setShowDetail(false)}
+            onClose={handleCloseDetail}
             onChangeStatus={(status: string) =>
               handleChangeStatus(selectedAppointment.id, status)
             }

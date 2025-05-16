@@ -17,6 +17,9 @@ import './services.css';
 import { useGroups } from '../../hooks/useGroups';
 
 const ServicesPage: React.FC = () => {
+  // Estado para controlar la pestaña activa - CAMBIADO: ahora inicia en 'categories'
+  const [activeTab, setActiveTab] = useState<'services' | 'categories'>('categories');
+  
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -46,7 +49,6 @@ const ServicesPage: React.FC = () => {
     fetchServices();
     fetchGroups();
   }, []);
-
   
   // Cuando cambia la categoría seleccionada, actualizar los servicios
   useEffect(() => {
@@ -137,6 +139,13 @@ const ServicesPage: React.FC = () => {
         await createService(apiData);
         toast.success('Servicio creado correctamente');
       }
+      
+      // Recargar servicios
+      if (selectedCategoryId) {
+        fetchServices(selectedCategoryId);
+      } else {
+        fetchServices();
+      }
     } catch (error) {
       console.error('Error al guardar servicio:', error);
       toast.error('Ocurrió un error al guardar el servicio');
@@ -174,6 +183,9 @@ const ServicesPage: React.FC = () => {
           setSelectedCategoryId(null);
         }
         toast.success('Categoría eliminada correctamente');
+        
+        // Recargar categorías
+        fetchCategories();
       } catch (error) {
         console.error('Error al eliminar categoría:', error);
         toast.error('Ocurrió un error al eliminar la categoría');
@@ -197,6 +209,9 @@ const ServicesPage: React.FC = () => {
       try {
         await toggleCategoryStatus(id, isActive);
         toast.success(`Categoría ${isActive ? 'desactivada' : 'activada'} correctamente`);
+        
+        // Recargar categorías
+        fetchCategories();
       } catch (error) {
         console.error('Error al cambiar estado:', error);
         toast.error('Ocurrió un error al cambiar el estado de la categoría');
@@ -208,8 +223,6 @@ const ServicesPage: React.FC = () => {
     setIsCategoryModalOpen(false);
     
     try {
-      console.log('Guardando categoría con datos:', categoryData); 
-      
       if (selectedCategory) {
         // Actualizar categoría existente
         await updateCategory(selectedCategory.id, categoryData);
@@ -370,13 +383,6 @@ const ServicesPage: React.FC = () => {
           >
             <DeleteIcon fontSize="small" />
           </button>
-          <button 
-            className="icon-button view-button"
-            onClick={() => handleFilterByCategory(info.row.original.id)}
-            title="Ver servicios de esta categoría"
-          >
-            <i className="fa fa-eye"></i>
-          </button>
         </div>
       ),
     }),
@@ -402,19 +408,16 @@ const ServicesPage: React.FC = () => {
     { header: 'Descripción', accessor: 'description', formatFn: (value: string | null) => value || 'No disponible' },
     { header: 'Estado', accessor: 'is_active', formatFn: (value: boolean) => value ? 'Activo' : 'Inactivo' },
   ];
+  
+  // Filtrar servicios por categoría seleccionada
+  const filteredServices = selectedCategoryId 
+    ? services.filter(service => service.category === selectedCategoryId)
+    : services;
 
   return (
     <div className="services-page">
       <div className="page-header">
         <h2>Gestión de Servicios</h2>
-        <div className="header-actions">
-          <button className="add-button category-button" onClick={handleAddCategory}>
-            <AddIcon fontSize="small" /> Nueva Categoría
-          </button>
-          <button className="add-button" onClick={handleAddService}>
-            <AddIcon fontSize="small" /> Nuevo Servicio
-          </button>
-        </div>
       </div>
       
       {error && (
@@ -423,67 +426,112 @@ const ServicesPage: React.FC = () => {
         </div>
       )}
       
-      {/* Filtro por categoría */}
-      <div className="category-filter">
-        <span>Filtrar por categoría:</span>
-        <div className="category-buttons">
+      {/* Diseño con pestañas - ORDEN CAMBIADO */}
+      <div className="tabs-container">
+        <div className="tabs-header">
+          {/* CAMBIADO: Ahora Categorías aparece primero */}
           <button 
-            className={`category-filter-button ${selectedCategoryId === null ? 'active' : ''}`}
-            onClick={() => handleFilterByCategory(null)}
+            className={`tab-button ${activeTab === 'categories' ? 'active' : ''}`}
+            onClick={() => setActiveTab('categories')}
           >
-            Todas
+            Categorías
           </button>
-          {categories.map((category) => (
-            <button 
-              key={category.id}
-              className={`category-filter-button ${selectedCategoryId === category.id ? 'active' : ''}`}
-              onClick={() => handleFilterByCategory(category.id)}
-            >
-              {category.name}
-            </button>
-          ))}
-        </div>
-      </div>
-      
-      <div className="services-container">
-        <div className="categories-section">
-          <h3 className="section-title">Categorías de Servicios</h3>
-          {loading && categories.length === 0 ? (
-            <p className="loading-message">Cargando categorías...</p>
-          ) : (
-            <DataTable 
-              columns={categoryColumns} 
-              data={categories} 
-              filterPlaceholder="Buscar categoría..."
-              exportConfig={{
-                columns: categoryExportColumns,
-                fileName: "categorias-servicios"
-              }}
-            />
-          )}
+          <button 
+            className={`tab-button ${activeTab === 'services' ? 'active' : ''}`}
+            onClick={() => setActiveTab('services')}
+          >
+            Servicios
+          </button>
         </div>
         
-        <div className="services-section">
-          <h3 className="section-title">
-            {selectedCategoryId 
-              ? `Servicios de ${categories.find((c) => c.id === selectedCategoryId)?.name || ''}` 
-              : 'Todos los Servicios'
-            }
-          </h3>
-          {loading && services.length === 0 ? (
-            <p className="loading-message">Cargando servicios...</p>
-          ) : (
-            <DataTable 
-              columns={serviceColumns} 
-              data={services} 
-              filterPlaceholder="Buscar servicio..."
-              exportConfig={{
-                columns: serviceExportColumns,
-                fileName: selectedCategoryId 
-                  ? `servicios-categoria-${categories.find((c) => c.id === selectedCategoryId)?.name || 'seleccionada'}`.toLowerCase().replace(/\s+/g, '-')
-                  : "todos-los-servicios"
-              }}
-            />
+        <div className="tab-content">
+          {/* CAMBIADO: Contenido de la pestaña Categorías ahora es primero */}
+          {activeTab === 'categories' && (
+            <div className="categories-tab-content">
+              {/* Encabezado con título y botón de acción */}
+              <div className="header-actions-container">
+                <div className="title-section">
+                  <h3 className="services-title">Categorías de Servicios</h3>
+                </div>
+                <button className="add-button category-button" onClick={handleAddCategory}>
+                  <AddIcon fontSize="small" /> Nueva Categoría
+                </button>
+              </div>
+              
+              {/* Tabla de categorías */}
+              {loading && categories.length === 0 ? (
+                <p className="loading-message">Cargando categorías...</p>
+              ) : (
+                <DataTable 
+                  columns={categoryColumns} 
+                  data={categories} 
+                  filterPlaceholder="Buscar categoría..."
+                  exportConfig={{
+                    columns: categoryExportColumns,
+                    fileName: "categorias-servicios"
+                  }}
+                />
+              )}
+            </div>
+          )}
+          
+          {/* Contenido de la pestaña Servicios */}
+          {activeTab === 'services' && (
+            <div className="services-tab-content">
+              {/* Encabezado con título y botón de acción */}
+              <div className="header-actions-container">
+                <div className="title-section">
+                  <h3 className="services-title">
+                    {selectedCategoryId 
+                      ? `Servicios de ${categories.find(c => c.id === selectedCategoryId)?.name || ''}` 
+                      : 'Todos los Servicios'
+                    }
+                  </h3>
+                </div>
+                <button className="add-button" onClick={handleAddService}>
+                  <AddIcon fontSize="small" /> Nuevo Servicio
+                </button>
+              </div>
+              
+              {/* Filtro de categorías */}
+              <div className="category-filter">
+                <span className="category-filter-label">Filtrar por categoría:</span>
+                <div className="category-buttons">
+                  <button 
+                    className={`category-filter-button ${selectedCategoryId === null ? 'active' : ''}`}
+                    onClick={() => handleFilterByCategory(null)}
+                  >
+                    Todas
+                  </button>
+                  {categories.map((category) => (
+                    <button 
+                      key={category.id}
+                      className={`category-filter-button ${selectedCategoryId === category.id ? 'active' : ''}`}
+                      onClick={() => handleFilterByCategory(category.id)}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Tabla de servicios */}
+              {loading && services.length === 0 ? (
+                <p className="loading-message">Cargando servicios...</p>
+              ) : (
+                <DataTable 
+                  columns={serviceColumns} 
+                  data={filteredServices} 
+                  filterPlaceholder="Buscar servicio..."
+                  exportConfig={{
+                    columns: serviceExportColumns,
+                    fileName: selectedCategoryId 
+                      ? `servicios-categoria-${categories.find((c) => c.id === selectedCategoryId)?.name || 'seleccionada'}`.toLowerCase().replace(/\s+/g, '-')
+                      : "todos-los-servicios"
+                  }}
+                />
+              )}
+            </div>
           )}
         </div>
       </div>

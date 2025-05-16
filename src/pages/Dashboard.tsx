@@ -141,18 +141,6 @@ const Dashboard: React.FC = () => {
     // Crear una fecha nueva basada en componentes locales
     const appointmentDate = new Date(year, month, day);
 
-    console.log("Fecha recibida en Dashboard:", {
-      original: date,
-      year,
-      month,
-      day,
-      appointmentDate,
-      formattedDateISO: appointmentDate.toISOString().split("T")[0],
-      formattedDateLocale: `${year}-${(month + 1)
-        .toString()
-        .padStart(2, "0")}-${day.toString().padStart(2, "0")}`,
-    });
-
     // Guardar la fecha y hora para el formulario
     setNewAppointmentDate(appointmentDate);
     setNewAppointmentTime(time);
@@ -302,7 +290,6 @@ const handleDeleteAppointment = () => {
     fetchAppointments(filters);
   } catch (error) {
     console.error("Error al guardar cita:", error);
-    // Añadir notificación de error
     toast.error('Ocurrió un error al guardar la cita');
   }
 };
@@ -312,7 +299,7 @@ const handleDeleteAppointment = () => {
       return await fetchCategoriesByEmployee(employeeId);
     } catch (error) {
       console.error("Error obteniendo categorías por empleado:", error);
-      return []; // Función mínima segura
+      return []; 
     }
   };
 
@@ -400,7 +387,7 @@ const handleDeleteAppointment = () => {
             fetchCategoriesByEmployee={handleFetchCategoriesByEmployee}
             initialDate={
               newAppointmentDate
-                ? // Formato manual para evitar problemas de zona horaria
+                ? 
                   `${newAppointmentDate.getFullYear()}-${(
                     newAppointmentDate.getMonth() + 1
                   )

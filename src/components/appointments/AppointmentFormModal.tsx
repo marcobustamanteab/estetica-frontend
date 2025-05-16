@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { Appointment, useAppointments } from "../../hooks/useAppointments";
 import { Client, ClientFormData, useClients } from "../../hooks/useClients";
 import { Service, ServiceCategory } from "../../hooks/useServices";
-import { User } from "../../hooks/useUsers";
 import {
   AppointmentFormValues,
   getInitialAppointmentFormValues,
@@ -19,24 +18,8 @@ import { useGroups } from "../../hooks/useGroups";
 import ClientsSearchSelect from "../clients/ClientsSearchSelect";
 import ClientFormModal from "../clients/ClientFormModal";
 import { toast } from "react-toastify";
+import { AppointmentFormModalProps } from "./formValues";
 
-interface AppointmentFormModalProps {
-  appointment: Appointment | null;
-  clients: Client[];
-  services: Service[];
-  employees: User[];
-  allAppointments: Appointment[];
-  onClose: () => void;
-  onSave: (appointmentData: AppointmentFormValues) => void;
-  onCheckAvailability: (
-    date: string,
-    startTime: string,
-    serviceId: number
-  ) => Promise<void>;
-  fetchCategoriesByEmployee: (employeeId: number) => Promise<ServiceCategory[]>;
-  initialDate?: string;
-  initialTime?: string;
-}
 
 const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   appointment,
