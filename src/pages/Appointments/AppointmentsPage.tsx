@@ -38,8 +38,6 @@ const AppointmentsPage: React.FC = () => {
   const [filters, setFilters] = useState<AppointmentFilters>({});
   const [, setAvailableServices] = useState<Service[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
-  // Referencia para el componente CalendarView
-  const calendarRef = useRef<any>(null);
   // Variable para controlar si es necesario refrescar el calendario
   const [calendarKey, setCalendarKey] = useState<number>(0);
 
