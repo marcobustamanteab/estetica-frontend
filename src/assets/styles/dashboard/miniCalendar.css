@@ -1,4 +1,5 @@
 /* src/assets/styles/dashboard/miniCalendar.css */
+/* Usaremos nombres de clases más específicos con prefijos únicos */
 .mini-calendar-container {
   background-color: white;
   border-radius: 8px;
@@ -9,17 +10,17 @@
   flex-direction: column;
 }
 
-.fc-event {
+.mini-calendar-container .fc-event {
   cursor: pointer !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.fc-event:hover {
+.mini-calendar-container .fc-event:hover {
   transform: scale(1.03);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.widget-title {
+.mini-calendar-widget-title {
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 1.25rem;
@@ -28,14 +29,14 @@
   padding-bottom: 10px;
 }
 
-.mini-calendar-controls {
+.mini-calendar-header-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
 }
 
-.today-button {
+.mini-calendar-today-button {
   background-color: #0d9488;
   color: white;
   border: none;
@@ -53,89 +54,84 @@
   justify-content: center;
 }
 
-.today-button:hover {
-  background-color: #0f766e;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.today-button:active {
+.mini-calendar-today-button:active {
   transform: translateY(1px);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.view-toggle {
+/* Solución específica para el grupo de botones */
+/* Eliminamos completamente cualquier elemento contenedor */
+.mini-calendar-view-toggle {
   display: flex;
-  border-radius: 6px;
-  overflow: hidden;
-  height: 36px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  gap: 8px; /* Espacio entre botones como en el calendario original */
 }
 
-.view-button {
-  background-color: white;
+.mini-calendar-view-button {
+  padding: 6px 12px; /* Padding más reducido como en el calendario original */
+  border-radius: 4px; /* Bordes redondeados individuales para cada botón */
+  font-size: 14px; /* Tamaño de fuente más pequeño */
   border: 1px solid #e2e8f0;
-  padding: 0 16px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  height: 100%;
-  line-height: 1.2;
-  min-width: 80px;
+  background-color: white; /* Fondo blanco para el estado normal */
   color: #475569;
-  font-weight: 500;
-  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: normal; /* Peso de fuente normal */
+  min-width: 60px; /* Ancho mínimo menor */
+  text-align: center; /* Texto centrado */
 }
 
-.view-button:first-child {
-  border-radius: 6px 0 0 6px;
-  border-right: none;
+/* Eliminar los bordes especiales para primer y último hijo, para que todos los botones tengan esquinas redondeadas */
+.mini-calendar-view-button:first-child {
+  border-radius: 4px; /* Ahora todos tienen bordes redondeados individuales */
 }
 
-.view-button:last-child {
-  border-radius: 0 6px 6px 0;
+.mini-calendar-view-button:last-child {
+  border-radius: 4px;
 }
 
-.view-button:hover {
-  background-color: #f8fafc;
-  color: #0f172a;
-  z-index: 1;
+/* Hover más sutil */
+.mini-calendar-view-button:hover {
+  background-color: #f8fafc !important; /* Color más claro en hover */
+  color: #0f172a !important; /* Texto más oscuro en hover */
 }
 
-.fc-day-today {
+/* Estilo para botón activo similar al calendario original */
+.mini-calendar-view-button.active {
+  background-color: #0d9488 !important;
+  color: white !important;
+  border-color: #0d9488 !important;
+  font-weight: 500 !important; /* Peso de fuente ligeramente mayor para resaltar el activo */
+}
+
+.mini-calendar-view-button.active:hover {
+  background-color: #0f766e !important;
+  color: white !important;
+}
+.mini-calendar-container .fc-day-today {
   border: 1px solid #0d9488 !important;
-}
-
-.view-button.active {
-  background-color: #0d9488;
-  color: white;
-  border-color: #0d9488;
-  z-index: 2;
-}
-
-.view-button.active:hover {
-  background-color: #0f766e;
 }
 
 .mini-calendar-wrapper {
   flex: 1;
   min-height: 400px;
   margin-top: 10px;
-  /* Asegurar que el calendario ocupe todo el espacio disponible */
-  height: calc(100% - 80px); /* Considerar altura del título y controles */
+  height: calc(100% - 80px);
   display: flex;
   flex-direction: column;
 }
 
-/* El contenedor del FullCalendar debe ocupar todo el espacio */
 .mini-calendar-wrapper > div,
 .mini-calendar-wrapper .fc {
   height: 100% !important;
   flex: 1;
 }
 
-/* Personalizar FullCalendar */
-:root {
+/* Personalizar FullCalendar específico para el mini-calendario */
+.mini-calendar-container :root {
   --fc-border-color: #e2e8f0;
   --fc-today-bg-color: #e2f5f4;
   --fc-event-bg-color: #0d9488;
@@ -201,6 +197,20 @@
   font-size: 18px;
   line-height: 1;
   font-weight: normal;
+}
+
+/* Cambios para cabeceras de días */
+.mini-calendar-container .fc-col-header {
+  background-color: #f1f5f9 !important;
+}
+
+.mini-calendar-container .fc-col-header-cell {
+  padding: 8px 4px;
+}
+
+.mini-calendar-container .fc-col-header-cell-cushion {
+  font-weight: 600;
+  color: #475569;
 }
 
 .mini-calendar-container .fc .fc-daygrid-day-top {
@@ -273,13 +283,24 @@
   margin: 4px;
 }
 
-/* Mejoras para la vista semanal */
+/* Mejoras para la vista semanal y diaria */
 .mini-calendar-container .fc-timegrid-slot {
   height: 2em;
 }
 
 .mini-calendar-container .fc-timegrid-slot-label {
   font-size: 0.8rem;
+}
+
+/* Fondo gris para las cabeceras de TimeGrid */
+.mini-calendar-container .fc-timegrid-axis,
+.mini-calendar-container .fc-timegrid-col-header {
+  background-color: #f1f5f9 !important;
+}
+
+.mini-calendar-container .fc-timegrid-col-header-cushion {
+  font-weight: 600;
+  color: #475569;
 }
 
 .mini-calendar-container .fc-timegrid-event {
