@@ -418,7 +418,7 @@ const AppointmentsPage: React.FC = () => {
       header: "Acciones",
       cell: (info) => (
         <button
-          className="view-button"
+          className="view-button-actions"
           onClick={() => handleViewAppointment(info.row.original)}
         >
           Ver detalle
@@ -439,7 +439,7 @@ const AppointmentsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Pestañas */}
+      {/* Pestañas - Eliminado el botón de aquí */}
       <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === "calendar" ? "active" : ""}`}
@@ -453,14 +453,6 @@ const AppointmentsPage: React.FC = () => {
         >
           Lista de Citas
         </button>
-        <div className="button-container">
-          <button
-            className="add-button"
-            onClick={() => handleAddAppointment()}
-          >
-            <AddIcon fontSize="small" /> Crear nueva Cita
-          </button>
-        </div>
       </div>
 
       {/* Vista de Calendario (ahora mostrada por defecto) */}
@@ -478,7 +470,7 @@ const AppointmentsPage: React.FC = () => {
       {/* Vista de Lista */}
       {activeTab === "list" && (
         <>
-          {/* Filtros */}
+          {/* Filtros con botón de crear cita añadido */}
           <div className="filters-container">
             <div className="filter-group">
               <label htmlFor="filterDate">Fecha:</label>
@@ -505,6 +497,16 @@ const AppointmentsPage: React.FC = () => {
                 <option value="cancelled">Cancelada</option>
                 <option value="completed">Completada</option>
               </select>
+            </div>
+            
+            {/* Botón para crear nueva cita en la vista de lista */}
+            <div className="button-container">
+              <button
+                className="add-button"
+                onClick={() => handleAddAppointment()}
+              >
+                <AddIcon fontSize="small" /> Crear nueva Cita
+              </button>
             </div>
           </div>
 

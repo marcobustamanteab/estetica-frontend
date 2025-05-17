@@ -19,6 +19,12 @@ import { useClients } from "../hooks/useClients";
 import { useServices } from "../hooks/useServices";
 import { useUsers } from "../hooks/useUsers";
 import { toast } from 'react-toastify';
+import { 
+  Users, 
+  Calendar, 
+  DollarSign, 
+  TrendingUp 
+} from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -158,42 +164,42 @@ const Dashboard: React.FC = () => {
 
   // Manejar cambio de estado de cita
   const handleChangeStatus = async (status: string) => {
-  if (!selectedAppointment) return;
+    if (!selectedAppointment) return;
 
-  try {
-    await changeAppointmentStatus(selectedAppointment.id, status);
-    setShowAppointmentDetail(false);
-    
-    // Añadir notificación según el estado
-    switch (status) {
-      case 'confirmed':
-        toast.success('Cita confirmada correctamente');
-        break;
-      case 'cancelled':
-        toast.info('Cita cancelada correctamente');
-        break;
-      case 'completed':
-        toast.success('Cita marcada como completada');
-        break;
-      default:
-        toast.success(`Estado de cita actualizado a: ${status}`);
+    try {
+      await changeAppointmentStatus(selectedAppointment.id, status);
+      setShowAppointmentDetail(false);
+      
+      // Añadir notificación según el estado
+      switch (status) {
+        case 'confirmed':
+          toast.success('Cita confirmada correctamente');
+          break;
+        case 'cancelled':
+          toast.info('Cita cancelada correctamente');
+          break;
+        case 'completed':
+          toast.success('Cita marcada como completada');
+          break;
+        default:
+          toast.success(`Estado de cita actualizado a: ${status}`);
+      }
+
+      // Recargar citas
+      const today = new Date();
+      const firstDayOfMonth = startOfMonth(today);
+      const lastDayOfMonth = endOfMonth(today);
+
+      const filters: AppointmentFilters = {
+        date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
+        date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
+      };
+      fetchAppointments(filters);
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      toast.error('Ocurrió un error al cambiar el estado de la cita');
     }
-
-    // Recargar citas
-    const today = new Date();
-    const firstDayOfMonth = startOfMonth(today);
-    const lastDayOfMonth = endOfMonth(today);
-
-    const filters: AppointmentFilters = {
-      date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
-      date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
-    };
-    fetchAppointments(filters);
-  } catch (error) {
-    console.error("Error al cambiar estado:", error);
-    toast.error('Ocurrió un error al cambiar el estado de la cita');
-  }
-};
+  };
 
   // Manejar edición de cita
   const handleEditAppointment = () => {
@@ -203,50 +209,50 @@ const Dashboard: React.FC = () => {
   };
 
   // Manejar eliminación de cita
-const handleDeleteAppointment = () => {
-  if (selectedAppointment) {
-    // Guardar una referencia a la cita seleccionada
-    const appointmentToDelete = selectedAppointment;
-    
-    // Cerrar el modal de detalles ANTES de mostrar el diálogo de confirmación
-    setShowAppointmentDetail(false);
-    
-    // Pequeño tiempo de espera para asegurar que el modal se cierre
-    setTimeout(() => {
-      Swal.fire({
-        title: "¿Eliminar cita?",
-        text: "Esta acción no se puede deshacer",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#dc2626",
-        cancelButtonColor: "#64748b",
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          try {
-            await deleteAppointment(appointmentToDelete.id);
-            toast.success('Cita eliminada correctamente');
-            
-            // Recargar citas
-            const today = new Date();
-            const firstDayOfMonth = startOfMonth(today);
-            const lastDayOfMonth = endOfMonth(today);
-    
-            const filters: AppointmentFilters = {
-              date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
-              date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
-            };
-            fetchAppointments(filters);
-          } catch (error) {
-            console.error("Error al eliminar cita:", error);
-            toast.error('Ocurrió un error al eliminar la cita');
+  const handleDeleteAppointment = () => {
+    if (selectedAppointment) {
+      // Guardar una referencia a la cita seleccionada
+      const appointmentToDelete = selectedAppointment;
+      
+      // Cerrar el modal de detalles ANTES de mostrar el diálogo de confirmación
+      setShowAppointmentDetail(false);
+      
+      // Pequeño tiempo de espera para asegurar que el modal se cierre
+      setTimeout(() => {
+        Swal.fire({
+          title: "¿Eliminar cita?",
+          text: "Esta acción no se puede deshacer",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#dc2626",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "Sí, eliminar",
+          cancelButtonText: "Cancelar",
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              await deleteAppointment(appointmentToDelete.id);
+              toast.success('Cita eliminada correctamente');
+              
+              // Recargar citas
+              const today = new Date();
+              const firstDayOfMonth = startOfMonth(today);
+              const lastDayOfMonth = endOfMonth(today);
+      
+              const filters: AppointmentFilters = {
+                date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
+                date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
+              };
+              fetchAppointments(filters);
+            } catch (error) {
+              console.error("Error al eliminar cita:", error);
+              toast.error('Ocurrió un error al eliminar la cita');
+            }
           }
-        }
-      });
-    }, 300); 
-  }
-};
+        });
+      }, 300); 
+    }
+  };
 
   // Manejar la verificación de disponibilidad de empleados
   const handleCheckAvailability = async (
@@ -263,36 +269,36 @@ const handleDeleteAppointment = () => {
 
   // Manejar el guardado de una cita nueva
   const handleSaveAppointment = async (formData: any) => {
-  setShowAppointmentForm(false);
+    setShowAppointmentForm(false);
 
-  try {
-    if (selectedAppointment) {
-      // Actualizar cita existente
-      await updateAppointment(selectedAppointment.id, formData);
-      // Añadir notificación de éxito
-      toast.success('Cita actualizada correctamente');
-    } else {
-      // Crear cita nueva
-      await createAppointment(formData);
-      // Añadir notificación de éxito
-      toast.success('Cita creada correctamente');
+    try {
+      if (selectedAppointment) {
+        // Actualizar cita existente
+        await updateAppointment(selectedAppointment.id, formData);
+        // Añadir notificación de éxito
+        toast.success('Cita actualizada correctamente');
+      } else {
+        // Crear cita nueva
+        await createAppointment(formData);
+        // Añadir notificación de éxito
+        toast.success('Cita creada correctamente');
+      }
+
+      // Recargar citas
+      const today = new Date();
+      const firstDayOfMonth = startOfMonth(today);
+      const lastDayOfMonth = endOfMonth(today);
+
+      const filters: AppointmentFilters = {
+        date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
+        date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
+      };
+      fetchAppointments(filters);
+    } catch (error) {
+      console.error("Error al guardar cita:", error);
+      toast.error('Ocurrió un error al guardar la cita');
     }
-
-    // Recargar citas
-    const today = new Date();
-    const firstDayOfMonth = startOfMonth(today);
-    const lastDayOfMonth = endOfMonth(today);
-
-    const filters: AppointmentFilters = {
-      date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
-      date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
-    };
-    fetchAppointments(filters);
-  } catch (error) {
-    console.error("Error al guardar cita:", error);
-    toast.error('Ocurrió un error al guardar la cita');
-  }
-};
+  };
 
   const handleFetchCategoriesByEmployee = async (employeeId: number) => {
     try {
@@ -308,36 +314,68 @@ const handleDeleteAppointment = () => {
       <h2>Bienvenido, {currentUser?.first_name || currentUser?.username}!</h2>
 
       <div className="dashboard-cards">
+        {/* Tarjeta de Clientes */}
         <div className="dashboard-card">
-          <h3>Clientes</h3>
-          <div className="card-value">
-            <Counter end={totalClients} />
+          <div className="card-content">
+            <div className="card-info">
+              <h3>Clientes</h3>
+              <div className="card-value">
+                <Counter end={totalClients} />
+              </div>
+              <p>Total de clientes registrados</p>
+            </div>
+            <div className="card-icon">
+              <Users size={48} />
+            </div>
           </div>
-          <p>Total de clientes registrados</p>
         </div>
 
+        {/* Tarjeta de Citas Hoy */}
         <div className="dashboard-card">
-          <h3>Citas hoy</h3>
-          <div className="card-value">
-            <Counter end={todayAppointments} />
+          <div className="card-content">
+            <div className="card-info">
+              <h3>Citas hoy</h3>
+              <div className="card-value">
+                <Counter end={todayAppointments} />
+              </div>
+              <p>Citas activas para hoy</p>
+            </div>
+            <div className="card-icon">
+              <Calendar size={48} />
+            </div>
           </div>
-          <p>Citas activas para hoy</p>
         </div>
 
+        {/* Tarjeta de Ventas Diarias */}
         <div className="dashboard-card">
-          <h3>Ventas Hoy</h3>
-          <div className="card-value">
-            <Counter end={totalSales} prefix="$" />
+          <div className="card-content">
+            <div className="card-info">
+              <h3>Ventas Hoy</h3>
+              <div className="card-value">
+                <Counter end={totalSales} prefix="$" />
+              </div>
+              <p>Ventas del día</p>
+            </div>
+            <div className="card-icon">
+              <DollarSign size={48} />
+            </div>
           </div>
-          <p>Ventas del día</p>
         </div>
 
-        <div className="dashboard-card monthly-sales-card">
-          <h3>Ventas Mensuales</h3>
-          <div className="card-value">
-            <Counter end={monthlySales} prefix="$" />
+        {/* Tarjeta de Ventas Mensuales */}
+        <div className="dashboard-card">
+          <div className="card-content">
+            <div className="card-info">
+              <h3>Ventas Mensuales</h3>
+              <div className="card-value">
+                <Counter end={monthlySales} prefix="$" />
+              </div>
+              <p>Total de ventas del mes</p>
+            </div>
+            <div className="card-icon">
+              <TrendingUp size={48} />
+            </div>
           </div>
-          <p>Total de ventas del mes</p>
         </div>
       </div>
 
