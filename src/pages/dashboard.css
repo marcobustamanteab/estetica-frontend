@@ -70,7 +70,7 @@
   
 }
 
-/* Colores específicos para cada tarjeta, similar a la imagen de referencia
+/* Colores específicos para cada tarjeta, similar a la imagen de referencia */
 .dashboard-card:nth-child(1) {
   border-top: 4px solid #258086; 
 }
@@ -85,7 +85,7 @@
 
 .dashboard-card:nth-child(4) {
   border-top: 4px solid #258086; 
-} */
+} 
   
 .dashboard-section {
   background-color: white;
