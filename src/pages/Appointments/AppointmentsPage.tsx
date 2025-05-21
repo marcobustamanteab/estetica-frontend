@@ -32,11 +32,11 @@ const AppointmentsPage: React.FC = () => {
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
   const [showDetail, setShowDetail] = useState(false);
-  const [availableEmployees, setAvailableEmployees] = useState<User[]>([]);
+  const [, setAvailableEmployees] = useState<User[]>([]);
   const [filterDate, setFilterDate] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filters, setFilters] = useState<AppointmentFilters>({});
-  const [availableServices, setAvailableServices] = useState<Service[]>([]);
+  const [, setAvailableServices] = useState<Service[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
   
   // En vez de usar un calendarKey para forzar renderizado, utilizaremos un enfoque más controlado
