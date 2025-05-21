@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   useAppointments,
   Appointment,
@@ -32,14 +32,14 @@ const AppointmentsPage: React.FC = () => {
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null);
   const [showDetail, setShowDetail] = useState(false);
-  const [, setAvailableEmployees] = useState<User[]>([]);
+  const [availableEmployees, setAvailableEmployees] = useState<User[]>([]);
   const [filterDate, setFilterDate] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filters, setFilters] = useState<AppointmentFilters>({});
-  const [, setAvailableServices] = useState<Service[]>([]);
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
-  // Variable para controlar si es necesario refrescar el calendario
-  const [calendarKey, setCalendarKey] = useState<number>(0);
+  
+  // En vez de usar un calendarKey para forzar renderizado, utilizaremos un enfoque más controlado
 
   // Hooks para obtener datos
   const {
@@ -68,48 +68,68 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
+  // Función para refrescar las citas sin cambiar la vista
+  const refreshAppointments = useCallback(() => {
+    fetchAppointments(filters);
+  }, [fetchAppointments, filters]);
+
   // Cargar datos iniciales
   useEffect(() => {
     // Cargar todos los datos necesarios
-    fetchClients();
-    fetchServices();
-    fetchUsers();
-    
-    // Cargar servicios disponibles para citas (con categorías activas)
-    const loadAvailableServices = async () => {
-      const services = await fetchAvailableServices();
-      setAvailableServices(services);
+    const loadInitialData = async () => {
+      await Promise.all([
+        fetchClients(),
+        fetchServices(),
+        fetchUsers()
+      ]);
+      
+      // Cargar servicios disponibles para citas
+      try {
+        const availableServicesData = await fetchAvailableServices();
+        setAvailableServices(availableServicesData);
+      } catch (error) {
+        console.error("Error cargando servicios disponibles:", error);
+      }
     };
-    loadAvailableServices();
+    
+    loadInitialData();
 
     // Configurar filtro por defecto (hoy)
     const today = format(new Date(), "yyyy-MM-dd");
     setFilterDate(today);
 
-    // Cargar citas iniciales
-    // Como ahora la vista por defecto es calendario, cargamos las citas del mes actual
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    
-    const initialFilters: AppointmentFilters = {
-      date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
-      date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
-    };
-    
-    setFilters(initialFilters);
-    fetchAppointments(initialFilters);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Cargar citas según la pestaña activa
+    if (activeTab === "calendar") {
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      
+      const initialFilters: AppointmentFilters = {
+        date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
+        date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
+      };
+      
+      setFilters(initialFilters);
+      fetchAppointments(initialFilters);
+    } else {
+      const listFilters: AppointmentFilters = {
+        date_from: today,
+        date_to: today,
+      };
+      setFilters(listFilters);
+      fetchAppointments(listFilters);
+    }
   }, []);
 
   // Cuando cambian los filtros, actualizar las citas
   useEffect(() => {
     fetchAppointments(filters);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   // Cambiar pestaña
   const handleTabChange = (tab: TabType) => {
+    if (tab === activeTab) return; // No hacer nada si ya estamos en esa pestaña
+    
     setActiveTab(tab);
 
     // Si cambiamos a calendario, cargar todas las citas del mes actual
@@ -124,9 +144,6 @@ const AppointmentsPage: React.FC = () => {
       };
 
       setFilters(calendarFilters);
-      
-      // Forzar actualización del calendario
-      setCalendarKey(prev => prev + 1);
     } else {
       // Si volvemos a lista, usar filtro de fecha única
       const today = format(new Date(), "yyyy-MM-dd");
@@ -159,19 +176,14 @@ const AppointmentsPage: React.FC = () => {
     if (date) {
       const formattedDate = format(date, "yyyy-MM-dd");
       setFilterDate(formattedDate);
-      setFilters({
-        ...filters,
-        date_from: formattedDate,
-        date_to: formattedDate,
-      });
     }
   };
 
   // Función que se llama al cerrar el modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    // Forzar actualización del calendario cuando se cierra el modal
-    setCalendarKey(prev => prev + 1);
+    // Refrescar las citas sin cambiar la vista
+    refreshAppointments();
   };
 
   // Abrir modal para editar una cita existente
@@ -196,8 +208,8 @@ const AppointmentsPage: React.FC = () => {
   // Función que se llama al cerrar el detalle
   const handleCloseDetail = () => {
     setShowDetail(false);
-    // Forzar actualización del calendario cuando se cierra el detalle
-    setCalendarKey(prev => prev + 1);
+    // Refrescar las citas sin cambiar la vista
+    refreshAppointments();
   };
 
   // Eliminar una cita con confirmación
@@ -225,8 +237,8 @@ const AppointmentsPage: React.FC = () => {
         await deleteAppointment(id);
         setShowDetail(false);
         toast.success("Cita eliminada correctamente");
-        // Forzar actualización del calendario
-        setCalendarKey(prev => prev + 1);
+        // Refrescar citas
+        refreshAppointments();
       } catch (error: any) {
         console.error("Error al eliminar cita:", error);
         // Mostrar mensaje de error del backend si existe
@@ -256,10 +268,8 @@ const AppointmentsPage: React.FC = () => {
       toast.success(
         `Estado de la cita actualizado a: ${getStatusText(status)}`
       );
-      // Recargar las citas
-      fetchAppointments(filters);
-      // Forzar actualización del calendario
-      setCalendarKey(prev => prev + 1);
+      // Refrescar citas
+      refreshAppointments();
     } catch (error: any) {
       console.error("Error al cambiar estado:", error);
       // Mostrar mensaje de error del backend si existe
@@ -287,10 +297,8 @@ const AppointmentsPage: React.FC = () => {
         await createAppointment(appointmentData);
         toast.success("Cita creada correctamente");
       }
-      // Recargar las citas
-      fetchAppointments(filters);
-      // Forzar actualización del calendario
-      setCalendarKey(prev => prev + 1);
+      // Refrescar citas
+      refreshAppointments();
     } catch (error) {
       console.error("Error al guardar cita:", error);
       toast.error("Ocurrió un error al guardar la cita");
@@ -369,10 +377,6 @@ const AppointmentsPage: React.FC = () => {
     
     // Actualizar filtros
     setFilterDate(formattedDate);
-    const newFilters = { ...filters };
-    newFilters.date_from = formattedDate;
-    newFilters.date_to = formattedDate;
-    setFilters(newFilters);
   };
 
   // Manejar creación de cita con hora específica desde el calendario
@@ -439,7 +443,7 @@ const AppointmentsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Pestañas - Eliminado el botón de aquí */}
+      {/* Pestañas */}
       <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === "calendar" ? "active" : ""}`}
@@ -458,7 +462,6 @@ const AppointmentsPage: React.FC = () => {
       {/* Vista de Calendario (ahora mostrada por defecto) */}
       {activeTab === "calendar" && (
         <CalendarView
-          key={calendarKey} // Usar una key para forzar recreación completa del componente
           appointments={appointments}
           onDateClick={handleCalendarDateClick}
           onEventClick={handleViewAppointment}
