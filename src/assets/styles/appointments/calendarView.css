@@ -165,10 +165,114 @@
   z-index: 1000 !important;
 }
 
+/* Añadir cursor pointer a los eventos del calendario */
 .fc-event,
 .fc-event-title,
 .fc-daygrid-event,
 .fc-timegrid-event,
 .fc-event-custom-content {
   cursor: pointer !important;
+}
+
+/* ===== ESTILOS MEJORADOS BASADOS EN MINI-CALENDAR ===== */
+
+/* Estilo de transición para eventos */
+.fc-event {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fc-event:hover {
+  transform: scale(1.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Eventos con mejor manejo de texto - VISTA MES */
+.fc-daygrid-event .fc-event-custom-content {
+  display: flex !important;
+  flex-direction: row !important;
+  font-size: 0.75rem !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.fc-daygrid-event .fc-event-time {
+  font-weight: 600 !important;
+  margin-right: 4px !important;
+  flex-shrink: 0 !important; /* Evita que el tiempo se comprima */
+}
+
+.fc-daygrid-event .fc-event-title {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  flex: 1 !important; /* Toma el espacio restante */
+}
+
+/* Eventos con mejor manejo de texto - VISTA SEMANA/DÍA */
+.fc-timegrid-event .fc-event-custom-content {
+  display: flex !important;
+  flex-direction: column !important;
+  font-size: 0.8rem !important;
+  padding: 4px 6px !important;
+}
+
+.fc-timegrid-event .fc-event-time {
+  font-weight: 600 !important;
+  flex-shrink: 0 !important;
+  margin-bottom: 2px !important;
+}
+
+.fc-timegrid-event .fc-event-title {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Asegurar que los eventos tengan una altura mínima adecuada */
+.fc-timegrid-event {
+  min-height: 30px !important;
+  border-radius: 4px !important;
+  margin: 1px !important;
+}
+
+/* Mejorar la visualización para eventos cortos */
+.fc-timegrid-event.fc-event-short .fc-event-time {
+  font-size: 0.75rem !important;
+}
+
+/* Aumentar la altura de las filas del calendario */
+.fc-timegrid-slot {
+  height: 3em !important;
+}
+
+/* Para eventos pequeños en la vista del mes */
+.fc-daygrid-event {
+  margin-top: 1px !important;
+  margin-bottom: 1px !important;
+  border-radius: 4px !important;
+  padding: 2px 4px !important;
+}
+
+/* Específicamente para manejar el caso del fondo amarillo */
+.fc-timegrid-event[style*="background-color: #fbbf24"],
+.fc-daygrid-event[style*="background-color: #fbbf24"] {
+  min-height: 35px !important; /* Altura mínima para eventos amarillos */
+}
+
+/* Ajuste para el texto del evento en eventos cortos */
+.fc-event-short .fc-event-custom-content {
+  padding: 2px 4px !important;
+}
+
+/* Asegurar que en la vista de mes se muestre la hora Y parte del título */
+.fc-daygrid-event .fc-event-time:after {
+  content: " ";
+  display: inline !important;
+}
+
+/* Mejoras para pantalla completa */
+.calendar-wrapper .fc-view-harness {
+  min-height: 600px !important; /* Mayor altura para el calendario completo */
 }

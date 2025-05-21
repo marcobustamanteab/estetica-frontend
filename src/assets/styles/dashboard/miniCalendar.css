@@ -252,20 +252,25 @@
 
 .mini-calendar-container .fc-event-custom-content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   font-size: 0.75rem;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mini-calendar-container .fc-event-time {
   font-weight: 600;
   margin-right: 4px;
+  flex-shrink: 0; 
 }
 
 .mini-calendar-container .fc-event-title {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
 }
 
 .mini-calendar-container .fc-theme-standard .fc-popover {
@@ -312,4 +317,14 @@
 .mini-calendar-container .fc-view-harness {
   height: 100% !important;
   min-height: 350px;
+}
+
+.mini-calendar-container .fc-timegrid-event,
+.mini-calendar-container .fc-daygrid-event {
+  overflow: hidden;
+}
+
+.mini-calendar-container .fc-timegrid-event.fc-event-short .fc-event-time {
+  min-width: 0;
+  font-size: 0.7rem;
 }
