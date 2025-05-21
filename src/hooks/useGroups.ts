@@ -56,7 +56,7 @@ export const useGroups = () => {
   // Crear una instancia de axios con interceptores
   const createAxiosInstance = useCallback((): AxiosInstance => {
     const instance = axios.create({
-      baseURL: "", // Se añadirá la URL específica en cada solicitud
+      baseURL: "", 
     });
 
     instance.interceptors.request.use(

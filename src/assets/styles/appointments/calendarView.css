@@ -164,3 +164,11 @@
 .fc-popover {
   z-index: 1000 !important;
 }
+
+.fc-event,
+.fc-event-title,
+.fc-daygrid-event,
+.fc-timegrid-event,
+.fc-event-custom-content {
+  cursor: pointer !important;
+}

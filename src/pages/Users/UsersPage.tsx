@@ -279,7 +279,7 @@ const UsersPage: React.FC = () => {
 
   // Definir las columnas para exportación
   const exportColumns: ExportColumn[] = [
-    { header: 'ID', accessor: 'id' },
+    // { header: 'ID', accessor: 'id' },
     { header: 'Nombre de Usuario', accessor: 'username' },
     { header: 'Email', accessor: 'email' },
     { header: 'Nombre', accessor: 'first_name', formatFn: (value: any) => value || 'No especificado' },
@@ -300,8 +300,8 @@ const UsersPage: React.FC = () => {
         return roleNames.join(', ');
       }
     },
-    { header: 'Estado', accessor: 'is_active', formatFn: (value: any) => value ? 'Activo' : 'Inactivo' },
-    { header: 'Última conexión', accessor: 'last_login', formatFn: (value: any) => value || 'Nunca' }
+    // { header: 'Estado', accessor: 'is_active', formatFn: (value: any) => value ? 'Activo' : 'Inactivo' },
+    // { header: 'Última conexión', accessor: 'last_login', formatFn: (value: any) => value || 'Nunca' }
   ];
 
   return (
