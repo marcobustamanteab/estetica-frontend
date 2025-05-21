@@ -15,6 +15,7 @@ import Swal from 'sweetalert2';
 import { ExportColumn } from '../../types/ExportColumn';
 import './usersPage.css';
 import { Eye } from 'lucide-react';
+import { getRolePillColor } from '../../components/common/PillsColors';
 
 const VIEW_PROFILE_STYLES = {
   backgroundColor: '#e0f2fe', // Color azul claro
@@ -167,22 +168,6 @@ const UsersPage: React.FC = () => {
       const group = groups.find(g => g.id === (typeof groupId === 'object' ? (groupId as {id: number}).id : groupId));
       return group ? group.name : 'Rol desconocido';
     });
-  };
-
-  // Colores para las pills de roles
-  const rolePillColors = [
-    { bg: '#E0F2FE', text: '#0369A1' }, // Azul claro
-    { bg: '#D1FAE5', text: '#059669' }, // Verde claro
-    { bg: '#FCE7F3', text: '#DB2777' }, // Rosa claro
-    { bg: '#FEF3C7', text: '#D97706' }, // Amarillo claro
-    { bg: '#E0E7FF', text: '#4F46E5' }, // Indigo claro
-  ];
-
-  // Asignar un color consistente basado en el nombre del rol
-  const getRolePillColor = (roleName: string) => {
-    // Usar una suma de códigos de caracteres para asignar consistentemente el mismo color a un rol
-    const charSum = roleName.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-    return rolePillColors[charSum % rolePillColors.length];
   };
   
   // Definir columnas para DataTable usando columnHelper

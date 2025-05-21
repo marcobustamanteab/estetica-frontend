@@ -186,9 +186,6 @@ const ClientsPage: React.FC = () => {
     }),
   ];
 
-  // Definir las columnas para exportación
-
-
   return (
     <div className="clients-page">
       <div className="page-header">
