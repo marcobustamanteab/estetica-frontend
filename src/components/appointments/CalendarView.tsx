@@ -14,7 +14,7 @@ interface CalendarViewProps {
   onDateClick: (date: Date) => void;
   onEventClick: (appointment: Appointment) => void;
   onNewAppointment: (date: Date, time: string) => void;
-  handleAddAppointment: () => void; // Handler para el botón de nueva cita
+  handleAddAppointment: () => void;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
@@ -28,7 +28,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   >("timeGridWeek");
   const calendarRef = useRef<FullCalendar>(null);
 
-  // Efecto para mantener una altura adecuada para el calendario
   useEffect(() => {
     const updateCalendarHeight = () => {
       if (calendarRef.current) {
@@ -39,21 +38,26 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
     updateCalendarHeight();
     window.addEventListener('resize', updateCalendarHeight);
-
-    return () => {
-      window.removeEventListener('resize', updateCalendarHeight);
-    };
+    return () => window.removeEventListener('resize', updateCalendarHeight);
   }, []);
 
-  // Convertir las citas al formato que entiende FullCalendar
-  const events = appointments.map((appointment) => {
-    // Obtener color según estado
-    let backgroundColor = "#fbbf24"; // Amarillo para pendiente
-    if (appointment.status === "confirmed") backgroundColor = "#10b981"; // Verde para confirmada
-    if (appointment.status === "cancelled") backgroundColor = "#ef4444"; // Rojo para cancelada
-    if (appointment.status === "completed") backgroundColor = "#3b82f6"; // Azul para completada
+  const getDurationInMinutes = (start: string, end: string): number => {
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    return (eh * 60 + em) - (sh * 60 + sm);
+  };
 
-    // Crear el objeto de evento
+  const events = appointments.map((appointment) => {
+    let backgroundColor = "#fbbf24";
+    if (appointment.status === "confirmed") backgroundColor = "#10b981";
+    if (appointment.status === "cancelled") backgroundColor = "#ef4444";
+    if (appointment.status === "completed") backgroundColor = "#3b82f6";
+
+    const duration = getDurationInMinutes(
+      appointment.start_time,
+      appointment.end_time
+    );
+
     return {
       id: appointment.id.toString(),
       title: `${appointment.client_name} - ${appointment.service_name}`,
@@ -64,53 +68,34 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       extendedProps: {
         appointment,
       },
+      classNames: duration < 30 ? ["short-event"] : ["long-event"],
     };
   });
 
-  // Manejar clic en evento (cita)
   const handleEventClick = (info: any) => {
     const appointment = info.event.extendedProps.appointment;
     onEventClick(appointment);
   };
 
-  // Manejar clic en fecha - Ahora crea cita directamente cuando es posible
   const handleDateClick = (info: any) => {
-    // Si estamos en vista de mes, usamos el comportamiento anterior
     if (calendarView === 'dayGridMonth') {
       const date = info.date;
-      
-      // Establecer una hora por defecto para agendar (9:00 AM)
       const appointmentDate = new Date(date);
       appointmentDate.setHours(9, 0, 0);
-      
-      // Crear nueva cita con la fecha y hora predeterminada
       onNewAppointment(appointmentDate, '09:00');
     } else {
-      // En vistas de día o semana, usamos la hora exacta del clic
       const date = info.date;
-      const time = `${date.getHours().toString().padStart(2, "0")}:${date
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`;
-        
-      // Crear nueva cita con la fecha y hora seleccionadas
+      const time = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
       onNewAppointment(date, time);
     }
   };
 
-  // Manejar creación de nueva cita al seleccionar un rango
   const handleDateSelect = (info: any) => {
     const date = info.start;
-    const time = `${date.getHours().toString().padStart(2, "0")}:${date
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")}`;
-    
-    // Llamar a la función para crear una nueva cita con la fecha y hora seleccionadas
+    const time = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
     onNewAppointment(date, time);
   };
 
-  // Función para cambiar la vista del calendario
   const changeView = (
     view: "dayGridMonth" | "timeGridWeek" | "timeGridDay"
   ) => {
@@ -180,26 +165,23 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           stickyHeaderDates={true}
           height="auto"
           contentHeight={700}
-          // Mejorar el formato de hora para los slots
           slotLabelFormat={{
             hour: '2-digit',
             minute: '2-digit',
-            omitZeroMinute: false, // Mostrará '7:00' en lugar de solo '7'
+            omitZeroMinute: false,
             meridiem: false,
             hour12: false
           }}
-          // Mejorar el formato de hora para los eventos
           eventTimeFormat={{
             hour: '2-digit',
             minute: '2-digit',
             meridiem: false,
             hour12: false
           }}
-          // Personalizar el contenido de los eventos
           eventContent={(eventInfo) => {
             return (
               <div className="fc-event-custom-content" 
-                  title={`${eventInfo.event.extendedProps.appointment.client_name} - ${eventInfo.event.extendedProps.appointment.service_name}`}>
+                   title={`${eventInfo.event.extendedProps.appointment.client_name} - ${eventInfo.event.extendedProps.appointment.service_name}`}>
                 <div className="fc-event-time">
                   {eventInfo.timeText}
                 </div>

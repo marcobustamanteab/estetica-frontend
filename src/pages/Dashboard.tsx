@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import {
   useAppointments,
   Appointment,
@@ -18,13 +18,8 @@ import "./dashboard.css";
 import { useClients } from "../hooks/useClients";
 import { useServices } from "../hooks/useServices";
 import { useUsers } from "../hooks/useUsers";
-import { toast } from 'react-toastify';
-import { 
-  Users, 
-  Calendar, 
-  DollarSign, 
-  TrendingUp 
-} from 'lucide-react';
+import { toast } from "react-toastify";
+import { Users, Calendar, DollarSign, TrendingUp } from "lucide-react";
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -40,7 +35,7 @@ const Dashboard: React.FC = () => {
   const [newAppointmentTime, setNewAppointmentTime] = useState<string>("");
   const { fetchClients, clients } = useClients();
   const { fetchUsers, users } = useUsers();
-  const { fetchServices, services, fetchCategoriesByEmployee } = useServices();
+  const { fetchServices, services, fetchEmployeesByService } = useServices();
   const [totalClients, setTotalClients] = useState<number>(0);
   const [todayAppointments, setTodayAppointments] = useState<number>(0);
   const [totalSales, setTotalSales] = useState<number>(0);
@@ -169,17 +164,17 @@ const Dashboard: React.FC = () => {
     try {
       await changeAppointmentStatus(selectedAppointment.id, status);
       setShowAppointmentDetail(false);
-      
+
       // Añadir notificación según el estado
       switch (status) {
-        case 'confirmed':
-          toast.success('Cita confirmada correctamente');
+        case "confirmed":
+          toast.success("Cita confirmada correctamente");
           break;
-        case 'cancelled':
-          toast.info('Cita cancelada correctamente');
+        case "cancelled":
+          toast.info("Cita cancelada correctamente");
           break;
-        case 'completed':
-          toast.success('Cita marcada como completada');
+        case "completed":
+          toast.success("Cita marcada como completada");
           break;
         default:
           toast.success(`Estado de cita actualizado a: ${status}`);
@@ -197,7 +192,7 @@ const Dashboard: React.FC = () => {
       fetchAppointments(filters);
     } catch (error) {
       console.error("Error al cambiar estado:", error);
-      toast.error('Ocurrió un error al cambiar el estado de la cita');
+      toast.error("Ocurrió un error al cambiar el estado de la cita");
     }
   };
 
@@ -213,10 +208,10 @@ const Dashboard: React.FC = () => {
     if (selectedAppointment) {
       // Guardar una referencia a la cita seleccionada
       const appointmentToDelete = selectedAppointment;
-      
+
       // Cerrar el modal de detalles ANTES de mostrar el diálogo de confirmación
       setShowAppointmentDetail(false);
-      
+
       // Pequeño tiempo de espera para asegurar que el modal se cierre
       setTimeout(() => {
         Swal.fire({
@@ -232,13 +227,13 @@ const Dashboard: React.FC = () => {
           if (result.isConfirmed) {
             try {
               await deleteAppointment(appointmentToDelete.id);
-              toast.success('Cita eliminada correctamente');
-              
+              toast.success("Cita eliminada correctamente");
+
               // Recargar citas
               const today = new Date();
               const firstDayOfMonth = startOfMonth(today);
               const lastDayOfMonth = endOfMonth(today);
-      
+
               const filters: AppointmentFilters = {
                 date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
                 date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
@@ -246,11 +241,11 @@ const Dashboard: React.FC = () => {
               fetchAppointments(filters);
             } catch (error) {
               console.error("Error al eliminar cita:", error);
-              toast.error('Ocurrió un error al eliminar la cita');
+              toast.error("Ocurrió un error al eliminar la cita");
             }
           }
         });
-      }, 300); 
+      }, 300);
     }
   };
 
@@ -276,12 +271,12 @@ const Dashboard: React.FC = () => {
         // Actualizar cita existente
         await updateAppointment(selectedAppointment.id, formData);
         // Añadir notificación de éxito
-        toast.success('Cita actualizada correctamente');
+        toast.success("Cita actualizada correctamente");
       } else {
         // Crear cita nueva
         await createAppointment(formData);
         // Añadir notificación de éxito
-        toast.success('Cita creada correctamente');
+        toast.success("Cita creada correctamente");
       }
 
       // Recargar citas
@@ -296,18 +291,18 @@ const Dashboard: React.FC = () => {
       fetchAppointments(filters);
     } catch (error) {
       console.error("Error al guardar cita:", error);
-      toast.error('Ocurrió un error al guardar la cita');
+      toast.error("Ocurrió un error al guardar la cita");
     }
   };
 
-  const handleFetchCategoriesByEmployee = async (employeeId: number) => {
-    try {
-      return await fetchCategoriesByEmployee(employeeId);
-    } catch (error) {
-      console.error("Error obteniendo categorías por empleado:", error);
-      return []; 
-    }
-  };
+  // const handleFetchCategoriesByEmployee = async (employeeId: number) => {
+  //   try {
+  //     return await fetchCategoriesByEmployee(employeeId);
+  //   } catch (error) {
+  //     console.error("Error obteniendo categorías por empleado:", error);
+  //     return [];
+  //   }
+  // };
 
   return (
     <div className="dashboard">
@@ -422,19 +417,9 @@ const Dashboard: React.FC = () => {
             onClose={() => setShowAppointmentForm(false)}
             onSave={handleSaveAppointment}
             onCheckAvailability={handleCheckAvailability}
-            fetchCategoriesByEmployee={handleFetchCategoriesByEmployee}
+            fetchEmployeesByService={fetchEmployeesByService} 
             initialDate={
-              newAppointmentDate
-                ? 
-                  `${newAppointmentDate.getFullYear()}-${(
-                    newAppointmentDate.getMonth() + 1
-                  )
-                    .toString()
-                    .padStart(2, "0")}-${newAppointmentDate
-                    .getDate()
-                    .toString()
-                    .padStart(2, "0")}`
-                : ""
+              newAppointmentDate ? format(newAppointmentDate, "yyyy-MM-dd") : ""
             }
             initialTime={newAppointmentTime}
           />

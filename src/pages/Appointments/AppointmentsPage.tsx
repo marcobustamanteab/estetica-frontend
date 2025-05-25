@@ -38,7 +38,7 @@ const AppointmentsPage: React.FC = () => {
   const [filters, setFilters] = useState<AppointmentFilters>({});
   const [, setAvailableServices] = useState<Service[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
-  
+
   // En vez de usar un calendarKey para forzar renderizado, utilizaremos un enfoque más controlado
 
   // Hooks para obtener datos
@@ -56,7 +56,7 @@ const AppointmentsPage: React.FC = () => {
   } = useAppointments();
 
   const { clients, fetchClients } = useClients();
-  const { services, fetchServices, fetchCategoriesByEmployee } = useServices();
+  const { services, fetchServices, fetchEmployeesByService } = useServices();
   const { users: employees, fetchUsers } = useUsers();
 
   const formatDate = (dateString: string): string => {
@@ -77,12 +77,8 @@ const AppointmentsPage: React.FC = () => {
   useEffect(() => {
     // Cargar todos los datos necesarios
     const loadInitialData = async () => {
-      await Promise.all([
-        fetchClients(),
-        fetchServices(),
-        fetchUsers()
-      ]);
-      
+      await Promise.all([fetchClients(), fetchServices(), fetchUsers()]);
+
       // Cargar servicios disponibles para citas
       try {
         const availableServicesData = await fetchAvailableServices();
@@ -91,7 +87,7 @@ const AppointmentsPage: React.FC = () => {
         console.error("Error cargando servicios disponibles:", error);
       }
     };
-    
+
     loadInitialData();
 
     // Configurar filtro por defecto (hoy)
@@ -103,12 +99,12 @@ const AppointmentsPage: React.FC = () => {
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      
+
       const initialFilters: AppointmentFilters = {
         date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
         date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
       };
-      
+
       setFilters(initialFilters);
       fetchAppointments(initialFilters);
     } else {
@@ -129,7 +125,7 @@ const AppointmentsPage: React.FC = () => {
   // Cambiar pestaña
   const handleTabChange = (tab: TabType) => {
     if (tab === activeTab) return; // No hacer nada si ya estamos en esa pestaña
-    
+
     setActiveTab(tab);
 
     // Si cambiamos a calendario, cargar todas las citas del mes actual
@@ -164,12 +160,12 @@ const AppointmentsPage: React.FC = () => {
   // Abrir modal para crear una nueva cita
   const handleAddAppointment = (date?: Date, time?: string) => {
     setSelectedAppointment(null);
-    
+
     // Si se proporciona una hora, actualizar la hora seleccionada
     if (time) {
       setSelectedTime(time);
     }
-    
+
     // Mostrar el modal
     setIsModalOpen(true);
 
@@ -189,11 +185,11 @@ const AppointmentsPage: React.FC = () => {
   // Abrir modal para editar una cita existente
   const handleEditAppointment = (appointment: Appointment) => {
     // Verificar si la cita está completada
-    if (appointment.status === 'completed') {
-      toast.error('Las citas completadas no pueden ser editadas.');
+    if (appointment.status === "completed") {
+      toast.error("Las citas completadas no pueden ser editadas.");
       return;
     }
-    
+
     setSelectedAppointment(appointment);
     setShowDetail(false);
     setIsModalOpen(true);
@@ -215,12 +211,12 @@ const AppointmentsPage: React.FC = () => {
   // Eliminar una cita con confirmación
   const handleDeleteAppointment = async (id: number) => {
     // Verificar si la cita está completada antes de mostrar el diálogo
-    const appointmentToDelete = appointments.find(app => app.id === id);
-    if (appointmentToDelete && appointmentToDelete.status === 'completed') {
-      toast.error('Las citas completadas no pueden ser eliminadas.');
+    const appointmentToDelete = appointments.find((app) => app.id === id);
+    if (appointmentToDelete && appointmentToDelete.status === "completed") {
+      toast.error("Las citas completadas no pueden ser eliminadas.");
       return;
     }
-  
+
     const result = await Swal.fire({
       title: "¿Eliminar cita?",
       text: "Esta acción no se puede deshacer",
@@ -231,7 +227,7 @@ const AppointmentsPage: React.FC = () => {
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     });
-  
+
     if (result.isConfirmed) {
       try {
         await deleteAppointment(id);
@@ -255,14 +251,14 @@ const AppointmentsPage: React.FC = () => {
   const handleChangeStatus = async (id: number, status: string) => {
     try {
       // Buscar la cita en el array de citas
-      const appointmentToUpdate = appointments.find(app => app.id === id);
-      
+      const appointmentToUpdate = appointments.find((app) => app.id === id);
+
       // Verificar si la cita existe y está completada
-      if (appointmentToUpdate && appointmentToUpdate.status === 'completed') {
-        toast.error('Las citas completadas no pueden cambiar de estado.');
+      if (appointmentToUpdate && appointmentToUpdate.status === "completed") {
+        toast.error("Las citas completadas no pueden cambiar de estado.");
         return;
       }
-      
+
       await changeAppointmentStatus(id, status);
       setShowDetail(false);
       toast.success(
@@ -368,13 +364,13 @@ const AppointmentsPage: React.FC = () => {
   const handleCalendarDateClick = (date: Date) => {
     // Ahora en lugar de cambiar a la vista de lista, abrimos el modal
     const formattedDate = format(date, "yyyy-MM-dd");
-    
+
     // Establecer una hora predeterminada (9:00 AM)
     setSelectedTime("09:00");
-    
+
     // Abrir modal con la fecha seleccionada
     handleAddAppointment(date);
-    
+
     // Actualizar filtros
     setFilterDate(formattedDate);
   };
@@ -462,6 +458,7 @@ const AppointmentsPage: React.FC = () => {
       {/* Vista de Calendario (ahora mostrada por defecto) */}
       {activeTab === "calendar" && (
         <CalendarView
+          key={appointments.length}
           appointments={appointments}
           onDateClick={handleCalendarDateClick}
           onEventClick={handleViewAppointment}
@@ -501,7 +498,7 @@ const AppointmentsPage: React.FC = () => {
                 <option value="completed">Completada</option>
               </select>
             </div>
-            
+
             {/* Botón para crear nueva cita en la vista de lista */}
             <div className="button-container">
               <button
@@ -546,10 +543,10 @@ const AppointmentsPage: React.FC = () => {
           services={services}
           employees={employees}
           allAppointments={appointments}
-          onClose={handleCloseModal}
+          onClose={() => setIsModalOpen(false)}
           onSave={handleSaveAppointment}
           onCheckAvailability={handleCheckAvailability}
-          fetchCategoriesByEmployee={fetchCategoriesByEmployee}
+          fetchEmployeesByService={fetchEmployeesByService}
           initialDate={filterDate}
           initialTime={selectedTime || undefined}
         />

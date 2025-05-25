@@ -242,6 +242,46 @@
   font-size: 0.75rem !important;
 }
 
+/* Detectar eventos con altura baja (<30 min) y aplicar layout horizontal */
+.fc-timegrid-event.fc-event {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding: 2px 6px !important;
+}
+
+/* Si la altura es muy baja, cambiar a layout horizontal */
+.fc-timegrid-event.fc-event {
+  flex-direction: row !important;
+  font-size: 0.72rem !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Ajustar partes internas del contenido */
+.fc-timegrid-event .fc-event-time,
+.fc-timegrid-event .fc-event-title {
+  margin: 0 !important;
+  padding: 0 4px 0 0 !important;
+  display: inline !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-weight: 500 !important;
+}
+
+/* Prioriza el espacio para el título */
+.fc-timegrid-event .fc-event-title {
+  flex-grow: 1 !important;
+}
+
+/* Evita que el tiempo consuma todo el espacio */
+.fc-timegrid-event .fc-event-time {
+  flex-shrink: 0 !important;
+}
+
 /* Aumentar la altura de las filas del calendario */
 .fc-timegrid-slot {
   height: 3em !important;
