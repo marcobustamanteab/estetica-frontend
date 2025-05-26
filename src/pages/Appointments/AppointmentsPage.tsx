@@ -175,13 +175,6 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
-  // Función que se llama al cerrar el modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    // Refrescar las citas sin cambiar la vista
-    refreshAppointments();
-  };
-
   // Abrir modal para editar una cita existente
   const handleEditAppointment = (appointment: Appointment) => {
     // Verificar si la cita está completada

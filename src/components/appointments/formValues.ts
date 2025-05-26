@@ -18,7 +18,7 @@ export interface AppointmentFormModalProps {
     serviceId: number
   ) => Promise<void>;
   fetchCategoriesByEmployee: (employeeId: number) => Promise<ServiceCategory[]>;
-  fetchEmployeesByService: (serviceId: number) => Promise<User[]>; // Nueva función
+  fetchEmployeesByService: (serviceId: number) => Promise<User[]>;
   initialDate?: string;
   initialTime?: string;
 }
