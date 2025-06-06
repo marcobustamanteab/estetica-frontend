@@ -117,18 +117,14 @@ const AppointmentsPage: React.FC = () => {
     }
   }, []);
 
-  // Cuando cambian los filtros, actualizar las citas
   useEffect(() => {
     fetchAppointments(filters);
   }, [filters]);
 
-  // Cambiar pestaña
   const handleTabChange = (tab: TabType) => {
-    if (tab === activeTab) return; // No hacer nada si ya estamos en esa pestaña
-
+    if (tab === activeTab) return; 
     setActiveTab(tab);
 
-    // Si cambiamos a calendario, cargar todas las citas del mes actual
     if (tab === "calendar") {
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
