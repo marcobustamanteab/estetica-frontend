@@ -20,10 +20,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Printer,
-  BarChart2,
-} from "lucide-react";
+import { Printer, BarChart2 } from "lucide-react";
 import "./salesReport.css";
 
 // Tipo para los datos de ventas agrupados
@@ -270,12 +267,10 @@ const SalesReport: React.FC = () => {
     columnHelper.accessor("totalSales", {
       header: "Total Ventas",
       cell: (info) =>
-        `$${info
-          .getValue()
-          .toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`,
+        `$${info.getValue().toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
     }),
   ];
 
@@ -315,6 +310,7 @@ const SalesReport: React.FC = () => {
 
   // Opciones para los filtros de empleado
   const employeeOptions = employees
+    .filter((employee) => !employee.is_staff && employee.is_active)
     .map((employee) => ({
       id: employee.id,
       name: `${employee.first_name} ${employee.last_name}`,
