@@ -1,5 +1,4 @@
-// src/components/reports/ServicesReport.tsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import ReportFilters, { ReportFilters as FiltersType } from "./ReportFilters";
 import ReportSummary, { SummaryMetric } from "./ReportSummary";
@@ -51,8 +50,7 @@ type ChartType = "bar" | "pie";
 const ServicesReport: React.FC = () => {
   // Hooks para obtener datos
   const { appointments, fetchAppointments } = useAppointments();
-  const { services, categories, fetchServices, fetchCategories } =
-    useServices();
+  const { services, categories, fetchServices, fetchCategories } = useServices();
 
   // Estado para los filtros aplicados
   const [filters, setFilters] = useState<FiltersType>({
