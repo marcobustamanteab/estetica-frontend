@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/hooks/useServices.tsx
 import { useState, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useLoading } from "../context/LoadingContext";
 import { User } from "./useUsers";
 
-// Tipo para Axios
 type AxiosInstance = ReturnType<typeof axios.create>;
 
-// Definir las base URL para la API
 const API_BASE_URL =
   // En producción, prioriza la variable de entorno o usa la URL de Railway
   import.meta.env.PROD
@@ -27,7 +24,6 @@ const CATEGORIES_BASE_URL = import.meta.env.PROD
 
 const CATEGORIES_URL = `${CATEGORIES_BASE_URL}/api/services/categories/`;
 
-// Tipos para manejar los servicios
 export interface ServiceCategory {
   id: number;
   name: string;
@@ -103,10 +99,8 @@ export const useServices = (): ServicesHook => {
 
   // Crear una instancia de axios con interceptores
   const createAxiosInstance = useCallback((): AxiosInstance => {
-    // Proporcionar un objeto de configuración vacío como mínimo
     const instance = axios.create({
-      // Configuración base
-      baseURL: "", // Añadiremos la URL específica en cada solicitud
+      baseURL: "",
       headers: {
         "Content-Type": "application/json",
       },
@@ -201,12 +195,12 @@ export const useServices = (): ServicesHook => {
             params: { employee_id: employeeId },
           }
         );
-        setCategories(response.data); // Actualizar el estado con las categorías filtradas
+        setCategories(response.data);
         return response.data;
       } catch (error) {
         setError("Error al cargar las categorías por empleado");
         console.error("Error al cargar categorías por empleado:", error);
-        return []; // Retornar array vacío en caso de error
+        return [];
       } finally {
         setLoading(false);
         hideLoading();
@@ -585,10 +579,23 @@ export const useServices = (): ServicesHook => {
 
       try {
         const axiosInstance = createAxiosInstance();
+
+        // Obtener todos los usuarios del endpoint que SÍ existe
         const response = await axiosInstance.get<User[]>(
-          `${API_URL}${serviceId}/employees/`
+          `${API_BASE_URL}/api/auth/users/`
         );
-        return response.data;
+        const allUsers = response.data;
+
+        // Filtrar solo usuarios activos que tienen grupos (son empleados)
+        const employees = allUsers.filter(
+          (user) => user.is_active && user.groups && user.groups.length > 0
+        );
+
+        console.log(
+          `Empleados encontrados para servicio ${serviceId}:`,
+          employees
+        );
+        return employees;
       } catch (error) {
         setError("Error al cargar empleados por servicio");
         console.error("Error al cargar empleados por servicio:", error);
