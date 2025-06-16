@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { JSX, useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import Avatar from "../common/Avatar";
 import {
   FiHome,
   FiUsers,
@@ -14,7 +15,6 @@ import {
   FiUserPlus,
   FiShield,
 } from "react-icons/fi";
-import avatarImage from "../../assets/img/avatar001.jpeg";
 import "./sidebar.css";
 
 interface SidebarProps {
@@ -67,7 +67,6 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
   ];
 
   const getUserRole = (): string => {
-
     if (!user) return "Usuario";
 
     if (user.is_staff === true) {
@@ -185,13 +184,11 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       {expanded ? (
         // Perfil expandido - muestra avatar e información
         <div className="user-profile">
-          <div className="avatar-container">
-            <img
-              src={user?.profile_image || avatarImage}
-              alt="Avatar"
-              className="user-avatar"
-            />
-          </div>
+          <Avatar
+            firstName={user?.first_name}
+            lastName={user?.last_name}
+            size="medium"
+          />
           <div className="user-info">
             <div className="user-name">
               {user?.first_name} {user?.last_name}
@@ -202,13 +199,12 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       ) : (
         // Perfil colapsado - solo muestra avatar
         <div className="user-profile">
-          <div className="avatar-container">
-            <img
-              src={user?.profile_image || avatarImage}
-              alt="Avatar"
-              className="user-avatar"
-            />
-          </div>
+          <Avatar
+            firstName={user?.first_name}
+            lastName={user?.last_name}
+            size="medium"
+            className="avatar-sidebar-collapsed"
+          />
         </div>
       )}
 
