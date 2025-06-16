@@ -8,7 +8,7 @@ import RolePermissionsModal from "../../components/users/RolePermissionsModal";
 import { createColumnHelper } from "@tanstack/react-table";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import SecurityIcon from "@mui/icons-material/Security";
+// import SecurityIcon from "@mui/icons-material/Security";
 import AddIcon from "@mui/icons-material/Add";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
@@ -94,10 +94,10 @@ const RolesPage: React.FC = () => {
     setIsFormModalOpen(true);
   };
 
-  const handleManagePermissions = (role: Group) => {
-    setSelectedRole(role);
-    setIsPermissionsModalOpen(true);
-  };
+  // const handleManagePermissions = (role: Group) => {
+  //   setSelectedRole(role);
+  //   setIsPermissionsModalOpen(true);
+  // };
 
   const handleDeleteRole = async (id: number) => {
     const result = await Swal.fire({
@@ -185,13 +185,13 @@ const RolesPage: React.FC = () => {
       header: "Acciones",
       cell: (info) => (
         <div className="action-buttons">
-          <button
+          {/* <button
             className="icon-button permissions-button"
             onClick={() => handleManagePermissions(info.row.original)}
             title="Gestionar permisos"
           >
             <SecurityIcon fontSize="small" />
-          </button>
+          </button> */}
           <button
             className="icon-button edit-button"
             onClick={() => handleEditRole(info.row.original)}
