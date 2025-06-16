@@ -580,26 +580,101 @@ export const useServices = (): ServicesHook => {
       try {
         const axiosInstance = createAxiosInstance();
 
-        // Obtener todos los usuarios del endpoint que SÍ existe
-        const response = await axiosInstance.get<User[]>(
-          `${API_BASE_URL}/api/auth/users/`
+        // PASO 1: Obtener el servicio específico para conocer su categoría
+        const serviceResponse = await axiosInstance.get<Service>(
+          `${API_URL}${serviceId}/`
         );
-        const allUsers = response.data;
-
-        // Filtrar solo usuarios activos que tienen grupos (son empleados)
-        const employees = allUsers.filter(
-          (user) => user.is_active && user.groups && user.groups.length > 0
-        );
+        const service = serviceResponse.data;
 
         console.log(
-          `Empleados encontrados para servicio ${serviceId}:`,
-          employees
+          `Servicio obtenido: ${service.name}, Categoría ID: ${service.category}`
         );
-        return employees;
+
+        // PASO 2: Obtener todos los usuarios activos
+        const usersResponse = await axiosInstance.get<User[]>(
+          `${API_BASE_URL}/api/auth/users/`
+        );
+        const allUsers = usersResponse.data;
+
+        // PASO 3: Obtener la categoría del servicio con sus roles permitidos
+        const categoryResponse = await axiosInstance.get<ServiceCategory>(
+          `${CATEGORIES_BASE_URL}/api/services/categories/${service.category}/`
+        );
+        const category = categoryResponse.data;
+
+        console.log(`Categoría obtenida: ${category.name}`, category);
+
+        // PASO 4: Filtrar empleados según los roles permitidos para esta categoría
+        let availableEmployees: User[];
+
+        if (category.allowed_roles && category.allowed_roles.length > 0) {
+          // Si hay roles específicos asignados a la categoría
+          const allowedRoleIds = category.allowed_roles.map((role) => role.id);
+          console.log(`Roles permitidos para la categoría:`, allowedRoleIds);
+
+          availableEmployees = allUsers.filter((user) => {
+            if (!user.is_active || !user.groups || user.groups.length === 0) {
+              return false;
+            }
+
+            // Verificar si el usuario tiene al menos uno de los roles permitidos
+            const userRoleIds = user.groups.map((group: any) =>
+              typeof group === "object" ? group.id : group
+            );
+
+            const hasPermittedRole = userRoleIds.some((roleId) =>
+              allowedRoleIds.includes(roleId)
+            );
+
+            if (hasPermittedRole) {
+              console.log(
+                `Usuario ${user.username} tiene roles permitidos:`,
+                userRoleIds
+              );
+            }
+
+            return hasPermittedRole;
+          });
+        } else {
+          // Si no hay roles específicos, mostrar todos los empleados activos con roles
+          console.log(
+            "No hay roles específicos asignados, mostrando todos los empleados activos"
+          );
+          availableEmployees = allUsers.filter(
+            (user) => user.is_active && user.groups && user.groups.length > 0
+          );
+        }
+
+        console.log(
+          `Empleados disponibles para servicio ${service.name}:`,
+          availableEmployees.length
+        );
+        return availableEmployees;
       } catch (error) {
         setError("Error al cargar empleados por servicio");
         console.error("Error al cargar empleados por servicio:", error);
-        return [];
+
+        // Fallback: obtener todos los empleados activos
+        try {
+          const axiosInstance = createAxiosInstance();
+          const response = await axiosInstance.get<User[]>(
+            `${API_BASE_URL}/api/auth/users/`
+          );
+          const allUsers = response.data;
+
+          const employees = allUsers.filter(
+            (user) => user.is_active && user.groups && user.groups.length > 0
+          );
+
+          console.log(
+            "Usando fallback, empleados encontrados:",
+            employees.length
+          );
+          return employees;
+        } catch (fallbackError) {
+          console.error("Error en fallback:", fallbackError);
+          return [];
+        }
       } finally {
         setLoading(false);
         hideLoading();
