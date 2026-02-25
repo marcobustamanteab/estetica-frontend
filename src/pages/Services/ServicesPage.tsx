@@ -249,10 +249,6 @@ const ServicesPage: React.FC = () => {
   const serviceColumnHelper = createColumnHelper<Service>();
   
   const serviceColumns = [
-    serviceColumnHelper.accessor('id', {
-      header: 'ID',
-      cell: info => info.getValue(),
-    }),
     serviceColumnHelper.accessor('name', {
       header: 'Nombre',
       cell: info => info.getValue(),
@@ -310,10 +306,6 @@ const ServicesPage: React.FC = () => {
   const categoryColumnHelper = createColumnHelper<ServiceCategory>();
   
   const categoryColumns = [
-    categoryColumnHelper.accessor('id', {
-      header: 'ID',
-      cell: info => info.getValue(),
-    }),
     categoryColumnHelper.accessor('name', {
       header: 'Nombre',
       cell: info => info.getValue(),

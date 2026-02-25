@@ -115,10 +115,6 @@ const ClientsPage: React.FC = () => {
   const columnHelper = createColumnHelper<Client>();
 
   const columns = [
-    columnHelper.accessor("id", {
-      header: "ID",
-      cell: (info) => info.getValue(),
-    }),
     columnHelper.accessor((row) => `${row.first_name} ${row.last_name}`, {
       id: "fullName",
       header: "Nombre Completo",

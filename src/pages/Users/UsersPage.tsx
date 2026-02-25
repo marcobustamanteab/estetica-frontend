@@ -148,10 +148,6 @@ const UsersPage: React.FC = () => {
   const columnHelper = createColumnHelper<User>();
   
   const columns = [
-    columnHelper.accessor('id', {
-      header: 'ID',
-      cell: info => info.getValue(),
-    }),
     columnHelper.accessor('username', {
       header: 'Usuario',
       cell: info => info.getValue(),

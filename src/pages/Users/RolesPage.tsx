@@ -13,6 +13,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import "./rolesPage.css";
+import { useAuth } from '../../context/AuthContext';
 
 // Extendemos la interfaz Group para incluir nuestro conteo calculado
 interface EnrichedGroup extends Group {
@@ -39,6 +40,9 @@ const RolesPage: React.FC = () => {
   } = useGroups();
 
   const { users, fetchUsers } = useUsers();
+
+  const { currentUser } = useAuth();
+  const isSuperAdmin = (currentUser as any)?.is_superuser === true;
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -158,66 +162,59 @@ const RolesPage: React.FC = () => {
   const columnHelper = createColumnHelper<EnrichedGroup>();
 
   const columns = [
-    columnHelper.accessor("id", {
-      header: "ID",
-      cell: (info) => info.getValue(),
-    }),
     columnHelper.accessor("name", {
       header: "Nombre del Rol",
       cell: (info) => info.getValue(),
     }),
-    columnHelper.display({
-      id: "usersCount",
-      header: "Usuarios asignados",
-      cell: (info) => {
-        // Usar el conteo calculado si está disponible
-        const calculatedCount = info.row.original.calculated_user_count;
-        return calculatedCount !== undefined ? calculatedCount : (info.row.original.user_count || 0);
-      },
-    }),
-    columnHelper.display({
-      id: "permissionsCount",
-      header: "Permisos",
-      cell: (info) => info.row.original.permissions?.length || 0,
-    }),
-    columnHelper.display({
-      id: "actions",
-      header: "Acciones",
-      cell: (info) => (
-        <div className="action-buttons">
-          {/* <button
-            className="icon-button permissions-button"
-            onClick={() => handleManagePermissions(info.row.original)}
-            title="Gestionar permisos"
-          >
-            <SecurityIcon fontSize="small" />
-          </button> */}
-          <button
-            className="icon-button edit-button"
-            onClick={() => handleEditRole(info.row.original)}
-            title="Editar rol"
-          >
-            <EditIcon fontSize="small" />
-          </button>
-          <button
-            className="icon-button delete-button"
-            onClick={() => handleDeleteRole(info.row.original.id)}
-            title="Eliminar rol"
-          >
-            <DeleteIcon fontSize="small" />
-          </button>
-        </div>
-      ),
-    }),
+    // Solo el superadmin ve estas columnas
+    ...(isSuperAdmin ? [
+      columnHelper.display({
+        id: "usersCount",
+        header: "Usuarios asignados",
+        cell: (info) => {
+          const calculatedCount = info.row.original.calculated_user_count;
+          return calculatedCount !== undefined ? calculatedCount : (info.row.original.user_count || 0);
+        },
+      }),
+      columnHelper.display({
+        id: "permissionsCount",
+        header: "Permisos",
+        cell: (info) => info.row.original.permissions?.length || 0,
+      }),
+      columnHelper.display({
+        id: "actions",
+        header: "Acciones",
+        cell: (info) => (
+          <div className="action-buttons">
+            <button
+              className="icon-button edit-button"
+              onClick={() => handleEditRole(info.row.original)}
+              title="Editar rol"
+            >
+              <EditIcon fontSize="small" />
+            </button>
+            <button
+              className="icon-button delete-button"
+              onClick={() => handleDeleteRole(info.row.original.id)}
+              title="Eliminar rol"
+            >
+              <DeleteIcon fontSize="small" />
+            </button>
+          </div>
+        ),
+      }),
+    ] : []),
   ];
 
   return (
     <div className="roles-page">
       <div className="page-header">
         <h2>Administración de Roles</h2>
-        <button className="add-button" onClick={handleAddRole}>
-          <AddIcon fontSize="small" /> Nuevo Rol
-        </button>
+        {isSuperAdmin && (
+          <button className="add-button" onClick={handleAddRole}>
+            <AddIcon fontSize="small" /> Nuevo Rol
+          </button>
+        )}
       </div>
 
       {error && (
