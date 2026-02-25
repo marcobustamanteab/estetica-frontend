@@ -12,10 +12,12 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import "./clients.css";
 import { exportColumns } from "./exportData";
+import { useBusinessContext } from '../../context/BusinessContext';
 
 const ClientsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const { selectedBusiness } = useBusinessContext();
 
   const {
     clients,
@@ -29,8 +31,8 @@ const ClientsPage: React.FC = () => {
   } = useClients();
 
   useEffect(() => {
-    fetchClients();
-  }, []);
+    fetchClients(selectedBusiness);
+  }, [selectedBusiness]);
 
   const handleAddClient = () => {
     setSelectedClient(null);

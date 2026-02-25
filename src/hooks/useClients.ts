@@ -44,7 +44,7 @@ export interface ClientsHook {
   clients: Client[];
   loading: boolean;
   error: string | null;
-  fetchClients: () => Promise<void>;
+  fetchClients: (businessId?: number | null) => Promise<void>;
   getClientById: (id: number) => Promise<Client>;
   createClient: (clientData: ClientFormData) => Promise<Client>;
   updateClient: (id: number, clientData: ClientFormData) => Promise<Client>;
@@ -91,14 +91,15 @@ export const useClients = (): ClientsHook => {
   }, [logout]);
   
   // Cargar clientes
-  const fetchClients = useCallback(async (): Promise<void> => {
+  const fetchClients = useCallback(async (businessId?: number | null): Promise<void> => {
     setLoading(true);
     setError(null);
     showLoading('Cargando clientes...');
-    
+
     try {
       const axiosInstance = createAxiosInstance();
-      const response = await axiosInstance.get<Client[]>('');
+      const params = businessId ? `?business=${businessId}` : '';
+      const response = await axiosInstance.get<Client[]>(`${params}`);
       setClients(response.data);
     } catch (error) {
       setError('Error al cargar los clientes');
