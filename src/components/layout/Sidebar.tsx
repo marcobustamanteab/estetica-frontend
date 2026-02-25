@@ -19,10 +19,9 @@ import "./sidebar.css";
 
 interface SidebarProps {
   expanded: boolean;
-  user: any; // Reemplazar con el tipo de usuario correcto
+  user: any;
 }
 
-// Tipo para los items del menú con soporte para submenús
 interface MenuItem {
   path: string;
   icon: JSX.Element;
@@ -31,18 +30,25 @@ interface MenuItem {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
-  // Estado para mantener los submenús expandidos/colapsados
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
-  // Definir las opciones del menú con iconos de react-icons
-  const menuItems: MenuItem[] = [
+  // Determinar nivel de acceso
+  const isSuperAdmin = user?.is_superuser === true;
+  const isAdmin = user?.is_staff === true;
+
+  // Menú base para todos los usuarios
+  const baseMenuItems: MenuItem[] = [
     { path: "/dashboard", icon: <FiHome size={20} />, label: "Dashboard" },
+    { path: "/agenda", icon: <FiCalendar size={20} />, label: "Agenda" },
+  ];
+
+  // Menú para admins y superadmins
+  const adminMenuItems: MenuItem[] = [
     {
       path: "/usuarios",
       icon: <FiUsers size={20} />,
       label: "Usuarios",
       subMenus: [
-        // { path: '/usuarios/miperfil', icon: <FiUserCheck size={20} />, label: 'Mi Perfil' },
         {
           path: "/usuarios/administracion",
           icon: <FiUserPlus size={20} />,
@@ -57,8 +63,11 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
     },
     { path: "/clientes", icon: <FiUserCheck size={20} />, label: "Clientes" },
     { path: "/servicios", icon: <FiScissors size={20} />, label: "Servicios" },
-    { path: "/agenda", icon: <FiCalendar size={20} />, label: "Agenda" },
     { path: "/reportes", icon: <FiBarChart2 size={20} />, label: "Reportes" },
+  ];
+
+  // Mantenedores solo para superadmin
+  const superAdminMenuItems: MenuItem[] = [
     {
       path: "/mantenedores",
       icon: <FiSettings size={20} />,
@@ -66,16 +75,22 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
     },
   ];
 
+  // Construir menú según rol
+  const menuItems: MenuItem[] = [
+    ...baseMenuItems,
+    ...(isAdmin || isSuperAdmin ? adminMenuItems : []),
+    ...(isSuperAdmin ? superAdminMenuItems : []),
+  ];
+
   const getUserRole = (): string => {
     if (!user) return "Usuario";
 
-    if (user.is_staff === true) {
-      return "Administrador";
-    }
+    if (user.is_superuser === true) return "Super Administrador";
+
+    if (user.is_staff === true) return "Administrador";
 
     if (user.groups && user.groups.length > 0) {
       const firstGroup = user.groups[0];
-
       if (
         typeof firstGroup === "object" &&
         firstGroup !== null &&
@@ -89,9 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
     return "Sin rol asignado";
   };
 
-  // Manejar clic en menú con submenú
   const toggleSubmenu = (e: React.MouseEvent, path: string) => {
-    // Detener la propagación del evento para evitar comportamientos inesperados
     e.preventDefault();
     e.stopPropagation();
 
@@ -106,16 +119,14 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
 
   useEffect(() => {
     if (!expanded) {
-      setExpandedMenus([]); // Colapsar todos los submenús cuando se colapsa la sidebar
+      setExpandedMenus([]);
     }
   }, [expanded]);
 
-  // Verificar si un menú está expandido
   const isMenuExpanded = (path: string) => {
     return expandedMenus.includes(path);
   };
 
-  // Renderizar items de menú con soporte para submenús
   const renderMenuItem = (item: MenuItem, index: number) => {
     const hasSubmenu = item.subMenus && item.subMenus.length > 0;
     const isExpanded = isMenuExpanded(item.path);
@@ -123,12 +134,9 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
     return (
       <li key={index}>
         {hasSubmenu ? (
-          // Menú con submenús
           <>
             <div
-              className={`menu-item has-submenu ${
-                isExpanded ? "expanded" : ""
-              }`}
+              className={`menu-item has-submenu ${isExpanded ? "expanded" : ""}`}
               onClick={(e) => toggleSubmenu(e, item.path)}
             >
               <span className="menu-icon">{item.icon}</span>
@@ -146,7 +154,6 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
               )}
             </div>
 
-            {/* Submenús */}
             {(isExpanded || !expanded) && (
               <ul className={`submenu ${isExpanded ? "expanded" : ""}`}>
                 {item.subMenus?.map((subItem, subIndex) => (
@@ -166,7 +173,6 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
             )}
           </>
         ) : (
-          // Menú sin submenús
           <NavLink
             to={item.path}
             className={({ isActive }) => (isActive ? "active" : "")}
@@ -182,7 +188,6 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
   return (
     <div className="sidebar-component">
       {expanded ? (
-        // Perfil expandido - muestra avatar e información
         <div className="user-profile">
           <Avatar
             firstName={user?.first_name}
@@ -197,7 +202,6 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
           </div>
         </div>
       ) : (
-        // Perfil colapsado - solo muestra avatar
         <div className="user-profile">
           <Avatar
             firstName={user?.first_name}

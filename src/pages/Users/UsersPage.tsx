@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { useUsers, User, UserFormData } from '../../hooks/useUsers';
 import { useGroups } from '../../hooks/useGroups';
+import { useAuth } from '../../context/AuthContext';
 import UserFormModal from '../../components/users/UserFormModal';
 import DataTable from '../../components/common/DataTable';
 import SwitchToggle from '../../components/common/SwitchToggle';
@@ -14,54 +16,89 @@ import Swal from 'sweetalert2';
 import { ExportColumn } from '../../types/ExportColumn';
 import './usersPage.css';
 import { getRolePillColor } from '../../components/common/PillsColors';
-import { useAuth } from '../../context/AuthContext';
 
+interface Business {
+  id: number;
+  name: string;
+}
 
 const UsersPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  
-  const { 
-    users, 
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selectedBusiness, setSelectedBusiness] = useState<number | null>(null);
+
+  const { currentUser } = useAuth();
+  const isSuperAdmin = (currentUser as any)?.is_superuser === true;
+
+  const {
+    users,
     loading: usersLoading,
     error: usersError,
-    fetchUsers, 
-    createUser, 
-    updateUser, 
-    deleteUser, 
-    toggleUserStatus 
+    fetchUsers,
+    createUser,
+    updateUser,
+    deleteUser,
+    toggleUserStatus
   } = useUsers();
-  
+
   const {
     groups,
     loading: groupsLoading,
     fetchGroups
   } = useGroups();
 
-  const { currentUser } = useAuth();
-  
-  // Cargar datos solo una vez al montar el componente
   const loadInitialData = useCallback(async () => {
-    await Promise.all([
-      fetchUsers(),
-      fetchGroups()
-    ]);
+    await Promise.all([fetchUsers(), fetchGroups()]);
   }, []);
-  
+
   useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
-  
+
+  // Cargar negocios si es superadmin y setear el propio negocio por defecto
+  useEffect(() => {
+    if (isSuperAdmin) {
+      const token = localStorage.getItem('access');
+      axios.get('/api/auth/businesses/', {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(res => {
+        console.log('Respuesta businesses:', res.data);
+        const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+        setBusinesses(data);
+        
+        // Setear el propio negocio por defecto DESPUÉS de cargar la lista
+        if ((currentUser as any)?.business) {
+          const business = (currentUser as any)?.business;
+          const businessId = typeof business === 'object' ? business?.id : business;
+          setSelectedBusiness(businessId);
+        }
+      }).catch(err => {
+        console.error('Error cargando negocios:', err);
+        setBusinesses([]);
+      });
+    } else {
+  const business = (currentUser as any)?.business;
+  const businessId = typeof business === 'object' ? business?.id : business;
+  setSelectedBusiness(businessId);
+}
+  }, [isSuperAdmin, currentUser]);
+
+  // Filtrar usuarios por negocio seleccionado
+  const filteredUsers = selectedBusiness
+    ? users.filter((u: any) => u.business === selectedBusiness)
+    : users;
+
   const handleAddUser = () => {
     setSelectedUser(null);
     setIsModalOpen(true);
   };
-  
+
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
-  
+
   const handleDeleteUser = async (id: number) => {
     const result = await Swal.fire({
       title: '¿Eliminar usuario?',
@@ -84,7 +121,7 @@ const UsersPage: React.FC = () => {
       }
     }
   };
-  
+
   const handleToggleStatus = async (id: number, isActive: boolean) => {
     const result = await Swal.fire({
       title: `¿${isActive ? 'Desactivar' : 'Activar'} usuario?`,
@@ -96,7 +133,7 @@ const UsersPage: React.FC = () => {
       confirmButtonText: 'Sí, confirmar',
       cancelButtonText: 'Cancelar'
     });
-    
+
     if (result.isConfirmed) {
       try {
         await toggleUserStatus(id, isActive);
@@ -107,10 +144,10 @@ const UsersPage: React.FC = () => {
       }
     }
   };
-  
+
   const handleSaveUser = async (userData: UserFormData) => {
     setIsModalOpen(false);
-    
+
     try {
       if (selectedUser) {
         await updateUser(selectedUser.id, userData);
@@ -119,8 +156,6 @@ const UsersPage: React.FC = () => {
         await createUser(userData);
         toast.success('Usuario creado correctamente');
       }
-      
-      // Recargar la lista de usuarios después de crear/actualizar
       fetchUsers();
     } catch (error) {
       console.error('Error al guardar usuario:', error);
@@ -128,28 +163,23 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  // Función para obtener los nombres de los roles de un usuario
   const getUserRoles = (user: User) => {
     if (!user.groups || user.groups.length === 0) return [];
-  
-    // Check first item to determine the structure
+
     const firstItem = user.groups[0];
-    
-    // If groups are objects with name property
+
     if (typeof firstItem === 'object' && firstItem !== null && 'name' in firstItem) {
-      return user.groups.map(group => (group as {name: string}).name);
+      return user.groups.map(group => (group as { name: string }).name);
     }
-    
-    // If groups are just IDs
+
     return user.groups.map(groupId => {
-      const group = groups.find(g => g.id === (typeof groupId === 'object' ? (groupId as {id: number}).id : groupId));
+      const group = groups.find(g => g.id === (typeof groupId === 'object' ? (groupId as { id: number }).id : groupId));
       return group ? group.name : 'Rol desconocido';
     });
   };
-  
-  // Definir columnas para DataTable usando columnHelper
+
   const columnHelper = createColumnHelper<User>();
-  
+
   const columns = [
     columnHelper.accessor('username', {
       header: 'Usuario',
@@ -170,14 +200,14 @@ const UsersPage: React.FC = () => {
       cell: info => {
         const roles = info.getValue();
         if (!roles || roles.length === 0) return <span className="no-roles">Sin roles</span>;
-        
+
         return (
           <div className="role-pills">
             {roles.map((role, index) => {
               const { bg, text } = getRolePillColor(role);
               return (
-                <span 
-                  key={index} 
+                <span
+                  key={index}
                   className="role-pill"
                   style={{ backgroundColor: bg, color: text }}
                 >
@@ -204,24 +234,22 @@ const UsersPage: React.FC = () => {
         const isCurrentUser = info.row.original.id === (currentUser as any)?.id;
         return (
           <div className="action-buttons">
-            {/* Ocultar switch si es el usuario actual */}
             {!isCurrentUser && (
-              <SwitchToggle 
-                isActive={info.row.original.is_active} 
+              <SwitchToggle
+                isActive={info.row.original.is_active}
                 onChange={() => handleToggleStatus(info.row.original.id, info.row.original.is_active)}
                 size="small"
               />
             )}
-            <button 
+            <button
               className="icon-button edit-button"
               onClick={() => handleEditUser(info.row.original)}
               title="Editar usuario"
             >
               <EditIcon fontSize="small" />
             </button>
-            {/* Ocultar botón eliminar si es el usuario actual */}
             {!isCurrentUser && (
-              <button 
+              <button
                 className="icon-button delete-button"
                 onClick={() => handleDeleteUser(info.row.original.id)}
                 title="Eliminar usuario"
@@ -235,54 +263,64 @@ const UsersPage: React.FC = () => {
     }),
   ];
 
-  // Definir las columnas para exportación
   const exportColumns: ExportColumn[] = [
-    // { header: 'ID', accessor: 'id' },
     { header: 'Nombre de Usuario', accessor: 'username' },
     { header: 'Email', accessor: 'email' },
     { header: 'Nombre', accessor: 'first_name', formatFn: (value: any) => value || 'No especificado' },
     { header: 'Apellido', accessor: 'last_name', formatFn: (value: any) => value || 'No especificado' },
-    // Para Roles, usamos el accessor 'groups' y formateamos en la función
-    { 
-      header: 'Roles', 
-      accessor: 'groups', 
-      formatFn: (value: number[], row: { is_staff: any; }) => {
+    {
+      header: 'Roles',
+      accessor: 'groups',
+      formatFn: (value: number[], row: { is_staff: any }) => {
         if (row.is_staff) return 'Administrador';
         if (!value || value.length === 0) return 'Sin roles';
-        
+
         const roleNames = value.map((groupId: number) => {
           const group = groups.find(g => g.id === groupId);
           return group ? group.name : 'Rol desconocido';
         });
-        
+
         return roleNames.join(', ');
       }
     },
-    // { header: 'Estado', accessor: 'is_active', formatFn: (value: any) => value ? 'Activo' : 'Inactivo' },
-    // { header: 'Última conexión', accessor: 'last_login', formatFn: (value: any) => value || 'Nunca' }
   ];
 
   return (
     <div className="users-page">
       <div className="page-header">
         <h2>Administración de Usuarios</h2>
-        <button className="add-button" onClick={handleAddUser}>
-          <AddIcon fontSize="small" /> Nuevo Usuario
-        </button>
+        <div className="header-actions">
+          {/* Filtro de negocio solo para superadmin */}
+          {isSuperAdmin && (
+            <select
+              value={selectedBusiness ?? ''}
+              onChange={(e) => setSelectedBusiness(e.target.value ? Number(e.target.value) : null)}
+              className="filter-select"
+            >
+              <option value="">Todos los negocios</option>
+              {(businesses || []).map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          )}
+          <button className="add-button" onClick={handleAddUser}>
+            <AddIcon fontSize="small" /> Nuevo Usuario
+          </button>
+        </div>
       </div>
-      
+
       {usersError && (
         <div className="error-alert">
           <p>{usersError}</p>
         </div>
       )}
-      
+
       {(usersLoading && users.length === 0) || groupsLoading ? (
         <p className="loading-message">Cargando usuarios...</p>
       ) : (
-        <DataTable 
-          columns={columns} 
-          data={users} 
+        <DataTable
+          columns={columns}
+          data={filteredUsers}
           title="Usuarios del Sistema"
           filterPlaceholder="Buscar usuario..."
           exportConfig={{
@@ -291,8 +329,7 @@ const UsersPage: React.FC = () => {
           }}
         />
       )}
-      
-      {/* Solo mostrar el modal cuando isModalOpen es true */}
+
       {isModalOpen && (
         <UserFormModal
           user={selectedUser}

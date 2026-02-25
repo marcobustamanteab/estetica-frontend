@@ -22,6 +22,7 @@ import ServiceSearchSelect from "../services/ServiceSearchSelect";
 import EmployeeSearchSelect from "../users/EmployeeSearchSelect";
 import ClientFormModal from "../clients/ClientFormModal";
 import { toast } from "react-toastify";
+import { useAuth } from '../../context/AuthContext';
 
 interface AppointmentFormModalProps {
   appointment: Appointment | null;
@@ -67,6 +68,8 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   // Nuevo estado para empleados filtrados
   const [availableEmployees, setAvailableEmployees] = useState<User[]>([]);
   const [employeesLoading, setEmployeesLoading] = useState<boolean>(false);
+
+  const { currentUser } = useAuth();
   
   // Ref para evitar llamadas duplicadas
   const loadingEmployeesRef = useRef<boolean>(false);
@@ -175,14 +178,18 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   useEffect(() => {
     const loadEmployeesByService = async () => {
       if (!selectedService) {
-        // Si no hay servicio seleccionado, mostrar todos los empleados activos
         const activeUsers = employees.filter((user) => user.is_active);
-        setAvailableEmployees(activeUsers);
+        // Asegurar que el usuario actual siempre esté
+        const currentUserInList = activeUsers.some(e => e.id === (currentUser as any)?.id);
+        if (!currentUserInList && (currentUser as any)?.is_active) {
+          setAvailableEmployees([...activeUsers, currentUser as User]);
+        } else {
+          setAvailableEmployees(activeUsers);
+        }
         currentServiceIdRef.current = null;
         return;
       }
 
-      // Evitar llamadas duplicadas
       if (loadingEmployeesRef.current || currentServiceIdRef.current === selectedService.id) {
         return;
       }
@@ -193,9 +200,15 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
 
       try {
         const serviceEmployees = await fetchEmployeesByService(selectedService.id);
-        setAvailableEmployees(serviceEmployees);
-        
-        // Si estamos creando una nueva cita y el empleado actual no está disponible, resetear
+
+        // Asegurar que el usuario actual siempre esté en la lista
+        const currentUserInList = serviceEmployees.some(e => e.id === (currentUser as any)?.id);
+        if (!currentUserInList && (currentUser as any)?.is_active) {
+          setAvailableEmployees([...serviceEmployees, currentUser as User]);
+        } else {
+          setAvailableEmployees(serviceEmployees);
+        }
+
         if (!appointment && formData.employee && serviceEmployees.length > 0) {
           const isCurrentEmployeeAvailable = serviceEmployees.some(emp => emp.id === formData.employee);
           if (!isCurrentEmployeeAvailable) {
@@ -204,9 +217,13 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
         }
       } catch (error) {
         console.error("Error cargando empleados por servicio:", error);
-        // Fallback: usar todos los empleados activos
         const activeUsers = employees.filter((user) => user.is_active);
-        setAvailableEmployees(activeUsers);
+        const currentUserInList = activeUsers.some(e => e.id === (currentUser as any)?.id);
+        if (!currentUserInList && (currentUser as any)?.is_active) {
+          setAvailableEmployees([...activeUsers, currentUser as User]);
+        } else {
+          setAvailableEmployees(activeUsers);
+        }
       } finally {
         setEmployeesLoading(false);
         loadingEmployeesRef.current = false;
@@ -214,7 +231,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     };
 
     loadEmployeesByService();
-  }, [selectedService?.id, fetchEmployeesByService, employees]);
+  }, [selectedService?.id, fetchEmployeesByService, employees, currentUser]);
 
   // Inicializar formData con valores predeterminados o proporcionados
   useEffect(() => {
