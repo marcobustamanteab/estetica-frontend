@@ -60,11 +60,11 @@ const UsersPage: React.FC = () => {
   useEffect(() => {
     if (isSuperAdmin) {
       const token = localStorage.getItem('access');
-      axios.get('/api/auth/businesses/', {
+      axios.get<Business[]>('/api/auth/businesses/', {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => {
         console.log('Respuesta businesses:', res.data);
-        const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+        const data = Array.isArray(res.data) ? res.data : [];
         setBusinesses(data);
         
         // Setear el propio negocio por defecto DESPUÉS de cargar la lista
