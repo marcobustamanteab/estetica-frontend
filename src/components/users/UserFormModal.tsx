@@ -3,6 +3,7 @@ import { User, UserFormData } from "../../hooks/useUsers";
 import { useGroups } from "../../hooks/useGroups";
 import "../common/modal.css";
 import "../../assets/styles/users/userFormModal.css";
+import { useAuth } from '../../context/AuthContext';
 
 interface UserFormModalProps {
   user: User | null;
@@ -28,6 +29,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { groups, fetchGroups, loading: groupsLoading } = useGroups();
+  const { currentUser } = useAuth();
+  const isSuperAdmin = (currentUser as any)?.is_superuser === true;
 
   // Cargar roles disponibles al montar el componente
   useEffect(() => {
@@ -254,19 +257,21 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
           </div>
 
           {/* Checkboxes en la misma línea */}
-          <div className="form-row checkbox-container">
-            <div className="form-group checkbox-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="is_active"
-                  checked={formData.is_active}
-                  onChange={handleChange}
-                />
-                <span className="checkbox-text">Usuario Activo</span>
-              </label>
-            </div>
+<div className="form-row checkbox-container">
+  <div className="form-group checkbox-group">
+    <label className="checkbox-label">
+      <input
+        type="checkbox"
+        name="is_active"
+        checked={formData.is_active}
+        onChange={handleChange}
+      />
+      <span className="checkbox-text">Usuario Activo</span>
+    </label>
+  </div>
 
+          {/* Solo el superadmin puede marcar a alguien como Administrador */}
+          {isSuperAdmin && (
             <div className="form-group checkbox-group">
               <label className="checkbox-label">
                 <input
@@ -279,12 +284,12 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
               </label>
               {formData.is_staff && (
                 <div className="admin-help-text">
-                  Al habilitar esta opción, el usuario tendrá acceso completo al
-                  sistema.
+                  Al habilitar esta opción, el usuario tendrá acceso completo al sistema.
                 </div>
               )}
             </div>
-          </div>
+          )}
+        </div>
 
           {/* Selector de roles (solo visible si no es administrador) */}
           {!formData.is_staff && (

@@ -14,6 +14,7 @@ import Swal from 'sweetalert2';
 import { ExportColumn } from '../../types/ExportColumn';
 import './usersPage.css';
 import { getRolePillColor } from '../../components/common/PillsColors';
+import { useAuth } from '../../context/AuthContext';
 
 
 const UsersPage: React.FC = () => {
@@ -36,6 +37,8 @@ const UsersPage: React.FC = () => {
     loading: groupsLoading,
     fetchGroups
   } = useGroups();
+
+  const { currentUser } = useAuth();
   
   // Cargar datos solo una vez al montar el componente
   const loadInitialData = useCallback(async () => {
@@ -197,29 +200,38 @@ const UsersPage: React.FC = () => {
     columnHelper.display({
       id: 'actions',
       header: 'Acciones',
-      cell: (info) => (
-        <div className="action-buttons">
-          <SwitchToggle 
-            isActive={info.row.original.is_active} 
-            onChange={() => handleToggleStatus(info.row.original.id, info.row.original.is_active)}
-            size="small"
-          />
-          <button 
-            className="icon-button edit-button"
-            onClick={() => handleEditUser(info.row.original)}
-            title="Editar usuario"
-          >
-            <EditIcon fontSize="small" />
-          </button>
-          <button 
-            className="icon-button delete-button"
-            onClick={() => handleDeleteUser(info.row.original.id)}
-            title="Eliminar usuario"
-          >
-            <DeleteIcon fontSize="small" />
-          </button>
-        </div>
-      ),
+      cell: (info) => {
+        const isCurrentUser = info.row.original.id === (currentUser as any)?.id;
+        return (
+          <div className="action-buttons">
+            {/* Ocultar switch si es el usuario actual */}
+            {!isCurrentUser && (
+              <SwitchToggle 
+                isActive={info.row.original.is_active} 
+                onChange={() => handleToggleStatus(info.row.original.id, info.row.original.is_active)}
+                size="small"
+              />
+            )}
+            <button 
+              className="icon-button edit-button"
+              onClick={() => handleEditUser(info.row.original)}
+              title="Editar usuario"
+            >
+              <EditIcon fontSize="small" />
+            </button>
+            {/* Ocultar botón eliminar si es el usuario actual */}
+            {!isCurrentUser && (
+              <button 
+                className="icon-button delete-button"
+                onClick={() => handleDeleteUser(info.row.original.id)}
+                title="Eliminar usuario"
+              >
+                <DeleteIcon fontSize="small" />
+              </button>
+            )}
+          </div>
+        );
+      },
     }),
   ];
 
