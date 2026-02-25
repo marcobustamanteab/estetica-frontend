@@ -58,7 +58,6 @@ const App: React.FC = () => {
           <Routes>
             {/* Rutas públicas */}
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
 
             {/* Rutas protegidas (con Layout) */}
             <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />

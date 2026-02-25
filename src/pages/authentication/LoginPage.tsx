@@ -90,14 +90,6 @@ const LoginPage: React.FC = () => {
                 Iniciar sesión
               </button>
               
-              <div className="login-footer">
-                <p>
-                  ¿No tienes una cuenta?{' '}
-                  <Link to="/register" className="login-link">
-                    Regístrate aquí
-                  </Link>
-                </p>
-              </div>
             </form>
           </div>
         </div>
