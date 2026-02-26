@@ -15,6 +15,7 @@ import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import './services.css';
 import { useGroups } from '../../hooks/useGroups';
+import { useBusinessContext } from '../../context/BusinessContext';
 
 const ServicesPage: React.FC = () => {
   // Estado para controlar la pestaña activa - CAMBIADO: ahora inicia en 'categories'
@@ -26,6 +27,7 @@ const ServicesPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const { groups, fetchGroups } = useGroups();
+  const { selectedBusiness } = useBusinessContext();
   
   const { 
     services, 
@@ -45,10 +47,19 @@ const ServicesPage: React.FC = () => {
   } = useServices();
   
   useEffect(() => {
-    fetchCategories();
-    fetchServices();
+    fetchCategories(selectedBusiness);
+    fetchServices(undefined, selectedBusiness);
     fetchGroups();
-  }, []);
+  }, [selectedBusiness]);
+
+  // Reemplaza el useEffect de categoría seleccionada:
+  useEffect(() => {
+    if (selectedCategoryId) {
+      fetchServices(selectedCategoryId, selectedBusiness);
+    } else {
+      fetchServices(undefined, selectedBusiness);
+    }
+  }, [selectedCategoryId, selectedBusiness]);
   
   // Cuando cambia la categoría seleccionada, actualizar los servicios
   useEffect(() => {

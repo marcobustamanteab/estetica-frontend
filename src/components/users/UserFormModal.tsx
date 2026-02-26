@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { User, UserFormData } from "../../hooks/useUsers";
 import { useGroups } from "../../hooks/useGroups";
@@ -31,6 +32,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
   const { groups, fetchGroups, loading: groupsLoading } = useGroups();
   const { currentUser } = useAuth();
   const isSuperAdmin = (currentUser as any)?.is_superuser === true;
+  const isEditingSelf = user?.id === (currentUser as any)?.id;
 
   // Cargar roles disponibles al montar el componente
   useEffect(() => {
@@ -120,6 +122,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
     // Validar rol si no es administrador
     if (
       !formData.is_staff &&
+      !user?.is_staff &&
       (!formData.groups || formData.groups.length === 0)
     ) {
       newErrors.groups = "Debe seleccionar al menos un rol";
@@ -131,18 +134,26 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
-    // Si estamos editando y no se cambió la contraseña, no la enviamos
-    if (user && !formData.password) {
-      // Crear un nuevo objeto sin el campo 'password'
-      const dataWithoutPassword = { ...formData };
-      delete dataWithoutPassword.password;
-      onSave(dataWithoutPassword);
-    } else {
-      onSave(formData);
+    const dataToSave = { ...formData };
+
+    // Preservar is_staff del usuario original si no es superadmin
+    if (!isSuperAdmin && user) {
+      dataToSave.is_staff = user.is_staff;
     }
+
+    // Si es staff, no enviar groups
+    if (user?.is_staff || dataToSave.is_staff) {
+      delete dataToSave.groups;
+    }
+
+    // Si editando y no cambió contraseña, no enviarla
+    if (user && !dataToSave.password) {
+      delete dataToSave.password;
+    }
+
+    onSave(dataToSave);
   };
 
   return (
@@ -265,6 +276,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
         name="is_active"
         checked={formData.is_active}
         onChange={handleChange}
+        disabled={isEditingSelf}
       />
       <span className="checkbox-text">Usuario Activo</span>
     </label>

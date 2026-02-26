@@ -16,6 +16,7 @@ import Swal from 'sweetalert2';
 import { ExportColumn } from '../../types/ExportColumn';
 import './usersPage.css';
 import { getRolePillColor } from '../../components/common/PillsColors';
+import { useNavigate } from 'react-router-dom';
 
 interface Business {
   id: number;
@@ -28,8 +29,9 @@ const UsersPage: React.FC = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<number | null>(null);
 
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const isSuperAdmin = (currentUser as any)?.is_superuser === true;
+  const navigate = useNavigate();
 
   const {
     users,
@@ -147,10 +149,20 @@ const UsersPage: React.FC = () => {
 
   const handleSaveUser = async (userData: UserFormData) => {
     setIsModalOpen(false);
-
     try {
       if (selectedUser) {
         await updateUser(selectedUser.id, userData);
+        
+        // Si el usuario editó su propia contraseña, re-autenticar
+        if (selectedUser.id === (currentUser as any)?.id && userData.password) {
+          toast.info('Contraseña actualizada. Cerrando sesión...', { autoClose: 2000 });
+          setTimeout(() => {
+            logout();
+            navigate('/login');
+          }, 2000);
+          return;
+        }
+        
         toast.success('Usuario actualizado correctamente');
       } else {
         await createUser(userData);
