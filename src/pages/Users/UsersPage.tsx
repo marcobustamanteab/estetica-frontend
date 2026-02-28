@@ -62,34 +62,31 @@ const UsersPage: React.FC = () => {
   useEffect(() => {
     if (isSuperAdmin) {
       const token = localStorage.getItem('access');
-      axios.get<Business[]>('/api/auth/businesses/', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      axios.get<Business[]>(`${apiUrl}/api/auth/businesses/`, {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => {
         console.log('Respuesta businesses:', res.data);
         const data = Array.isArray(res.data) ? res.data : [];
         setBusinesses(data);
-        
-        // Setear el propio negocio por defecto DESPUÉS de cargar la lista
-        if ((currentUser as any)?.business) {
-          const business = (currentUser as any)?.business;
-          const businessId = typeof business === 'object' ? business?.id : business;
-          setSelectedBusiness(businessId);
-        }
       }).catch(err => {
         console.error('Error cargando negocios:', err);
         setBusinesses([]);
       });
     } else {
-  const business = (currentUser as any)?.business;
-  const businessId = typeof business === 'object' ? business?.id : business;
-  setSelectedBusiness(businessId);
-}
+      const business = (currentUser as any)?.business;
+      const businessId = typeof business === 'object' ? business?.id : business;
+      setSelectedBusiness(businessId);
+    }
   }, [isSuperAdmin, currentUser]);
 
   // Filtrar usuarios por negocio seleccionado
   const filteredUsers = selectedBusiness
-    ? users.filter((u: any) => u.business === selectedBusiness)
-    : users;
+  ? users.filter((u: any) => {
+      const businessId = typeof u.business === 'object' ? u.business?.id : u.business;
+      return businessId === selectedBusiness;
+    })
+  : users;
 
   const handleAddUser = () => {
     setSelectedUser(null);
