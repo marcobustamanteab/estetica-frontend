@@ -32,7 +32,8 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
 
     if (isSuperAdmin) {
       const token = localStorage.getItem('access');
-      fetch('/api/auth/businesses/', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      fetch(`${apiUrl}/api/auth/businesses/`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
