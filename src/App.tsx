@@ -18,6 +18,7 @@ import RolesPage from './pages/Users/RolesPage';
 import DocumentTitle from './components/common/DocumentTitle';
 import MyProfilePage from './pages/Users/MyProfilePage';
 import UserProfileView from './pages/Users/UserProfileView';
+import BookingPage from './pages/booking/BookingPage';
 
 const ProtectedRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -57,6 +58,7 @@ const App: React.FC = () => {
             <Routes>
               {/* Rutas públicas */}
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/booking/:slug" element={<BookingPage />} />
 
               {/* Rutas protegidas (con Layout) */}
               <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
@@ -77,6 +79,7 @@ const App: React.FC = () => {
               {/* Ruta por defecto */}
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="*" element={<Navigate to="/dashboard" />} />
+
             </Routes>
 
             <ToastContainer
