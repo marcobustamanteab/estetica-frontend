@@ -232,7 +232,7 @@ export default function BookingPage() {
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
 
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: 20, paddingTop: 8 }}>
+      <div style={{ textAlign: "center", marginBottom: 20, paddingTop: 32 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "white", borderRadius: 50, padding: "6px 16px", boxShadow: "0 4px 16px rgba(13,148,136,0.1)", marginBottom: 14 }}>
           <div style={{ width: 28, height: 28, background: "linear-gradient(135deg, #0d9488, #14b8a6)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>✂</div>
           <span style={{ fontWeight: 700, color: "#0d9488", fontSize: 13 }}>{business?.name}</span>
