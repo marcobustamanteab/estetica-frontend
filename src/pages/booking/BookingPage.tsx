@@ -206,7 +206,7 @@ export default function BookingPage() {
         </p>
         <div style={{ background: "#f0fdfa", borderRadius: 12, padding: "16px", textAlign: "left", marginBottom: 24 }}>
           {[
-            ["💅 Servicio", selectedService?.name],
+            ["✂️ Servicio", selectedService?.name],
             ["👩‍💼 Barbero/a", `${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`],
             ["📅 Fecha", date],
             ["🕐 Hora", time],
