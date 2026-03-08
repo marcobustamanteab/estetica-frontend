@@ -100,7 +100,7 @@ export default function BookingPage() {
     setLoadingTimes(true);
     setTime("");
     axios.get<{ available_times: string[] }>(`${API_URL}/api/appointments/public/${slug}/times/`, {
-      params: { date, employee_id: employee }
+      params: { date, employee_id: employee,  service_id: service }
     })
       .then(res => { setAvailableTimes(res.data.available_times || []); setLoadingTimes(false); })
       .catch(() => { setAvailableTimes([]); setLoadingTimes(false); });
