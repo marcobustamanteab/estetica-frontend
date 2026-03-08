@@ -5,7 +5,7 @@ import ReportSelector from '../../components/reports/ReportSelector';
 import SalesReport from '../../components/reports/SalesReport';
 import ServicesReport from '../../components/reports/ServicesReport';
 import EmployeesReport from '../../components/reports/EmployeesReport';
-import MyEarningsReport from '../../components/reports/MyEarningsReport';
+import MyEarningsReport from '../../components/reports/MyEarningsreport';
 import './reportsPage.css';
 
 export type ReportType = 'sales' | 'services' | 'employees' | null;
