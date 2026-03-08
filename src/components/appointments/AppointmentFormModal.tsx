@@ -169,6 +169,7 @@ function TimeSlotPicker({
   selectedTime,
   onSelect,
   currentAppointmentId,
+  serviceDuration,
 }: {
   employeeId: number;
   date: string;
@@ -176,6 +177,7 @@ function TimeSlotPicker({
   selectedTime: string;
   onSelect: (t: string) => void;
   currentAppointmentId?: number;
+  serviceDuration: number;
 }) {
   const [slots, setSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -199,7 +201,7 @@ function TimeSlotPicker({
         const schedule = schedules.find((s: any) => s.day_of_week === adjusted && s.is_active);
 
         if (!schedule) {
-          setClosedMsg("Este empleado no trabaja este día.");
+          setClosedMsg("Este barbero/a no trabaja este día.");
           setSlots([]);
           setLoading(false);
           return;
@@ -216,26 +218,33 @@ function TimeSlotPicker({
           cur += 30;
         }
 
-        // Filtrar ocupados
-        const busyTimes = new Set(
-          allAppointments
-            .filter(a =>
-              a.employee === employeeId &&
-              a.date === date &&
-              (a.status === "pending" || a.status === "confirmed") &&
-              a.id !== currentAppointmentId
-            )
-            .map(a => typeof a.start_time === "string" ? a.start_time.slice(0, 5) : "")
-        );
+        // Filtrar slots que se solapan con citas existentes (considerando duración del servicio)
+        const busyRanges = allAppointments
+          .filter(a =>
+            a.employee === employeeId &&
+            a.date === date &&
+            (a.status === "pending" || a.status === "confirmed") &&
+            a.id !== currentAppointmentId
+          )
+          .map(a => {
+            const [sh, sm] = a.start_time.slice(0, 5).split(":").map(Number);
+            const [eh, em] = a.end_time.slice(0, 5).split(":").map(Number);
+            return { start: sh * 60 + sm, end: eh * 60 + em };
+          });
 
-        setSlots(allSlots.filter(t => !busyTimes.has(t)));
+        setSlots(allSlots.filter(t => {
+          const [h, m] = t.split(":").map(Number);
+          const slotStart = h * 60 + m;
+          const slotEnd = slotStart + serviceDuration;
+          return !busyRanges.some(r => slotStart < r.end && slotEnd > r.start);
+        }));
         setLoading(false);
       })
       .catch(() => { setSlots([]); setLoading(false); });
   }, [employeeId, date]);
 
   if (!employeeId || !date) return (
-    <p style={{ fontSize: 13, color: "#9ca3af", margin: "8px 0" }}>Selecciona un empleado y fecha primero.</p>
+    <p style={{ fontSize: 13, color: "#9ca3af", margin: "8px 0" }}>Selecciona un barbero/a y fecha primero.</p>
   );
 
   if (loading) return (
@@ -447,8 +456,8 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
         setFormData(prev => ({ ...prev, end_time: endTime }));
         if (endTimeInputRef.current) endTimeInputRef.current.value = endTime;
       } catch {
-        // ignore
-       }
+        // En caso de error, simplemente no actualizar el campo de hora fin
+      }
     }
   }, [selectedService, formData.start_time]);
 
@@ -460,7 +469,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
         formData.employee, formData.date, formData.start_time, formData.end_time, toCheck
       );
       if (!isAvailable && conflictingAppointment) {
-        const empName = availableEmployees.find(e => e.id === formData.employee)?.first_name || "El empleado";
+        const empName = availableEmployees.find(e => e.id === formData.employee)?.first_name || "El barbero/a";
         setAvailabilityError(`${empName} ya tiene una cita con ${conflictingAppointment.client_name} de ${conflictingAppointment.start_time} a ${conflictingAppointment.end_time}.`);
         setConflictingAppointment(conflictingAppointment);
       } else {
@@ -668,8 +677,8 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               id="employee"
               name="employee"
               placeholder={
-                employeesLoading ? "Cargando empleados..."
-                : selectedService ? "Seleccione un empleado..."
+                employeesLoading ? "Cargando barberos/as..."
+                : selectedService ? "Seleccione un barbero/a..."
                 : "Primero seleccione un servicio"
               }
               groups={groups}
@@ -701,6 +710,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
                 selectedTime={formData.start_time}
                 onSelect={handleTimeSelect}
                 currentAppointmentId={appointment?.id}
+                serviceDuration={selectedService?.duration || 30}
               />
               {errors.start_time && <span className="error-message">{errors.start_time}</span>}
             </div>
@@ -708,7 +718,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             <div className="form-group">
               <label>Hora de inicio</label>
               <p style={{ fontSize: 13, color: "#9ca3af", margin: "6px 0" }}>
-                {!formData.employee ? "Selecciona un empleado primero." : "Selecciona una fecha primero."}
+                {!formData.employee ? "Selecciona un barbero/a primero." : "Selecciona una fecha primero."}
               </p>
             </div>
           )}
