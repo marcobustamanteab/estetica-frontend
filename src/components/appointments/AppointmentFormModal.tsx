@@ -662,7 +662,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
           {/* Empleado */}
           <div className="form-group">
             <label htmlFor="employee">
-              Empleado
+              Trabajador/a
               {employeesLoading && <span style={{ color: "#6b7280", fontSize: 12 }}> (Cargando...)</span>}
             </label>
             <EmployeeSearchSelect
