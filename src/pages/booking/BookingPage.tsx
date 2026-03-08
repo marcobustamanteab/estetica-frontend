@@ -137,7 +137,7 @@ export default function BookingPage() {
 
   const selectedService = business?.services.find(s => s.id === service);
   const selectedEmployee = business?.employees.find(e => e.id === employee);
-  const steps = ["Servicio", "Especialista", "Fecha", "Datos"];
+  const steps = ["Servicio", "Barbero/a", "Fecha", "Datos"];
 
   const serviceIcons: Record<string, string> = {
     manicure: "💅", pedicure: "🦶", tinte: "🎨", maquillaje: "💄",
@@ -207,7 +207,7 @@ export default function BookingPage() {
         <div style={{ background: "#f0fdfa", borderRadius: 12, padding: "16px", textAlign: "left", marginBottom: 24 }}>
           {[
             ["💅 Servicio", selectedService?.name],
-            ["👩‍💼 Especialista", `${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`],
+            ["👩‍💼 Barbero/a", `${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`],
             ["📅 Fecha", date],
             ["🕐 Hora", time],
             ["💰 Total", formatPrice(selectedService?.price || 0)],
@@ -314,7 +314,7 @@ export default function BookingPage() {
                   </div>
                   <div style={{ textAlign: "left", flex: 1 }}>
                     <div style={{ fontWeight: 600, color: "#1a1a2e", fontSize: 14 }}>{e.first_name} {e.last_name}</div>
-                    <div style={{ color: "#9ca3af", fontSize: 12 }}>Especialista</div>
+                    <div style={{ color: "#9ca3af", fontSize: 12 }}>Barbero/a</div>
                   </div>
                   {employee === e.id && <div style={{ color: "#0d9488", fontSize: 18, fontWeight: 700 }}>✓</div>}
                 </button>
@@ -363,7 +363,7 @@ export default function BookingPage() {
             <div style={{ background: "#f0fdfa", borderRadius: 12, padding: "12px 14px", marginBottom: 18, display: "flex", flexWrap: "wrap", gap: 12 }}>
               {[
                 ["Servicio", selectedService?.name],
-                ["Especialista", `${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`],
+                ["Barbero/a", `${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`],
                 ["Fecha", date],
                 ["Hora", time],
               ].map(([label, val]) => (
