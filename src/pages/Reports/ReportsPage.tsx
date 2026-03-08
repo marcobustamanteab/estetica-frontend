@@ -1,31 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import ReportSelector from '../../components/reports/ReportSelector';
 import SalesReport from '../../components/reports/SalesReport';
 import ServicesReport from '../../components/reports/ServicesReport';
 import EmployeesReport from '../../components/reports/EmployeesReport';
+import MyEarningsReport from '../../components/reports/MyEarningsreport';
 import './reportsPage.css';
 
-// Tipos de reportes disponibles
 export type ReportType = 'sales' | 'services' | 'employees' | null;
 
 const ReportsPage: React.FC = () => {
-  // Estado para el tipo de reporte seleccionado
+  const { currentUser } = useAuth();
+  const isBarber = currentUser && !(currentUser as any).is_staff && !(currentUser as any).is_superuser;
+
   const [selectedReport, setSelectedReport] = useState<ReportType>(null);
 
-  // Manejador de cambio de reporte
-  const handleReportChange = (reportType: ReportType) => {
-    setSelectedReport(reportType);
-  };
-
-  // Renderizar el reporte seleccionado
   const renderReport = () => {
     switch (selectedReport) {
-      case 'sales':
-        return <SalesReport />;
-      case 'services':
-        return <ServicesReport />;
-      case 'employees':
-        return <EmployeesReport />;
+      case 'sales':     return <SalesReport />;
+      case 'services':  return <ServicesReport />;
+      case 'employees': return <EmployeesReport />;
       default:
         return (
           <div className="select-report-message">
@@ -36,20 +31,33 @@ const ReportsPage: React.FC = () => {
     }
   };
 
+  // Vista para barberos
+  if (isBarber) {
+    return (
+      <div className="reports-page">
+        <div className="page-header">
+          <h2>Mis Reportes</h2>
+        </div>
+        <div className="reports-container">
+          <div className="report-content" style={{ width: '100%' }}>
+            <MyEarningsReport />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Vista para admins y superadmins
   return (
     <div className="reports-page">
       <div className="page-header">
         <h2>Reportes</h2>
       </div>
-
       <div className="reports-container">
-        {/* Selector de tipo de reporte */}
-        <ReportSelector 
-          selectedReport={selectedReport} 
-          onSelectReport={handleReportChange} 
+        <ReportSelector
+          selectedReport={selectedReport}
+          onSelectReport={setSelectedReport}
         />
-        
-        {/* Contenedor del reporte seleccionado */}
         <div className="report-content">
           {renderReport()}
         </div>
