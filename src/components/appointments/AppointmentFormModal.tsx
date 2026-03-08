@@ -64,6 +64,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [availableServices, setAvailableServices] = useState<Service[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<ServiceCategory[]>([]);
+  const [scheduleWarning, setScheduleWarning] = useState<string | null>(null);
   
   // Nuevo estado para empleados filtrados
   const [availableEmployees, setAvailableEmployees] = useState<User[]>([]);
@@ -346,6 +347,27 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     setActiveClientsList(filteredClients);
   }, [clients]);
 
+  useEffect(() => {
+    if (!formData.employee || !formData.date || !formData.start_time) return;
+    
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    fetch(`${apiUrl}/api/auth/work-schedules/?employee=${formData.employee}`)
+      .then(res => res.json())
+      .then(schedules => {
+        const dayOfWeek = new Date(formData.date + 'T00:00:00').getDay();
+        const adjusted = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const schedule = schedules.find((s: any) => s.day_of_week === adjusted && s.is_active);
+        if (!schedule) {
+          setScheduleWarning("Este empleado no trabaja el día seleccionado.");
+        } else if (formData.start_time < schedule.start_time || formData.start_time >= schedule.end_time) {
+          setScheduleWarning(`Fuera del horario del empleado (${schedule.start_time} - ${schedule.end_time})`);
+        } else {
+          setScheduleWarning(null);
+        }
+      })
+      .catch(() => setScheduleWarning(null));
+  }, [formData.employee, formData.date, formData.start_time]);
+
   const handleCreateClient = async (clientData: ClientFormData) => {
     try {
       const newClient = await createClient(clientData);
@@ -374,6 +396,15 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
       const activeUsers = employees.filter((user) => user.is_active);
       setAvailableEmployees(activeUsers);
       return;
+    }
+
+    if (name === "date") {
+      const selectedDate = new Date(value + "T00:00:00");
+      if (selectedDate.getDay() === 0) {
+        setErrors(prev => ({ ...prev, date: "No se pueden agendar citas los domingos" }));
+        setFormData(prev => ({ ...prev, date: value }));
+        return;
+      }
     }
 
     if (name === "service") {
@@ -742,6 +773,11 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             <button type="button" className="cancel-button" onClick={onClose}>
               Cancelar
             </button>
+            {scheduleWarning && (
+              <div style={{ background: "#fefce8", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 14px", color: "#92400e", fontSize: 13, marginBottom: 8 }}>
+                ⚠️ {scheduleWarning}
+              </div>
+            )}
             <button
               type="submit"
               className={
