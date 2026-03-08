@@ -23,6 +23,8 @@ import { Users, Calendar, DollarSign, TrendingUp } from "lucide-react";
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
+  const isBarber = currentUser && !(currentUser as any).is_staff && !(currentUser as any).is_superuser;
+  const commissionRate = (currentUser as any)?.commission_rate || 50;
   const navigate = useNavigate();
   const [, setSelectedDate] = useState<string>("");
   const [showAppointmentDetail, setShowAppointmentDetail] = useState(false);
@@ -79,52 +81,47 @@ const Dashboard: React.FC = () => {
 
   // Contar las citas de hoy y calcular ventas diarias y mensuales
   useEffect(() => {
-    if (appointments.length === 0 || services.length === 0) return;
+      if (appointments.length === 0 || services.length === 0) return;
 
-    // Filtrar las citas de hoy
-    const today = format(new Date(), "yyyy-MM-dd");
-    const appointmentsToday = appointments.filter(
-      (appointment) => appointment.date === today
-    );
+      const today = format(new Date(), "yyyy-MM-dd");
+      const appointmentsToday = appointments.filter(
+        (appointment) => appointment.date === today
+      );
 
-    // Actualizar el contador de citas activas (pendientes y confirmadas)
-    const activeAppointments = appointmentsToday.filter(
-      (appointment) =>
-        appointment.status === "pending" || appointment.status === "confirmed"
-    );
-    setTodayAppointments(activeAppointments.length);
+      const activeAppointments = appointmentsToday.filter(
+        (appointment) =>
+          appointment.status === "pending" || appointment.status === "confirmed"
+      );
+      setTodayAppointments(activeAppointments.length);
 
-    // Calcular ventas del día (citas completadas)
-    const completedAppointments = appointmentsToday.filter(
-      (appointment) => appointment.status === "completed"
-    );
+      const completedAppointments = appointmentsToday.filter(
+        (appointment) => appointment.status === "completed"
+      );
 
-    // Sumar los precios de los servicios de las citas completadas
-    let dailySalesTotal = 0;
-    completedAppointments.forEach((appointment) => {
-      const service = services.find((s) => s.id === appointment.service);
-      if (service) {
-        dailySalesTotal += service.price;
-      }
-    });
+      let dailySalesTotal = 0;
+      completedAppointments.forEach((appointment) => {
+        const service = services.find((s) => s.id === appointment.service);
+        if (service) {
+          const amount = isBarber ? service.price * commissionRate / 100 : service.price;
+          dailySalesTotal += amount;
+        }
+      });
+      setTotalSales(dailySalesTotal);
 
-    setTotalSales(dailySalesTotal);
+      const completedMonthlyAppointments = appointments.filter(
+        (appointment) => appointment.status === "completed"
+      );
 
-    // Calcular ventas mensuales (todas las citas completadas del mes)
-    const completedMonthlyAppointments = appointments.filter(
-      (appointment) => appointment.status === "completed"
-    );
-
-    let monthlySalesTotal = 0;
-    completedMonthlyAppointments.forEach((appointment) => {
-      const service = services.find((s) => s.id === appointment.service);
-      if (service) {
-        monthlySalesTotal += service.price;
-      }
-    });
-
-    setMonthlySales(monthlySalesTotal);
-  }, [appointments, services]);
+      let monthlySalesTotal = 0;
+      completedMonthlyAppointments.forEach((appointment) => {
+        const service = services.find((s) => s.id === appointment.service);
+        if (service) {
+          const amount = isBarber ? service.price * commissionRate / 100 : service.price;
+          monthlySalesTotal += amount;
+        }
+      });
+      setMonthlySales(monthlySalesTotal);
+    }, [appointments, services]);
 
   // Manejar clic en fecha del calendario - Ahora solo actualiza la fecha seleccionada
   const handleDateClick = (date: string) => {
