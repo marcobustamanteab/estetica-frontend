@@ -297,7 +297,7 @@ export default function BookingPage() {
         {/* Step 2 - Empleado */}
         {step === 2 && (
           <div className="card-body">
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: "#1a1a2e", margin: "0 0 4px" }}>Elige tu especialista</h3>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: "#1a1a2e", margin: "0 0 4px" }}>Elige tu Barbero/a</h3>
             <p style={{ color: "#9ca3af", fontSize: 13, margin: "0 0 16px" }}>¿Con quién te gustaría atenderte?</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {business?.employees.map(e => (
