@@ -68,7 +68,7 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
 
 interface Service { id: number; name: string; duration: number; price: number; description: string; }
 interface Employee { id: number; first_name: string; last_name: string; }
-interface BusinessInfo { id: number; name: string; slug: string; services: Service[]; employees: Employee[]; }
+interface BusinessInfo { id: number; name: string; slug: string; logo_url: string | null; services: Service[]; employees: Employee[]; }
 
 export default function BookingPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -234,7 +234,11 @@ export default function BookingPage() {
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 20, paddingTop: 32 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "white", borderRadius: 50, padding: "6px 16px", boxShadow: "0 4px 16px rgba(13,148,136,0.1)", marginBottom: 14 }}>
-          <div style={{ width: 28, height: 28, background: "linear-gradient(135deg, #0d9488, #14b8a6)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>✂</div>
+          {business?.logo_url ? (
+            <img src={business.logo_url} alt={business.name} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
+          ) : (
+            <div style={{ width: 28, height: 28, background: "linear-gradient(135deg, #0d9488, #14b8a6)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>✂</div>
+          )}
           <span style={{ fontWeight: 700, color: "#0d9488", fontSize: 13 }}>{business?.name}</span>
         </div>
         <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: "#1a1a2e", margin: "0 0 4px" }}>Reserva tu cita</h1>
