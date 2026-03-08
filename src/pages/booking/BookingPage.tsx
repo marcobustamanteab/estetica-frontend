@@ -44,17 +44,18 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
           const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
           const isSelected = dateStr === selected;
           const isPast = new Date(year, month, day) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const isSunday = new Date(year, month, day).getDay() === 0;
           return (
             <button
               key={i}
-              disabled={isPast}
-              onClick={() => onSelect(dateStr)}
+              disabled={isPast || isSunday}
+              onClick={() => !isSunday && onSelect(dateStr)}
               style={{
                 border: "none", borderRadius: 8, padding: "8px 0",
-                cursor: isPast ? "not-allowed" : "pointer",
+                cursor: isPast || isSunday ? "not-allowed" : "pointer",
                 fontSize: 12, fontWeight: isSelected ? 700 : 400,
                 background: isSelected ? "#0d9488" : isToday ? "#f0fdfa" : "none",
-                color: isSelected ? "white" : isPast ? "#d1d5db" : isToday ? "#0d9488" : "#374151",
+                color: isSelected ? "white" : isPast || isSunday ? "#d1d5db" : isToday ? "#0d9488" : "#374151",
                 transition: "all 0.15s",
                 minWidth: 0,
               }}
