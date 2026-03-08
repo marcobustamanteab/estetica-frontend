@@ -40,6 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
   const baseMenuItems: MenuItem[] = [
     { path: "/dashboard", icon: <FiHome size={20} />, label: "Dashboard" },
     { path: "/agenda", icon: <FiCalendar size={20} />, label: "Agenda" },
+    { path: "/reportes", icon: <FiBarChart2 size={20} />, label: "Reportes" },
   ];
 
   // Menú para admins y superadmins
