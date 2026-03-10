@@ -142,7 +142,7 @@ export default function BookingPage() {
 
   const serviceIcons: Record<string, string> = {
     manicure: "💅", pedicure: "🦶", tinte: "🎨", maquillaje: "💄",
-    tratamiento: "💆", corte: "✂️", barba: "🪒", uña: "💅", default: "✨",
+    tratamiento: "💆", corte: "✂️", barba: "🪒", uña: "💅", default: "🪒",
   };
   const getIcon = (name: string) => {
     const lower = name.toLowerCase();
