@@ -232,10 +232,15 @@ function TimeSlotPicker({
             return { start: sh * 60 + sm, end: eh * 60 + em };
           });
 
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+        const nowInChile = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' }));
+        const currentMinutes = date === todayStr ? nowInChile.getHours() * 60 + nowInChile.getMinutes() : -1;
+
         setSlots(allSlots.filter(t => {
           const [h, m] = t.split(":").map(Number);
           const slotStart = h * 60 + m;
           const slotEnd = slotStart + serviceDuration;
+          if (slotStart <= currentMinutes) return false;
           return !busyRanges.some(r => slotStart < r.end && slotEnd > r.start);
         }));
         setLoading(false);
