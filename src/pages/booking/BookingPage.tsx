@@ -7,16 +7,27 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+const DAY_NAMES = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 function formatPrice(p: number) {
   return `$${p.toLocaleString("es-CL")}`;
 }
 
-function MiniCalendar({ selected, onSelect, workingDays }: { 
-    selected: string; 
-    onSelect: (d: string) => void; 
-    workingDays: number[]; 
-  }) {
+function formatWorkDays(days: number[]): string {
+  if (!days || days.length === 0) return "Sin horario asignado";
+  if (days.length === 7) return "Todos los días";
+  if (days.length === 1) return `Solo ${DAY_NAMES[days[0]]}${days[0] === 6 ? "os" : "es"}`;
+  const sorted = [...days].sort();
+  if (JSON.stringify(sorted) === JSON.stringify([0,1,2,3,4])) return "Lun a Vie";
+  if (JSON.stringify(sorted) === JSON.stringify([0,1,2,3,4,5])) return "Lun a Sáb";
+  return sorted.map(d => DAY_NAMES[d]).join(" · ");
+}
+
+function MiniCalendar({ selected, onSelect, workingDays }: {
+  selected: string;
+  onSelect: (d: string) => void;
+  workingDays: number[];
+}) {
   const today = new Date();
   const [month, setMonth] = useState(today.getMonth());
   const [year, setYear] = useState(today.getFullYear());
@@ -95,6 +106,22 @@ export default function BookingPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState("");
   const [employeeWorkDays, setEmployeeWorkDays] = useState<number[]>([0,1,2,3,4,5,6]);
+  const [employeeDays, setEmployeeDays] = useState<Record<number, number[]>>({});
+
+  useEffect(() => {
+    axios.get<BusinessInfo>(`${API_URL}/api/appointments/public/${slug}/`)
+      .then(res => { setBusiness(res.data); setLoading(false); })
+      .catch(() => { setNotFound(true); setLoading(false); });
+  }, [slug]);
+
+  useEffect(() => {
+    if (!business) return;
+    business.employees.forEach(e => {
+      axios.get<{ working_days: number[] }>(`${API_URL}/api/auth/employees/${e.id}/schedules/`)
+        .then(res => setEmployeeDays(prev => ({ ...prev, [e.id]: res.data.working_days })))
+        .catch(() => setEmployeeDays(prev => ({ ...prev, [e.id]: [] })));
+    });
+  }, [business]);
 
   useEffect(() => {
     if (!employee) return;
@@ -108,17 +135,11 @@ export default function BookingPage() {
   }, [employee]);
 
   useEffect(() => {
-    axios.get<BusinessInfo>(`${API_URL}/api/appointments/public/${slug}/`)
-      .then(res => { setBusiness(res.data); setLoading(false); })
-      .catch(() => { setNotFound(true); setLoading(false); });
-  }, [slug]);
-
-  useEffect(() => {
     if (!date || !employee || !slug) return;
     setLoadingTimes(true);
     setTime("");
     axios.get<{ available_times: string[] }>(`${API_URL}/api/appointments/public/${slug}/times/`, {
-      params: { date, employee_id: employee,  service_id: service }
+      params: { date, employee_id: employee, service_id: service }
     })
       .then(res => { setAvailableTimes(res.data.available_times || []); setLoadingTimes(false); })
       .catch(() => { setAvailableTimes([]); setLoadingTimes(false); });
@@ -326,14 +347,18 @@ export default function BookingPage() {
                   background: employee === e.id ? "#f0fdfa" : "white",
                   display: "flex", alignItems: "center", gap: 12,
                   transition: "all 0.2s", boxShadow: employee === e.id ? "0 4px 16px rgba(13,148,136,0.15)" : "none",
-                  width: "100%",
+                  width: "100%", textAlign: "left",
                 }}>
                   <div style={{ width: 42, height: 42, borderRadius: "50%", background: "linear-gradient(135deg, #0d9488, #14b8a6)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
                     {e.first_name[0]}{e.last_name[0]}
                   </div>
-                  <div style={{ textAlign: "left", flex: 1 }}>
+                  <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, color: "#1a1a2e", fontSize: 14 }}>{e.first_name} {e.last_name}</div>
-                    <div style={{ color: "#9ca3af", fontSize: 12 }}>Barbero/a</div>
+                    <div style={{ color: "#9ca3af", fontSize: 12, marginTop: 2 }}>
+                      {employeeDays[e.id] !== undefined
+                        ? formatWorkDays(employeeDays[e.id])
+                        : "Cargando..."}
+                    </div>
                   </div>
                   {employee === e.id && <div style={{ color: "#0d9488", fontSize: 18, fontWeight: 700 }}>✓</div>}
                 </button>
@@ -348,9 +373,9 @@ export default function BookingPage() {
             <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: "#1a1a2e", margin: "0 0 4px" }}>¿Cuándo te acomoda?</h3>
             <p style={{ color: "#9ca3af", fontSize: 13, margin: "0 0 16px" }}>Selecciona fecha y horario</p>
             <MiniCalendar
-                selected={date}
-                onSelect={setDate}
-                workingDays={employeeWorkDays.filter(d => (business?.working_days ?? [0,1,2,3,4,5,6]).includes(d))}
+              selected={date}
+              onSelect={setDate}
+              workingDays={employeeWorkDays.filter(d => (business?.working_days ?? [0,1,2,3,4,5,6]).includes(d))}
             />
             {date && (
               <div style={{ marginTop: 20 }}>
