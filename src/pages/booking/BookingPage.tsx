@@ -98,14 +98,11 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (!employee) return;
-    axios.get<any[]>(`${API_URL}/api/auth/work-schedules/`, { params: { employee } })
+    axios.get<{ working_days: number[] }>(`${API_URL}/api/auth/employees/${employee}/schedules/`)
       .then(res => {
-        const activeDays = res.data
-          .filter((s: any) => s.is_active)
-          .map((s: any) => s.day_of_week);
-        setEmployeeWorkDays(activeDays);
+        setEmployeeWorkDays(res.data.working_days);
         setDate("");
-        setTime(""); 
+        setTime("");
       })
       .catch(() => setEmployeeWorkDays([0,1,2,3,4,5,6]));
   }, [employee]);
