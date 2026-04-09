@@ -94,6 +94,21 @@ export default function BookingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState("");
+  const [employeeWorkDays, setEmployeeWorkDays] = useState<number[]>([0,1,2,3,4,5,6]);
+
+  useEffect(() => {
+    if (!employee) return;
+    axios.get(`${API_URL}/api/auth/work-schedules/`, { params: { employee } })
+      .then(res => {
+        const activeDays = res.data
+          .filter((s: any) => s.is_active)
+          .map((s: any) => s.day_of_week);
+        setEmployeeWorkDays(activeDays);
+        setDate("");
+        setTime(""); 
+      })
+      .catch(() => setEmployeeWorkDays([0,1,2,3,4,5,6]));
+  }, [employee]);
 
   useEffect(() => {
     axios.get<BusinessInfo>(`${API_URL}/api/appointments/public/${slug}/`)
@@ -335,7 +350,11 @@ export default function BookingPage() {
           <div className="card-body">
             <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: "#1a1a2e", margin: "0 0 4px" }}>¿Cuándo te acomoda?</h3>
             <p style={{ color: "#9ca3af", fontSize: 13, margin: "0 0 16px" }}>Selecciona fecha y horario</p>
-            <MiniCalendar selected={date} onSelect={setDate} workingDays={business?.working_days ?? [0,1,2,3,4,5,6]} />
+            <MiniCalendar
+                selected={date}
+                onSelect={setDate}
+                workingDays={employeeWorkDays.filter(d => (business?.working_days ?? [0,1,2,3,4,5,6]).includes(d))}
+            />
             {date && (
               <div style={{ marginTop: 20 }}>
                 <div style={{ fontWeight: 600, fontSize: 13, color: "#1a1a2e", marginBottom: 10 }}>Horarios disponibles</div>
