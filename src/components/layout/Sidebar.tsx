@@ -63,9 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
         },
       ],
     },
-    { path: "/clientes", icon: <FiUserCheck size={20} />, label: "Clientes" },
     { path: "/servicios", icon: <FiScissors size={20} />, label: "Servicios" },
-    { path: "/reportes", icon: <FiBarChart2 size={20} />, label: "Reportes" },
   ];
 
   // Mantenedores solo para superadmin
