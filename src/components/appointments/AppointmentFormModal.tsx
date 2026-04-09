@@ -104,21 +104,18 @@ function MiniCalendarDropdown({
           boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
           width: 280,
         }}>
-          {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <button type="button" onClick={prevMonth} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, color: "#0d9488", padding: "2px 8px" }}>‹</button>
             <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{MONTHS_ES[month]} {year}</span>
             <button type="button" onClick={nextMonth} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, color: "#0d9488", padding: "2px 8px" }}>›</button>
           </div>
 
-          {/* Day headers */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 4 }}>
             {DAYS_SHORT.map(d => (
               <div key={d} style={{ textAlign: "center", fontSize: 10, color: "#9ca3af", fontWeight: 600, padding: "2px 0" }}>{d}</div>
             ))}
           </div>
 
-          {/* Days */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
             {cells.map((day, i) => {
               if (!day) return <div key={i} />;
@@ -190,7 +187,6 @@ function TimeSlotPicker({
       .then(r => r.json())
       .then(schedules => {
         const dayOfWeek = new Date(date + "T00:00:00").getDay();
-        // JS: 0=Dom,1=Lun...6=Sáb → Django: 0=Lun...6=Dom
         const adjusted = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
         const schedule = schedules.find((s: any) => s.day_of_week === adjusted && s.is_active);
 
@@ -201,7 +197,6 @@ function TimeSlotPicker({
           return;
         }
 
-        // Generar slots cada 30 min
         const allSlots: string[] = [];
         const [sh, sm] = schedule.start_time.split(":").map(Number);
         const [eh, em] = schedule.end_time.split(":").map(Number);
@@ -212,7 +207,6 @@ function TimeSlotPicker({
           cur += 30;
         }
 
-        // Filtrar slots que se solapan con citas existentes (considerando duración del servicio)
         const busyRanges = allAppointments
           .filter(a =>
             a.employee === employeeId &&
@@ -323,21 +317,16 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [availableServices, setAvailableServices] = useState<Service[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<ServiceCategory[]>([]);
-
   const [availableEmployees, setAvailableEmployees] = useState<User[]>([]);
   const [employeesLoading, setEmployeesLoading] = useState<boolean>(false);
+  const [employeeSchedulesMap, setEmployeeSchedulesMap] = useState<Record<number, number[]>>({});
 
   const { currentUser } = useAuth();
-
   const loadingEmployeesRef = useRef<boolean>(false);
   const currentServiceIdRef = useRef<number | null>(null);
-
   const { fetchAvailableServices } = useAppointments();
-
   const endTimeInputRef = useRef<HTMLInputElement>(null);
-
   const today = format(new Date(), "yyyy-MM-dd");
-
   const { createClient, fetchClients } = useClients();
   const [showClientModal, setShowClientModal] = useState(false);
   const [activeClientsList, setActiveClientsList] = useState<Client[]>([]);
@@ -429,6 +418,20 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     loadEmployeesByService();
   }, [selectedService?.id, fetchEmployeesByService, employees, currentUser]);
 
+  // Fetchear schedules cuando cambian los empleados disponibles
+  useEffect(() => {
+    if (availableEmployees.length === 0) return;
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    availableEmployees.forEach(emp => {
+      fetch(`${apiUrl}/api/auth/employees/${emp.id}/schedules/`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("access")}` },
+      })
+        .then(r => r.json())
+        .then(data => setEmployeeSchedulesMap(prev => ({ ...prev, [emp.id]: data.working_days || [] })))
+        .catch(() => setEmployeeSchedulesMap(prev => ({ ...prev, [emp.id]: [0,1,2,3,4,5,6] })));
+    });
+  }, [availableEmployees]);
+
   // Inicializar formData
   useEffect(() => {
     const initialData = getInitialAppointmentFormValues(appointment);
@@ -455,7 +458,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
         setFormData(prev => ({ ...prev, end_time: endTime }));
         if (endTimeInputRef.current) endTimeInputRef.current.value = endTime;
       } catch {
-        // En caso de error, simplemente no actualizar el campo de hora fin
+        // no-op
       }
     }
   }, [selectedService, formData.start_time]);
@@ -463,54 +466,64 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   // Verificar disponibilidad
   useEffect(() => {
     if (formData.employee && formData.date && formData.start_time && formData.end_time) {
-      const toCheck = appointment ? allAppointments.filter(a => a.id !== appointment.id) : allAppointments;
-      const { isAvailable, conflictingAppointment } = checkEmployeeAvailability(
+      const toCheck = appointment
+        ? allAppointments.filter(a => a.id !== appointment.id)
+        : allAppointments;
+
+      const cancelled = toCheck.filter(a =>
+        a.employee === formData.employee &&
+        a.date === formData.date &&
+        a.status === 'cancelled' &&
+        isOverlapping(formData.start_time, formData.end_time, a.start_time, a.end_time)
+      );
+      setCancelledAppointments(cancelled);
+
+      const { isAvailable, conflictingAppointment: conflict } = checkEmployeeAvailability(
         formData.employee, formData.date, formData.start_time, formData.end_time, toCheck
       );
-      if (!isAvailable && conflictingAppointment) {
-        const empName = availableEmployees.find(e => e.id === formData.employee)?.first_name || "El barbero/a";
-        setAvailabilityError(`${empName} ya tiene una cita con ${conflictingAppointment.client_name} de ${conflictingAppointment.start_time} a ${conflictingAppointment.end_time}.`);
-        setConflictingAppointment(conflictingAppointment);
+
+      if (!isAvailable && conflict) {
+        setAvailabilityError(`Conflicto con cita de ${conflict.client_name}`);
+        setConflictingAppointment(conflict);
       } else {
         setAvailabilityError(null);
         setConflictingAppointment(null);
       }
-      setCancelledAppointments(allAppointments.filter(a =>
-        a.employee === formData.employee && a.date === formData.date && a.status === "cancelled" &&
-        isOverlapping(formData.start_time, formData.end_time, a.start_time, a.end_time)
-      ));
     } else {
       setAvailabilityError(null);
       setConflictingAppointment(null);
-      setCancelledAppointments([]);
     }
-  }, [formData.employee, formData.date, formData.start_time, formData.end_time, allAppointments, appointment, availableEmployees]);
+  }, [formData.employee, formData.date, formData.start_time, formData.end_time, allAppointments, appointment]);
 
-  // Validar fecha
+  // Cargar clientes activos
   useEffect(() => {
-    if (formData.date && formData.date < today && !appointment) {
-      setErrors(prev => ({ ...prev, date: "No se pueden agendar citas en fechas pasadas" }));
-    } else {
-      setErrors(prev => { const n = { ...prev }; delete n.date; return n; });
-    }
-  }, [formData.date, today, appointment]);
-
-  useEffect(() => {
-    setActiveClientsList(clients.filter(c => c.is_active));
-  }, [clients]);
+    const loadClients = async () => {
+      try {
+        const clientsList = await fetchClients();
+        if (Array.isArray(clientsList)) {
+          setActiveClientsList(clientsList.filter((c: Client) => c.is_active !== false));
+        } else {
+          setActiveClientsList(clients.filter(c => c.is_active !== false));
+        }
+      } catch {
+        setActiveClientsList(clients.filter(c => c.is_active !== false));
+      }
+    };
+    loadClients();
+  }, []);
 
   const handleCreateClient = async (clientData: ClientFormData) => {
     try {
       const newClient = await createClient(clientData);
-      await fetchClients();
-      setActiveClientsList(prev => [...prev, newClient]);
+      const updatedClients = await fetchClients();
+      if (Array.isArray(updatedClients)) {
+        setActiveClientsList(updatedClients.filter((c: Client) => c.is_active !== false));
+      }
       setFormData(prev => ({ ...prev, client: newClient.id }));
       setShowClientModal(false);
-      toast.success(`Cliente ${newClient.first_name} ${newClient.last_name} creado y seleccionado`);
-      return newClient.id;
+      toast.success("Cliente creado exitosamente");
     } catch {
-      toast.error("Ocurrió un error al crear el cliente");
-      return 0;
+      toast.error("Error al crear el cliente");
     }
   };
 
@@ -540,10 +553,19 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   };
 
   const handleDateSelect = (dateStr: string) => {
-    setFormData(prev => ({ ...prev, date: dateStr, start_time: "", end_time: "" }));
-    if (formData.service && formData.employee) {
-      onCheckAvailability(dateStr, "", formData.service);
-    }
+    // Resetear empleado si no trabaja el nuevo día seleccionado
+    const jsDay = new Date(dateStr + "T00:00:00").getDay();
+    const djangoDay = jsDay === 0 ? 6 : jsDay - 1;
+    const currentEmployeeDays = formData.employee ? employeeSchedulesMap[formData.employee] : null;
+    const employeeWorksThisDay = currentEmployeeDays ? currentEmployeeDays.includes(djangoDay) : true;
+
+    setFormData(prev => ({
+      ...prev,
+      date: dateStr,
+      start_time: "",
+      end_time: "",
+      employee: employeeWorksThisDay ? prev.employee : 0,
+    }));
   };
 
   const handleTimeSelect = (time: string) => {
@@ -565,6 +587,17 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     if (Object.keys(formErrors).length > 0) return;
     onSave(formData);
   };
+
+  // Filtrar empleados según el día seleccionado
+  const jsDay = formData.date ? new Date(formData.date + "T00:00:00").getDay() : null;
+  const djangoDay = jsDay !== null ? (jsDay === 0 ? 6 : jsDay - 1) : null;
+  const employeesForSelectedDay = djangoDay !== null
+    ? availableEmployees.filter(emp => {
+        const days = employeeSchedulesMap[emp.id];
+        if (!days) return true;
+        return days.includes(djangoDay);
+      })
+    : availableEmployees;
 
   return (
     <div className="modal-overlay">
@@ -658,14 +691,28 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             </div>
           )}
 
-          {/* Empleado */}
+          {/* Fecha — MOVIDA ANTES DEL EMPLEADO */}
+          <div className="form-row">
+            <div className="form-group" style={{ flex: 1 }}>
+              <label>Fecha</label>
+              <MiniCalendarDropdown
+                selected={formData.date}
+                onSelect={handleDateSelect}
+                minDate={today}
+              />
+              {errors.date && <span className="error-message">{errors.date}</span>}
+            </div>
+          </div>
+
+          {/* Empleado — filtrado por día seleccionado */}
           <div className="form-group">
             <label htmlFor="employee">
               Trabajador/a
               {employeesLoading && <span style={{ color: "#6b7280", fontSize: 12 }}> (Cargando...)</span>}
+              {formData.date && <span style={{ color: "#6b7280", fontSize: 12 }}> (disponibles para la fecha)</span>}
             </label>
             <EmployeeSearchSelect
-              employees={availableEmployees}
+              employees={employeesForSelectedDay}
               value={formData.employee}
               onChange={employeeId => {
                 setFormData(prev => ({ ...prev, employee: employeeId, start_time: "", end_time: "" }));
@@ -683,19 +730,6 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
               groups={groups}
             />
             {errors.employee && <span className="error-message">{errors.employee}</span>}
-          </div>
-
-          {/* Fecha — Mini Calendar Dropdown */}
-          <div className="form-row">
-            <div className="form-group" style={{ flex: 1 }}>
-              <label>Fecha</label>
-              <MiniCalendarDropdown
-                selected={formData.date}
-                onSelect={handleDateSelect}
-                minDate={today}
-              />
-              {errors.date && <span className="error-message">{errors.date}</span>}
-            </div>
           </div>
 
           {/* Hora — Slots */}
@@ -722,7 +756,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
             </div>
           )}
 
-          {/* Hora fin — oculta, calculada automáticamente */}
+          {/* Hora fin oculta */}
           <input type="hidden" name="end_time" value={formData.end_time} ref={endTimeInputRef} />
           {formData.start_time && formData.end_time && selectedService && (
             <p style={{ fontSize: 12, color: "#6b7280", margin: "-8px 0 8px", fontStyle: "italic" }}>
