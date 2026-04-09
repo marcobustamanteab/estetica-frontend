@@ -12,7 +12,11 @@ function formatPrice(p: number) {
   return `$${p.toLocaleString("es-CL")}`;
 }
 
-function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: string) => void }) {
+function MiniCalendar({ selected, onSelect, workingDays }: { 
+    selected: string; 
+    onSelect: (d: string) => void; 
+    workingDays: number[]; 
+  }) {
   const today = new Date();
   const [month, setMonth] = useState(today.getMonth());
   const [year, setYear] = useState(today.getFullYear());
@@ -44,18 +48,20 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
           const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
           const isSelected = dateStr === selected;
           const isPast = new Date(year, month, day) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-          const isSunday = new Date(year, month, day).getDay() === 0;
+          const jsDay = new Date(year, month, day).getDay();
+          const djangoDay = jsDay === 0 ? 6 : jsDay - 1;
+          const isClosedDay = !workingDays.includes(djangoDay);
           return (
             <button
               key={i}
-              disabled={isPast || isSunday}
-              onClick={() => !isSunday && onSelect(dateStr)}
+              disabled={isPast || isClosedDay}
+              onClick={() => !isClosedDay && onSelect(dateStr)}
               style={{
                 border: "none", borderRadius: 8, padding: "8px 0",
-                cursor: isPast || isSunday ? "not-allowed" : "pointer",
+                cursor: isPast || isClosedDay ? "not-allowed" : "pointer",
                 fontSize: 12, fontWeight: isSelected ? 700 : 400,
                 background: isSelected ? "#0d9488" : isToday ? "#f0fdfa" : "none",
-                color: isSelected ? "white" : isPast || isSunday ? "#d1d5db" : isToday ? "#0d9488" : "#374151",
+                color: isSelected ? "white" : isPast || isClosedDay ? "#d1d5db" : isToday ? "#0d9488" : "#374151",
                 transition: "all 0.15s",
                 minWidth: 0,
               }}
@@ -69,7 +75,7 @@ function MiniCalendar({ selected, onSelect }: { selected: string; onSelect: (d: 
 
 interface Service { id: number; name: string; duration: number; price: number; description: string; }
 interface Employee { id: number; first_name: string; last_name: string; }
-interface BusinessInfo { id: number; name: string; slug: string; logo_url: string | null; services: Service[]; employees: Employee[]; }
+interface BusinessInfo { id: number; name: string; slug: string; logo_url: string | null; services: Service[]; employees: Employee[]; working_days: number[]; }
 
 export default function BookingPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -329,7 +335,7 @@ export default function BookingPage() {
           <div className="card-body">
             <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: "#1a1a2e", margin: "0 0 4px" }}>¿Cuándo te acomoda?</h3>
             <p style={{ color: "#9ca3af", fontSize: 13, margin: "0 0 16px" }}>Selecciona fecha y horario</p>
-            <MiniCalendar selected={date} onSelect={setDate} />
+            <MiniCalendar selected={date} onSelect={setDate} workingDays={business?.working_days ?? [0,1,2,3,4,5,6]} />
             {date && (
               <div style={{ marginTop: 20 }}>
                 <div style={{ fontWeight: 600, fontSize: 13, color: "#1a1a2e", marginBottom: 10 }}>Horarios disponibles</div>

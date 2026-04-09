@@ -124,10 +124,9 @@ function MiniCalendarDropdown({
               if (!day) return <div key={i} />;
               const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
               const isPast = dateStr < minDate;
-              const isSunday = new Date(year, month, day).getDay() === 0;
               const isSelected = dateStr === selected;
               const isToday = dateStr === minDate;
-              const disabled = isPast || isSunday;
+              const disabled = isPast;
 
               return (
                 <button
@@ -135,7 +134,6 @@ function MiniCalendarDropdown({
                   type="button"
                   disabled={disabled}
                   onClick={() => { onSelect(dateStr); setOpen(false); }}
-                  title={isSunday ? "Cerrado los domingos" : undefined}
                   style={{
                     border: "none",
                     borderRadius: 6,
@@ -150,10 +148,6 @@ function MiniCalendarDropdown({
                 >{day}</button>
               );
             })}
-          </div>
-
-          <div style={{ marginTop: 10, fontSize: 11, color: "#9ca3af", textAlign: "center" }}>
-            🚫 Domingos no disponibles
           </div>
         </div>
       )}
