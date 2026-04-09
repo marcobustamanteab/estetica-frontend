@@ -98,7 +98,7 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (!employee) return;
-    axios.get(`${API_URL}/api/auth/work-schedules/`, { params: { employee } })
+    axios.get<any[]>(`${API_URL}/api/auth/work-schedules/`, { params: { employee } })
       .then(res => {
         const activeDays = res.data
           .filter((s: any) => s.is_active)
