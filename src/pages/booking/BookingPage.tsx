@@ -7,7 +7,6 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-const DAY_NAMES = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 function formatPrice(p: number) {
   return `$${p.toLocaleString("es-CL")}`;
@@ -15,12 +14,17 @@ function formatPrice(p: number) {
 
 function formatWorkDays(days: number[]): string {
   if (!days || days.length === 0) return "Sin horario asignado";
+  
+  const fullNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábados", "Domingos"];
+  
   if (days.length === 7) return "Todos los días";
-  if (days.length === 1) return `Solo ${DAY_NAMES[days[0]]}${days[0] === 6 ? "os" : "es"}`;
+  if (days.length === 1) return `Solo ${fullNames[days[0]]}`;
+  
   const sorted = [...days].sort();
   if (JSON.stringify(sorted) === JSON.stringify([0,1,2,3,4])) return "Lun a Vie";
   if (JSON.stringify(sorted) === JSON.stringify([0,1,2,3,4,5])) return "Lun a Sáb";
-  return sorted.map(d => DAY_NAMES[d]).join(" · ");
+  
+  return sorted.map(d => fullNames[d]).join(" · ");
 }
 
 function MiniCalendar({ selected, onSelect, workingDays }: {
@@ -87,6 +91,7 @@ function MiniCalendar({ selected, onSelect, workingDays }: {
 interface Service { id: number; name: string; duration: number; price: number; description: string; }
 interface Employee { id: number; first_name: string; last_name: string; }
 interface BusinessInfo { id: number; name: string; slug: string; logo_url: string | null; services: Service[]; employees: Employee[]; working_days: number[]; }
+interface EmployeeSchedule { days: number[]; time_range: { from: string; to: string } | null; }
 
 export default function BookingPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -106,7 +111,7 @@ export default function BookingPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState("");
   const [employeeWorkDays, setEmployeeWorkDays] = useState<number[]>([0,1,2,3,4,5,6]);
-  const [employeeDays, setEmployeeDays] = useState<Record<number, number[]>>({});
+  const [employeeSchedules, setEmployeeSchedules] = useState<Record<number, EmployeeSchedule>>({});
 
   useEffect(() => {
     axios.get<BusinessInfo>(`${API_URL}/api/appointments/public/${slug}/`)
@@ -117,15 +122,25 @@ export default function BookingPage() {
   useEffect(() => {
     if (!business) return;
     business.employees.forEach(e => {
-      axios.get<{ working_days: number[] }>(`${API_URL}/api/auth/employees/${e.id}/schedules/`)
-        .then(res => setEmployeeDays(prev => ({ ...prev, [e.id]: res.data.working_days })))
-        .catch(() => setEmployeeDays(prev => ({ ...prev, [e.id]: [] })));
+      axios.get<{ working_days: number[]; time_range: { from: string; to: string } | null }>(
+        `${API_URL}/api/auth/employees/${e.id}/schedules/`
+      )
+        .then(res => setEmployeeSchedules(prev => ({
+          ...prev,
+          [e.id]: { days: res.data.working_days, time_range: res.data.time_range }
+        })))
+        .catch(() => setEmployeeSchedules(prev => ({
+          ...prev,
+          [e.id]: { days: [], time_range: null }
+        })));
     });
   }, [business]);
 
   useEffect(() => {
     if (!employee) return;
-    axios.get<{ working_days: number[] }>(`${API_URL}/api/auth/employees/${employee}/schedules/`)
+    axios.get<{ working_days: number[]; time_range: { from: string; to: string } | null }>(
+      `${API_URL}/api/auth/employees/${employee}/schedules/`
+    )
       .then(res => {
         setEmployeeWorkDays(res.data.working_days);
         setDate("");
@@ -355,9 +370,16 @@ export default function BookingPage() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, color: "#1a1a2e", fontSize: 14 }}>{e.first_name} {e.last_name}</div>
                     <div style={{ color: "#9ca3af", fontSize: 12, marginTop: 2 }}>
-                      {employeeDays[e.id] !== undefined
-                        ? formatWorkDays(employeeDays[e.id])
-                        : "Cargando..."}
+                      {employeeSchedules[e.id] !== undefined ? (
+                        <>
+                          {formatWorkDays(employeeSchedules[e.id].days)}
+                          {employeeSchedules[e.id].time_range && (
+                            <span style={{ marginLeft: 6, color: "#0d9488", fontWeight: 600 }}>
+                              · {employeeSchedules[e.id].time_range!.from} - {employeeSchedules[e.id].time_range!.to}
+                            </span>
+                          )}
+                        </>
+                      ) : "Cargando..."}
                     </div>
                   </div>
                   {employee === e.id && <div style={{ color: "#0d9488", fontSize: 18, fontWeight: 700 }}>✓</div>}
