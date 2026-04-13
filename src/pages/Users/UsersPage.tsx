@@ -228,6 +228,24 @@ const UsersPage: React.FC = () => {
         );
       },
     }),
+    columnHelper.accessor("commission_rate", {
+      header: "Comisión",
+      cell: (info) => {
+        const val = info.getValue();
+        return val !== undefined ? (
+          <span style={{
+            background: "#f0fdfa",
+            color: "#0d9488",
+            fontWeight: 600,
+            padding: "2px 8px",
+            borderRadius: 12,
+            fontSize: 13,
+          }}>
+            {val}%
+          </span>
+        ) : "—";
+      },
+    }),
     columnHelper.accessor('is_active', {
       header: 'Estado',
       cell: info => (

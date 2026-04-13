@@ -26,6 +26,7 @@ export interface User {
   is_staff: boolean;
   profile_image?: string;
   groups?: Array<{ id: number; name: string; } | number>;
+  commission_rate?: number;
 }
 
 export interface UserFormData {
@@ -37,6 +38,7 @@ export interface UserFormData {
   is_active?: boolean;
   is_staff?: boolean;
   groups?: number[];
+  commission_rate?: number;
 }
 
 export interface UsersHook {

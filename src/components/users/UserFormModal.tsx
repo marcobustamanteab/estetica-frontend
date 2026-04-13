@@ -26,6 +26,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
     is_active: true,
     is_staff: false,
     groups: [],
+    commission_rate: 50,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -54,6 +55,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
               typeof group === "object" ? group.id : group
             )
           : [],
+        commission_rate: user.commission_rate ?? 50,
       });
     }
   }, [user]);
@@ -302,6 +304,28 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
             </div>
           )}
         </div>
+
+        {!formData.is_staff && (
+          <div className="form-group">
+            <label htmlFor="commission_rate">
+              Porcentaje de Comisión (%)
+            </label>
+            <input
+              type="number"
+              id="commission_rate"
+              name="commission_rate"
+              value={formData.commission_rate ?? 50}
+              onChange={handleChange}
+              className="form-input"
+              min={0}
+              max={100}
+              step={1}
+            />
+            <span className="help-text">
+              Porcentaje del valor del servicio que recibe el barbero/a
+            </span>
+          </div>
+        )}
 
           {/* Selector de roles (solo visible si no es administrador) */}
           {!formData.is_staff && (
