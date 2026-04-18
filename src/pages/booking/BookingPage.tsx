@@ -493,7 +493,7 @@ export default function BookingPage() {
       </div>
 
       <p style={{ textAlign: "center", color: "#9ca3af", fontSize: 11, marginTop: 18 }}>
-        Powered by <strong style={{ color: "#0d9488" }}>Devsign</strong>
+        Powered by <strong style={{ color: "#0d9488" }}><a href="https://devsign.cl" target="_blank" rel="noopener noreferrer">Devsign</a></strong>
       </p>
     </div>
   );
