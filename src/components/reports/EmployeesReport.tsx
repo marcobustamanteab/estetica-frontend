@@ -278,16 +278,16 @@ const EmployeesReport: React.FC = () => {
     ]);
   };
 
-  // Aplicar nuevos filtros
-  const handleFilterChange = (newFilters: FiltersType) => {
-    setFilters(newFilters);
-
-    // Recargar citas con el nuevo rango de fechas
-    fetchAppointments({
+  // Aplicar nuevos filtros — fetch primero, luego actualizar filtros para evitar flash de datos vacíos
+  const handleFilterChange = async (newFilters: FiltersType) => {
+    setLoading(true);
+    await fetchAppointments({
       date_from: newFilters.dateRange.startDate,
       date_to: newFilters.dateRange.endDate,
       status: "completed",
     });
+    setFilters(newFilters);
+    setLoading(false);
   };
 
   // Columnas para la tabla de datos
@@ -376,14 +376,26 @@ const EmployeesReport: React.FC = () => {
     .map((category) => ({ id: category.id, name: category.name }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Opciones para los filtros de empleado
-  const employeeOptions = employees
-    .filter((employee) => !employee.is_staff && employee.is_active) 
-    .map((employee) => ({
-      id: employee.id,
-      name: `${employee.first_name} ${employee.last_name}`,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  // Opciones de empleado — si hay categoría seleccionada, filtrar por sus roles permitidos
+  const employeeOptions = (() => {
+    let base = employees.filter((e) => !e.is_staff && e.is_active);
+
+    const catId = filters.category?.categoryId;
+    if (catId) {
+      const selectedCat = categories.find((c) => c.id === catId);
+      if (selectedCat?.allowed_roles && selectedCat.allowed_roles.length > 0) {
+        const allowedIds = new Set(selectedCat.allowed_roles.map((r) => r.id));
+        base = base.filter((emp) => {
+          if (!emp.groups || emp.groups.length === 0) return false;
+          return emp.groups.some((g) => allowedIds.has(typeof g === "object" ? g.id : g));
+        });
+      }
+    }
+
+    return base
+      .map((e) => ({ id: e.id, name: `${e.first_name} ${e.last_name}` }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  })();
 
   // Cambiar la vista entre gráfico y tabla
   const toggleView = (view: ReportView) => {

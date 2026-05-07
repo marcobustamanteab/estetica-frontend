@@ -20,7 +20,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { Printer, BarChart2 } from "lucide-react";
+import { Printer, BarChart2, TrendingUp } from "lucide-react";
 import "./salesReport.css";
 
 // Tipo para los datos de ventas agrupados
@@ -49,7 +49,7 @@ type ReportView = "chart" | "table";
 const SalesReport: React.FC = () => {
   // Hooks para obtener datos
   const { appointments, fetchAppointments } = useAppointments();
-  const { services, fetchServices } = useServices();
+  const { services, categories, fetchServices, fetchCategories } = useServices();
   const { users: employees, fetchUsers } = useUsers();
 
   // Estado para los filtros aplicados
@@ -75,8 +75,7 @@ const SalesReport: React.FC = () => {
   // Estado para la vista actual (gráfico o tabla)
   const [currentView, setCurrentView] = useState<ReportView>("chart");
 
-  // Estado para el tipo de gráfico (barra o línea)
-  const [chartType] = useState<"bar" | "line">("bar");
+  const [chartType, setChartType] = useState<"bar" | "line">("bar");
 
   // Estado de carga
   const [loading, setLoading] = useState<boolean>(false);
@@ -87,11 +86,12 @@ const SalesReport: React.FC = () => {
       setLoading(true);
       await Promise.all([
         fetchServices(),
+        fetchCategories(),
         fetchUsers(),
         fetchAppointments({
           date_from: filters.dateRange.startDate,
           date_to: filters.dateRange.endDate,
-          status: "completed", // Solo citas completadas para el reporte de ventas
+          status: "completed",
         }),
       ]);
       setLoading(false);
@@ -240,16 +240,16 @@ const SalesReport: React.FC = () => {
     ]);
   };
 
-  // Aplicar nuevos filtros
-  const handleFilterChange = (newFilters: FiltersType) => {
-    setFilters(newFilters);
-
-    // Recargar citas con el nuevo rango de fechas
-    fetchAppointments({
+  // Aplicar nuevos filtros — fetch primero, luego actualizar filtros para evitar flash de datos vacíos
+  const handleFilterChange = async (newFilters: FiltersType) => {
+    setLoading(true);
+    await fetchAppointments({
       date_from: newFilters.dateRange.startDate,
       date_to: newFilters.dateRange.endDate,
       status: "completed",
     });
+    setFilters(newFilters);
+    setLoading(false);
   };
 
   // Columnas para la tabla de datos
@@ -308,14 +308,26 @@ const SalesReport: React.FC = () => {
     .map((service) => ({ id: service.id, name: service.name }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Opciones para los filtros de empleado
-  const employeeOptions = employees
-    .filter((employee) => !employee.is_staff && employee.is_active)
-    .map((employee) => ({
-      id: employee.id,
-      name: `${employee.first_name} ${employee.last_name}`,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  // Opciones de empleado — si hay categoría seleccionada, filtrar por sus roles permitidos
+  const employeeOptions = (() => {
+    let base = employees.filter((e) => !e.is_staff && e.is_active);
+
+    const catId = filters.category?.categoryId;
+    if (catId) {
+      const selectedCat = categories.find((c) => c.id === catId);
+      if (selectedCat?.allowed_roles && selectedCat.allowed_roles.length > 0) {
+        const allowedIds = new Set(selectedCat.allowed_roles.map((r) => r.id));
+        base = base.filter((emp) => {
+          if (!emp.groups || emp.groups.length === 0) return false;
+          return emp.groups.some((g) => allowedIds.has(typeof g === "object" ? g.id : g));
+        });
+      }
+    }
+
+    return base
+      .map((e) => ({ id: e.id, name: `${e.first_name} ${e.last_name}` }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  })();
 
   // Cambiar la vista entre gráfico y tabla
   const toggleView = (view: ReportView) => {
@@ -342,6 +354,25 @@ const SalesReport: React.FC = () => {
             <span>Tabla</span>
           </button>
         </div>
+
+        {currentView === "chart" && (
+          <div className="chart-types">
+            <button
+              className={`view-toggle ${chartType === "bar" ? "active" : ""}`}
+              onClick={() => setChartType("bar")}
+              title="Gráfico de Barras"
+            >
+              <BarChart2 size={18} />
+            </button>
+            <button
+              className={`view-toggle ${chartType === "line" ? "active" : ""}`}
+              onClick={() => setChartType("line")}
+              title="Gráfico de Líneas"
+            >
+              <TrendingUp size={18} />
+            </button>
+          </div>
+        )}
       </div>
     );
   };
