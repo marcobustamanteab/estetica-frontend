@@ -12,14 +12,16 @@ interface AppointmentDetailProps {
   onChangeStatus: (status: string) => void;
   onEdit: () => void;
   onDelete: () => void;
+  isAdmin?: boolean;
 }
 
-const AppointmentDetail: React.FC<AppointmentDetailProps> = ({ 
-  appointment, 
-  onClose, 
+const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
+  appointment,
+  onClose,
   onChangeStatus,
   onEdit,
-  onDelete
+  onDelete,
+  isAdmin = false,
 }) => {
   // Usar el hook de servicios para obtener servicios y categorías
   const { services, categories, fetchServices, fetchCategories } = useServices();
@@ -249,6 +251,11 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
             <strong>Esta cita ha sido completada.</strong>
             Las citas completadas no pueden ser editadas ni cambiar su estado.
           </p>
+          {isAdmin && (
+            <button className="delete-button" onClick={onDelete} style={{ marginTop: 12 }}>
+              Eliminar
+            </button>
+          )}
         </div>
       )}
     </div>

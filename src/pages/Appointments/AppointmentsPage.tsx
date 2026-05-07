@@ -11,6 +11,7 @@ import { useClients } from "../../hooks/useClients";
 import { useServices, Service } from "../../hooks/useServices";
 import { useUsers, User } from "../../hooks/useUsers";
 import AppointmentFormModal from "../../components/appointments/AppointmentFormModal";
+import { useAuth } from "../../context/AuthContext";
 import AppointmentDetail from "../../components/appointments/AppointmentDetail";
 import CalendarView from "../../components/appointments/CalendarView";
 import DataTable from "../../components/common/DataTable";
@@ -54,6 +55,9 @@ const AppointmentsPage: React.FC = () => {
     checkEmployeeAvailability,
     fetchAvailableServices,
   } = useAppointments();
+
+  const { currentUser } = useAuth();
+  const isAdmin = (currentUser as any)?.is_staff === true || (currentUser as any)?.is_superuser === true;
 
   const { clients, fetchClients } = useClients();
   const { services, fetchServices, fetchEmployeesByService } = useServices();
@@ -199,9 +203,8 @@ const AppointmentsPage: React.FC = () => {
 
   // Eliminar una cita con confirmación
   const handleDeleteAppointment = async (id: number) => {
-    // Verificar si la cita está completada antes de mostrar el diálogo
     const appointmentToDelete = appointments.find((app) => app.id === id);
-    if (appointmentToDelete && appointmentToDelete.status === "completed") {
+    if (appointmentToDelete?.status === "completed" && !isAdmin) {
       toast.error("Las citas completadas no pueden ser eliminadas.");
       return;
     }
@@ -552,6 +555,7 @@ const AppointmentsPage: React.FC = () => {
             }
             onEdit={() => handleEditAppointment(selectedAppointment)}
             onDelete={() => handleDeleteAppointment(selectedAppointment.id)}
+            isAdmin={isAdmin}
           />
         </div>
       )}
