@@ -39,6 +39,7 @@ export interface Service {
   price: number;
   duration: number;
   is_active: boolean;
+  is_internal: boolean;
   created_at: string;
   updated_at: string;
 }

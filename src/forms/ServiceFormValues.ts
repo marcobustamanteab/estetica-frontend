@@ -7,6 +7,7 @@ export interface ServiceFormValues {
   price: number | string;
   duration: number | string;
   is_active: boolean;
+  is_internal: boolean;
 }
 
 export const getInitialServiceFormValues = (service: Service | null, categories: ServiceCategory[]): ServiceFormValues => {
@@ -17,20 +18,22 @@ export const getInitialServiceFormValues = (service: Service | null, categories:
       description: service.description || '',
       price: service.price,
       duration: service.duration,
-      is_active: service.is_active
+      is_active: service.is_active,
+      is_internal: service.is_internal ?? false,
     };
   }
-  
+
   // Valor por defecto para la categoría (la primera disponible o -1)
   const defaultCategoryId = categories.length > 0 ? categories[0].id : -1;
-  
+
   return {
     category: defaultCategoryId,
     name: '',
     description: '',
     price: '',
     duration: '',
-    is_active: true
+    is_active: true,
+    is_internal: false,
   };
 };
 

@@ -146,6 +146,21 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({ service, categories
               Servicio Activo
             </label>
           </div>
+
+          <div className="form-group checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                name="is_internal"
+                checked={formData.is_internal}
+                onChange={handleChange}
+              />
+              Solo uso interno
+            </label>
+            <small style={{ display: 'block', color: '#6b7280', marginTop: 4, marginLeft: 22 }}>
+              No aparece en la página de reservas pública. Útil para descuentos, promociones u otros cargos internos.
+            </small>
+          </div>
           
           <div className="form-actions">
             <button type="button" className="cancel-button" onClick={onClose}>Cancelar</button>
