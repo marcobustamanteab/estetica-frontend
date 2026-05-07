@@ -27,6 +27,7 @@ export interface User {
   profile_image?: string;
   groups?: Array<{ id: number; name: string; } | number>;
   commission_rate?: number;
+  google_calendar_id?: string | null;
 }
 
 export interface UserFormData {

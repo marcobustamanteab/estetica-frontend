@@ -228,6 +228,31 @@ const UsersPage: React.FC = () => {
         );
       },
     }),
+    columnHelper.accessor("google_calendar_id", {
+      header: "Google Calendar",
+      cell: (info) => {
+        const calId = info.getValue();
+        return calId ? (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: '#dcfce7', color: '#15803d',
+            fontWeight: 600, fontSize: 12,
+            padding: '2px 10px', borderRadius: 12,
+          }}>
+            ✓ Vinculado
+          </span>
+        ) : (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: '#f3f4f6', color: '#9ca3af',
+            fontWeight: 500, fontSize: 12,
+            padding: '2px 10px', borderRadius: 12,
+          }}>
+            Sin vincular
+          </span>
+        );
+      },
+    }),
     columnHelper.accessor("commission_rate", {
       header: "Comisión",
       cell: (info) => {

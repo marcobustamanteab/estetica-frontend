@@ -36,6 +36,8 @@ interface EmployeePerformance {
   employeeName: string;
   totalServiceCount: number;
   totalSales: number;
+  commissionRate: number;
+  commissionEarned: number;
   averageServiceValue: number;
   servicesByCategory: {
     [categoryId: number]: {
@@ -169,6 +171,8 @@ const EmployeesReport: React.FC = () => {
             employeeName,
             totalServiceCount: 0,
             totalSales: 0,
+            commissionRate: Number(employeeObj?.commission_rate ?? 50),
+            commissionEarned: 0,
             averageServiceValue: 0,
             servicesByCategory: {},
           };
@@ -195,12 +199,13 @@ const EmployeesReport: React.FC = () => {
           serviceData.price;
       });
 
-      // Calcular promedios y convertir a array
+      // Calcular promedios, comisión y convertir a array
       const processedData = Object.values(employeeData).map((empData) => {
         empData.averageServiceValue =
           empData.totalServiceCount > 0
             ? empData.totalSales / empData.totalServiceCount
             : 0;
+        empData.commissionEarned = empData.totalSales * (empData.commissionRate / 100);
         return empData;
       });
 
@@ -221,23 +226,10 @@ const EmployeesReport: React.FC = () => {
     // Si no hay datos, mostrar métricas vacías
     if (data.length === 0) {
       setSummaryMetrics([
-        {
-          label: "Total de Ventas",
-          value: 0,
-          isCurrency: true,
-          trend: "neutral",
-        },
-        {
-          label: "Total de Servicios",
-          value: 0,
-          trend: "neutral",
-        },
-        {
-          label: "Valor Promedio",
-          value: 0,
-          isCurrency: true,
-          trend: "neutral",
-        },
+        { label: "Total de Ventas",    value: 0, isCurrency: true, trend: "neutral" },
+        { label: "Total de Servicios", value: 0, trend: "neutral" },
+        { label: "Valor Promedio",     value: 0, isCurrency: true, trend: "neutral" },
+        { label: "Total Comisiones",   value: 0, isCurrency: true, trend: "neutral" },
       ]);
       return;
     }
@@ -255,6 +247,9 @@ const EmployeesReport: React.FC = () => {
     const averageServiceValue =
       totalServices > 0 ? totalSales / totalServices : 0;
 
+    // Total comisiones a pagar
+    const totalCommissions = data.reduce((sum, emp) => sum + emp.commissionEarned, 0);
+
     // Establecer las métricas
     setSummaryMetrics([
       {
@@ -271,6 +266,12 @@ const EmployeesReport: React.FC = () => {
       {
         label: "Valor Promedio",
         value: averageServiceValue,
+        isCurrency: true,
+        trend: "neutral",
+      },
+      {
+        label: "Total Comisiones",
+        value: totalCommissions,
         isCurrency: true,
         trend: "neutral",
       },
@@ -314,12 +315,27 @@ const EmployeesReport: React.FC = () => {
     columnHelper.accessor("averageServiceValue", {
       header: "Valor Promedio",
       cell: (info) =>
-        `$${info
-          .getValue()
-          .toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`,
+        `$${info.getValue().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    }),
+    columnHelper.accessor("commissionRate", {
+      header: "Comisión %",
+      cell: (info) => (
+        <span style={{
+          background: '#f0fdfa', color: '#0d9488',
+          fontWeight: 600, fontSize: 12,
+          padding: '2px 8px', borderRadius: 12,
+        }}>
+          {info.getValue()}%
+        </span>
+      ),
+    }),
+    columnHelper.accessor("commissionEarned", {
+      header: "Comisión Ganada",
+      cell: (info) => (
+        <span style={{ fontWeight: 700, color: '#0f766e' }}>
+          ${info.getValue().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </span>
+      ),
     }),
   ];
 
@@ -340,10 +356,18 @@ const EmployeesReport: React.FC = () => {
       header: "Valor Promedio",
       accessor: "averageServiceValue",
       formatFn: (value: number) =>
-        `$${value.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`,
+        `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    },
+    {
+      header: "Comisión %",
+      accessor: "commissionRate",
+      formatFn: (value: number) => `${value}%`,
+    },
+    {
+      header: "Comisión Ganada",
+      accessor: "commissionEarned",
+      formatFn: (value: number) =>
+        `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     },
   ];
 
