@@ -38,6 +38,10 @@ const routeMap: Record<string, { title: string, subtitle: string }> = {
   '/horarios': {
     title: 'Horarios',
     subtitle: 'Horarios de Trabajo'
+  },
+  '/configuracion': {
+    title: 'Configuración',
+    subtitle: 'Configuración del Negocio'
   }
 };
 

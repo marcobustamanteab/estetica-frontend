@@ -1,0 +1,138 @@
+.bs-page {
+  padding: 24px;
+  max-width: 680px;
+}
+
+.bs-header { margin-bottom: 24px; }
+.bs-header h2 { font-size: 22px; font-weight: 700; color: #111827; margin: 0 0 6px; }
+.bs-subtitle { font-size: 14px; color: #6b7280; margin: 0; }
+.bs-loading { font-size: 14px; color: #6b7280; }
+
+/* Selector negocio superadmin */
+.bs-business-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+.bs-business-btn {
+  padding: 7px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.15s;
+}
+.bs-business-btn:hover { border-color: #0d9488; color: #0d9488; }
+.bs-business-btn.active { border-color: #0d9488; background: #0d9488; color: white; font-weight: 600; }
+
+/* Card */
+.bs-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.bs-section {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.bs-section:last-of-type { border-bottom: none; }
+
+.bs-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.bs-hint { font-size: 12px; color: #6b7280; margin: 0 0 10px; }
+
+.bs-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.bs-input:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+
+/* Logo */
+.bs-logo-row { display: flex; align-items: center; gap: 12px; }
+.bs-logo-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+/* Días */
+.bs-days { display: flex; flex-wrap: wrap; gap: 8px; }
+.bs-day-btn {
+  padding: 8px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  transition: all 0.15s;
+  min-width: 52px;
+}
+.bs-day-btn:hover { border-color: #0d9488; color: #0d9488; }
+.bs-day-btn.active { border-color: #0d9488; background: #0d9488; color: white; }
+
+/* Booking URL */
+.bs-booking-url {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.bs-url-text { font-size: 13px; color: #0d9488; font-weight: 500; word-break: break-all; flex: 1; }
+.bs-copy-btn {
+  padding: 5px 14px;
+  background: #0d9488;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.bs-copy-btn:hover { background: #0f766e; }
+
+/* Acciones */
+.bs-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  border-top: 1px solid #f3f4f6;
+}
+.bs-btn-primary {
+  padding: 10px 24px;
+  background: #0d9488;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.bs-btn-primary:hover:not(:disabled) { background: #0f766e; }
+.bs-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }

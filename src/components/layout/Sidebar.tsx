@@ -68,6 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
     },
     { path: "/servicios", icon: <FiScissors size={20} />, label: "Servicios" },
     { path: "/horarios", icon: <FiClock size={20} />, label: "Horarios" },
+    { path: "/configuracion", icon: <FiSettings size={20} />, label: "Configuración" },
   ];
 
   // Mantenedores solo para superadmin
