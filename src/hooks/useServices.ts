@@ -51,6 +51,7 @@ export interface ServiceFormData {
   price: number;
   duration: number;
   is_active?: boolean;
+  is_internal?: boolean;
 }
 
 export interface CategoryFormData {
@@ -73,6 +74,7 @@ export interface ServicesHook {
   updateService: (id: number, serviceData: ServiceFormData) => Promise<Service>;
   deleteService: (id: number) => Promise<boolean>;
   toggleServiceStatus: (id: number, isActive: boolean) => Promise<Service>;
+  toggleInternalStatus: (id: number, isInternal: boolean) => Promise<Service>;
   createCategory: (categoryData: CategoryFormData) => Promise<ServiceCategory>;
   updateCategory: (id: number, categoryData: CategoryFormData) => Promise<ServiceCategory>;
   deleteCategory: (id: number) => Promise<boolean>;
@@ -323,6 +325,28 @@ export const useServices = (): ServicesHook => {
     [createAxiosInstance, showLoading, hideLoading]
   );
 
+  const toggleInternalStatus = useCallback(
+    async (id: number, isInternal: boolean): Promise<Service> => {
+      setLoading(true);
+      setError(null);
+      showLoading("Actualizando visibilidad del servicio...");
+      try {
+        const axiosInstance = createAxiosInstance();
+        const response = await axiosInstance.patch<Service>(`${API_URL}${id}/`, { is_internal: !isInternal });
+        setServices((prev) => prev.map((s) => (s.id === id ? { ...s, is_internal: !isInternal } : s)));
+        return response.data;
+      } catch (error) {
+        setError("Error al cambiar la visibilidad del servicio");
+        console.error(`Error al cambiar visibilidad del servicio con ID ${id}:`, error);
+        throw error;
+      } finally {
+        setLoading(false);
+        hideLoading();
+      }
+    },
+    [createAxiosInstance, showLoading, hideLoading]
+  );
+
   const createCategory = useCallback(
     async (categoryData: CategoryFormData): Promise<ServiceCategory> => {
       setLoading(true);
@@ -503,6 +527,7 @@ export const useServices = (): ServicesHook => {
     updateService,
     deleteService,
     toggleServiceStatus,
+    toggleInternalStatus,
     createCategory,
     updateCategory,
     deleteCategory,

@@ -40,6 +40,7 @@ const ServicesPage: React.FC = () => {
     updateService,
     deleteService,
     toggleServiceStatus,
+    toggleInternalStatus,
     createCategory,
     updateCategory,
     deleteCategory,
@@ -104,6 +105,15 @@ const ServicesPage: React.FC = () => {
     }
   };
   
+  const handleToggleInternalStatus = async (id: number, isInternal: boolean) => {
+    try {
+      await toggleInternalStatus(id, isInternal);
+      toast.success(`Servicio marcado como ${!isInternal ? 'solo interno' : 'público'}`);
+    } catch {
+      toast.error('Ocurrió un error al cambiar la visibilidad del servicio');
+    }
+  };
+
   const handleToggleServiceStatus = async (id: number, isActive: boolean) => {
     const result = await Swal.fire({
       title: `¿${isActive ? 'Desactivar' : 'Activar'} servicio?`,
@@ -138,7 +148,8 @@ const ServicesPage: React.FC = () => {
         description: serviceData.description || null,
         price: Number(serviceData.price),
         duration: Number(serviceData.duration),
-        is_active: serviceData.is_active
+        is_active: serviceData.is_active,
+        is_internal: serviceData.is_internal,
       };
       
       if (selectedService) {
@@ -285,23 +296,39 @@ const ServicesPage: React.FC = () => {
       ),
     }),
     serviceColumnHelper.display({
+      id: 'internal',
+      header: 'Solo interno',
+      cell: info => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <SwitchToggle
+            isActive={info.row.original.is_internal}
+            onChange={() => handleToggleInternalStatus(info.row.original.id, info.row.original.is_internal)}
+            size="small"
+          />
+          <span style={{ fontSize: 12, color: info.row.original.is_internal ? '#0d9488' : '#9ca3af' }}>
+            {info.row.original.is_internal ? 'Interno' : 'Público'}
+          </span>
+        </div>
+      ),
+    }),
+    serviceColumnHelper.display({
       id: 'actions',
       header: 'Acciones',
       cell: info => (
         <div className="action-buttons">
-          <SwitchToggle 
-            isActive={info.row.original.is_active} 
+          <SwitchToggle
+            isActive={info.row.original.is_active}
             onChange={() => handleToggleServiceStatus(info.row.original.id, info.row.original.is_active)}
             size="small"
           />
-          <button 
+          <button
             className="icon-button edit-button"
             onClick={() => handleEditService(info.row.original)}
             title="Editar servicio"
           >
             <EditIcon fontSize="small" />
           </button>
-          <button 
+          <button
             className="icon-button delete-button"
             onClick={() => handleDeleteService(info.row.original.id)}
             title="Eliminar servicio"
