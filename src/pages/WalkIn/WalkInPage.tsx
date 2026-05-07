@@ -97,12 +97,32 @@ const WalkInPage: React.FC = () => {
     if (!form.service) e.service = "Debe seleccionar un servicio";
     if (!form.employee) e.employee = "Debe seleccionar un trabajador/a";
     if (!form.date) e.date = "La fecha es obligatoria";
-    if (!form.start_time) e.start_time = "La hora de inicio es obligatoria";
-    if (!form.end_time) e.end_time = "La hora de fin es obligatoria";
-    else if (form.start_time && form.start_time >= form.end_time)
+    if (form.start_time && form.end_time && form.start_time >= form.end_time)
       e.end_time = "La hora de fin debe ser posterior a la de inicio";
     setErrors(e);
     return Object.keys(e).length === 0;
+  };
+
+  const resolveTime = (): { start_time: string; end_time: string } => {
+    const now = new Date();
+
+    // Si el usuario ingresó hora de inicio manualmente (HH:MM), usarla tal cual.
+    // Si no, generar HH:MM:SS con la hora actual — los segundos evitan
+    // el unique constraint (employee, date, start_time) al agregar varias
+    // entradas seguidas sin hora.
+    const start = form.start_time
+      ? form.start_time
+      : `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+
+    const [h, m] = start.split(":").map(Number);
+    const endDate = new Date();
+    endDate.setHours(h, m + (selectedService?.duration ?? 30), 0, 0);
+
+    const end = form.end_time
+      ? form.end_time
+      : `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}:${String(endDate.getSeconds()).padStart(2, "0")}`;
+
+    return { start_time: start, end_time: end };
   };
 
   const handleServiceChange = (serviceId: number) => {
@@ -115,14 +135,15 @@ const WalkInPage: React.FC = () => {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
+    const { start_time, end_time } = resolveTime();
     try {
       await createAppointment({
         client: form.client,
         service: form.service,
         employee: form.employee,
         date: form.date,
-        start_time: form.start_time,
-        end_time: form.end_time,
+        start_time,
+        end_time,
         status: "completed",
         notes: form.notes,
       });
@@ -131,10 +152,13 @@ const WalkInPage: React.FC = () => {
       setSelectedService(null);
       setErrors({});
     } catch (err: any) {
-      const msg =
+      const serverMsg: string =
         err?.response?.data?.non_field_errors?.[0] ||
         err?.response?.data?.detail ||
-        "Error al guardar el registro";
+        "";
+      const msg = serverMsg.toLowerCase().includes("solapa") || serverMsg.toLowerCase().includes("unique")
+        ? "Ya existe un registro para ese empleado en esa fecha y hora. Ingresa una hora diferente."
+        : serverMsg || "Error al guardar el registro";
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -230,7 +254,7 @@ const WalkInPage: React.FC = () => {
             </div>
 
             <div className="walkin-field">
-              <label>Hora de inicio</label>
+              <label>Hora de inicio <span className="walkin-optional">(opcional)</span></label>
               <input
                 type="time"
                 value={form.start_time}
@@ -241,17 +265,17 @@ const WalkInPage: React.FC = () => {
             </div>
 
             <div className="walkin-field">
-              <label>Hora de fin</label>
+              <label>Hora de fin <span className="walkin-optional">(opcional)</span></label>
               <input
                 type="time"
                 value={form.end_time}
-                readOnly={!!selectedService}
+                readOnly={!!selectedService && !!form.start_time}
                 onChange={(e) => {
-                  if (!selectedService) setForm((prev) => ({ ...prev, end_time: e.target.value }));
+                  if (!selectedService || !form.start_time) setForm((prev) => ({ ...prev, end_time: e.target.value }));
                 }}
-                className={`walkin-input${errors.end_time ? " walkin-input-error" : ""}${selectedService ? " walkin-input-readonly" : ""}`}
+                className={`walkin-input${errors.end_time ? " walkin-input-error" : ""}${selectedService && form.start_time ? " walkin-input-readonly" : ""}`}
               />
-              {selectedService && (
+              {selectedService && form.start_time && (
                 <span className="walkin-service-hint">Calculado según duración del servicio</span>
               )}
               {errors.end_time && <span className="walkin-error">{errors.end_time}</span>}
