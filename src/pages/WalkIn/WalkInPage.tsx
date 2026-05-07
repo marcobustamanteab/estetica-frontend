@@ -2,9 +2,10 @@
 import { useState, useEffect } from "react";
 import { useAppointments } from "../../hooks/useAppointments";
 import { useClients, Client, ClientFormData } from "../../hooks/useClients";
-import { useServices, Service } from "../../hooks/useServices";
+import { useServices, Service, ServiceCategory } from "../../hooks/useServices";
 import { useUsers, User } from "../../hooks/useUsers";
 import ClientsSearchSelect from "../../components/clients/ClientsSearchSelect";
+import CategorySearchSelect from "../../components/services/CategorySearchSelect";
 import ServiceSearchSelect from "../../components/services/ServiceSearchSelect";
 import EmployeeSearchSelect from "../../components/users/EmployeeSearchSelect";
 import ClientFormModal from "../../components/clients/ClientFormModal";
@@ -37,6 +38,7 @@ const WalkInPage: React.FC = () => {
   const [form, setForm] = useState<WalkInFormValues>(emptyForm());
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [activeClients, setActiveClients] = useState<Client[]>([]);
   const [activeEmployees, setActiveEmployees] = useState<User[]>([]);
   const [showClientModal, setShowClientModal] = useState(false);
@@ -125,6 +127,28 @@ const WalkInPage: React.FC = () => {
     return { start_time: start, end_time: end };
   };
 
+  // Categorías derivadas de los servicios disponibles (sin llamada extra a la API)
+  const availableCategories: ServiceCategory[] = (() => {
+    const map = new Map<number, ServiceCategory>();
+    availableServices.forEach((s) => {
+      if (s.category && s.category_name && !map.has(s.category)) {
+        map.set(s.category, { id: s.category, name: s.category_name, description: "", is_active: true });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  })();
+
+  // Servicios filtrados por categoría seleccionada
+  const filteredServices = selectedCategoryId
+    ? availableServices.filter((s) => s.category === selectedCategoryId)
+    : availableServices;
+
+  const handleCategoryChange = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
+    setSelectedService(null);
+    setForm((prev) => ({ ...prev, service: 0, start_time: "", end_time: "" }));
+  };
+
   const handleServiceChange = (serviceId: number) => {
     const svc = availableServices.find((s) => s.id === serviceId) || null;
     setSelectedService(svc);
@@ -205,17 +229,31 @@ const WalkInPage: React.FC = () => {
             {errors.client && <span className="walkin-error">{errors.client}</span>}
           </div>
 
+          {/* Categoría */}
+          <div className="walkin-field">
+            <label>Categoría de Servicio</label>
+            <CategorySearchSelect
+              categories={availableCategories}
+              value={selectedCategoryId}
+              onChange={handleCategoryChange}
+              id="walkin-category"
+              name="category"
+              placeholder="Seleccione una categoría..."
+            />
+          </div>
+
           {/* Servicio */}
           <div className="walkin-field">
             <label>Servicio</label>
             <ServiceSearchSelect
-              services={availableServices.length > 0 ? availableServices : services.filter((s) => s.is_active)}
+              services={filteredServices}
               value={form.service}
               onChange={handleServiceChange}
+              disabled={!selectedCategoryId}
               error={!!errors.service}
               id="walkin-service"
               name="service"
-              placeholder="Seleccione un servicio..."
+              placeholder={selectedCategoryId ? "Seleccione un servicio..." : "Primero seleccione una categoría"}
             />
             {errors.service && <span className="walkin-error">{errors.service}</span>}
             {selectedService && (
@@ -299,7 +337,7 @@ const WalkInPage: React.FC = () => {
             <button
               type="button"
               className="walkin-btn-secondary"
-              onClick={() => { setForm(emptyForm()); setSelectedService(null); setErrors({}); }}
+              onClick={() => { setForm(emptyForm()); setSelectedService(null); setSelectedCategoryId(null); setErrors({}); }}
             >
               Limpiar
             </button>
