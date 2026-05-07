@@ -10,6 +10,7 @@ import EmployeeSearchSelect from "../../components/users/EmployeeSearchSelect";
 import ClientFormModal from "../../components/clients/ClientFormModal";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
+import { useAuth } from "../../context/AuthContext";
 import "./walkIn.css";
 
 interface WalkInFormValues {
@@ -41,6 +42,7 @@ const WalkInPage: React.FC = () => {
   const [showClientModal, setShowClientModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const { currentUser } = useAuth();
   const { createAppointment, fetchAvailableServices } = useAppointments();
   const { clients, fetchClients, createClient } = useClients();
   const { services, fetchServices } = useServices();
@@ -69,8 +71,13 @@ const WalkInPage: React.FC = () => {
   }, [clients]);
 
   useEffect(() => {
-    setActiveEmployees(users.filter((u) => u.is_active));
-  }, [users]);
+    if (users.length > 0) {
+      setActiveEmployees(users.filter((u) => u.is_active));
+    } else if (currentUser) {
+      // Barbero sin acceso a /api/auth/users/ — usar solo el usuario actual
+      setActiveEmployees([currentUser as User]);
+    }
+  }, [users, currentUser]);
 
   // Recalcular end_time cuando cambia servicio u hora de inicio
   useEffect(() => {
