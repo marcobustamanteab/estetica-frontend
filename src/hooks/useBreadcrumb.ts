@@ -30,6 +30,10 @@ const routeMap: Record<string, { title: string, subtitle: string }> = {
   '/dashboard': {
     title: 'Dashboard',
     subtitle: 'Panel Principal'
+  },
+  '/registro-manual': {
+    title: 'Registro Manual',
+    subtitle: 'Registro Manual de Atención'
   }
 };
 
