@@ -42,6 +42,7 @@ const WalkInPage: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [activeClients, setActiveClients] = useState<Client[]>([]);
   const [activeEmployees, setActiveEmployees] = useState<User[]>([]);
+  const [employeesLoading, setEmployeesLoading] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -49,7 +50,7 @@ const WalkInPage: React.FC = () => {
   const { groups, fetchGroups } = useGroups();
   const { createAppointment, fetchAvailableServices } = useAppointments();
   const { clients, fetchClients, createClient } = useClients();
-  const { services, fetchServices } = useServices();
+  const { services, fetchServices, fetchEmployeesByService } = useServices();
   const { users, fetchUsers } = useUsers();
 
   const [availableServices, setAvailableServices] = useState<Service[]>([]);
@@ -83,6 +84,33 @@ const WalkInPage: React.FC = () => {
       setActiveEmployees([currentUser as User]);
     }
   }, [users, currentUser]);
+
+  // Filtrar empleados habilitados para el servicio seleccionado
+  useEffect(() => {
+    if (!selectedService) {
+      // Sin servicio: mostrar todos los activos (estado inicial)
+      const all = users.length > 0
+        ? users.filter((u) => u.is_active)
+        : currentUser ? [currentUser as User] : [];
+      setActiveEmployees(all);
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      setEmployeesLoading(true);
+      try {
+        const filtered = await fetchEmployeesByService(selectedService.id);
+        if (!cancelled) setActiveEmployees(filtered);
+      } catch {
+        if (!cancelled) setActiveEmployees(users.filter((u) => u.is_active));
+      } finally {
+        if (!cancelled) setEmployeesLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedService?.id]);
 
   // Recalcular end_time cuando cambia servicio u hora de inicio
   useEffect(() => {
@@ -149,13 +177,13 @@ const WalkInPage: React.FC = () => {
   const handleCategoryChange = (categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
     setSelectedService(null);
-    setForm((prev) => ({ ...prev, service: 0, start_time: "", end_time: "" }));
+    setForm((prev) => ({ ...prev, service: 0, employee: 0, start_time: "", end_time: "" }));
   };
 
   const handleServiceChange = (serviceId: number) => {
     const svc = availableServices.find((s) => s.id === serviceId) || null;
     setSelectedService(svc);
-    setForm((prev) => ({ ...prev, service: serviceId, start_time: "", end_time: "" }));
+    setForm((prev) => ({ ...prev, service: serviceId, employee: 0, start_time: "", end_time: "" }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -273,10 +301,16 @@ const WalkInPage: React.FC = () => {
               employees={activeEmployees}
               value={form.employee}
               onChange={(id) => setForm((prev) => ({ ...prev, employee: id }))}
+              disabled={!selectedService}
+              loading={employeesLoading}
               error={!!errors.employee}
               id="walkin-employee"
               name="employee"
-              placeholder="Seleccione un trabajador/a..."
+              placeholder={
+                employeesLoading ? "Cargando empleados..."
+                : selectedService ? "Seleccione un trabajador/a..."
+                : "Primero seleccione un servicio"
+              }
               groups={groups}
             />
             {errors.employee && <span className="walkin-error">{errors.employee}</span>}
