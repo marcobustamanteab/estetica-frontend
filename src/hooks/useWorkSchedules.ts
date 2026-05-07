@@ -61,7 +61,7 @@ export const useWorkSchedules = () => {
     return instance;
   }, [logout]);
 
-  const fetchSchedules = useCallback(async (employeeId?: number): Promise<void> => {
+  const fetchSchedules = useCallback(async (employeeId?: number): Promise<WorkSchedule[]> => {
     setLoading(true);
     setError(null);
     showLoading('Cargando horarios...');
@@ -70,8 +70,10 @@ export const useWorkSchedules = () => {
       const url = employeeId ? `${API_URL}?employee=${employeeId}` : API_URL;
       const res = await ax.get<WorkSchedule[]>(url);
       setSchedules(res.data);
+      return res.data;
     } catch {
       setError('Error al cargar los horarios');
+      return [];
     } finally {
       setLoading(false);
       hideLoading();
@@ -123,27 +125,35 @@ export const useWorkSchedules = () => {
   const saveEmployeeSchedules = useCallback(async (
     employeeId: number,
     daySchedules: Array<{ day_of_week: number; start_time: string; end_time: string; is_active: boolean }>
-  ): Promise<void> => {
+  ): Promise<WorkSchedule[]> => {
     setLoading(true);
     showLoading('Guardando horarios...');
     try {
       const ax = createAxiosInstance();
-      // Obtener horarios actuales del empleado
       const res = await ax.get<WorkSchedule[]>(`${API_URL}?employee=${employeeId}`);
       const existing = res.data;
 
-      await Promise.all(daySchedules.map(async (day) => {
-        const found = existing.find((s) => s.day_of_week === day.day_of_week);
-        if (found) {
-          await ax.patch(`${API_URL}${found.id}/`, day);
-        } else {
-          await ax.post(API_URL, { employee: employeeId, ...day });
-        }
-      }));
+      const results = await Promise.allSettled(
+        daySchedules.map(async (day) => {
+          const found = existing.find((s) => s.day_of_week === day.day_of_week);
+          if (found) {
+            const r = await ax.patch<WorkSchedule>(`${API_URL}${found.id}/`, day);
+            return r.data;
+          } else {
+            const r = await ax.post<WorkSchedule>(API_URL, { employee: employeeId, ...day });
+            return r.data;
+          }
+        })
+      );
 
-      // Refrescar lista
+      const failed = results.filter((r) => r.status === 'rejected');
+      if (failed.length > 0) {
+        throw new Error(`${failed.length} día(s) no pudieron guardarse`);
+      }
+
       const updated = await ax.get<WorkSchedule[]>(`${API_URL}?employee=${employeeId}`);
       setSchedules(updated.data);
+      return updated.data;
     } finally {
       setLoading(false);
       hideLoading();

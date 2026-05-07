@@ -270,14 +270,7 @@
   cursor: not-allowed;
 }
 
-/* Acciones */
-.ws-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 24px;
-  border-top: 1px solid #f3f4f6;
-}
+/* Acciones — definición base (sobreescrita en la sección de extras abajo) */
 
 .ws-btn-primary {
   padding: 10px 24px;
@@ -331,5 +324,336 @@
   .ws-table-row {
     grid-template-columns: 100px 60px 1fr 1fr;
     gap: 8px;
+  }
+}
+
+/* ── Tabs ───────────────────────────────────────────────────────────────── */
+
+.ws-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.ws-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.ws-tab:hover { color: #0d9488; }
+
+.ws-tab.active {
+  color: #0d9488;
+  border-bottom-color: #0d9488;
+  font-weight: 600;
+}
+
+/* Punto rojo de cambios sin guardar en la pestaña Editor */
+.ws-dirty-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  flex-shrink: 0;
+}
+
+/* ── Status dot en botones de empleado ─────────────────────────────────── */
+
+.ws-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.ws-status-dot--configured { background: #10b981; }
+.ws-status-dot--empty      { background: #d1d5db; }
+
+/* ── Overview tab ──────────────────────────────────────────────────────── */
+
+.ws-overview {
+  width: 100%;
+}
+
+.ws-grid-loading {
+  padding: 40px 0;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* ── Grid table ─────────────────────────────────────────────────────────── */
+
+.ws-grid-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.ws-grid {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+}
+
+.ws-grid-th {
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ws-grid-emp-col { text-align: left; min-width: 160px; }
+.ws-grid-day-col { width: 72px; }
+.ws-grid-hours-col { width: 72px; }
+
+/* Columna de día en que el negocio está cerrado */
+.ws-grid-closed-day {
+  background: #f3f4f6;
+  color: #c4b5b5;
+}
+
+.ws-grid-closed-badge {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  background: #fde8e8;
+  color: #b91c1c;
+  border-radius: 4px;
+  padding: 1px 4px;
+  vertical-align: middle;
+}
+
+/* Grid rows */
+.ws-grid-row {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.ws-grid-row:hover { background: #f0fdfa; }
+
+.ws-grid-row--selected { background: #f0fdfa; }
+.ws-grid-row--selected .ws-grid-emp-name { color: #0d9488; font-weight: 700; }
+
+.ws-grid-row:not(:last-child) .ws-grid-td {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Grid cells */
+.ws-grid-td {
+  padding: 10px 12px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ws-grid-emp-cell { text-align: left; }
+
+.ws-grid-emp-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ws-grid-emp-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ws-grid-emp-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ws-grid-no-schedule {
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Day cells */
+.ws-grid-day-cell { padding: 6px 8px; }
+
+.ws-grid-day-cell--active {
+  background: #ccfbf1;
+}
+
+.ws-grid-day-cell--conflict {
+  background: #fef3c7 !important;
+}
+
+.ws-grid-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f766e;
+  white-space: nowrap;
+}
+
+.ws-grid-day-cell--conflict .ws-grid-time { color: #92400e; }
+
+.ws-grid-conflict-icon {
+  font-size: 10px;
+  font-weight: 800;
+  color: #d97706;
+  background: #fde68a;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Hours cell */
+.ws-grid-hours-cell { text-align: center; }
+
+.ws-grid-hours {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0d9488;
+}
+
+.ws-grid-hours--empty {
+  color: #d1d5db;
+  font-weight: 400;
+}
+
+/* Small avatar variant for the grid */
+.ws-employee-avatar--sm {
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* ── Editor tab extras ──────────────────────────────────────────────────── */
+
+.ws-card-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.ws-card-header-top h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.ws-weekly-hours {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0d9488;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 20px;
+  padding: 3px 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ws-conflict-warning {
+  color: #d97706;
+  font-weight: 600;
+}
+
+/* Row with conflict (employee active, business closed) */
+.ws-row-conflict .ws-day-label { color: #d97706; }
+
+.ws-day-conflict-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fde68a;
+  color: #d97706;
+  font-size: 10px;
+  font-weight: 800;
+  vertical-align: middle;
+  cursor: default;
+}
+
+/* Actions bar in editor */
+.ws-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #f3f4f6;
+  flex-wrap: wrap;
+}
+
+.ws-actions-right {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
+/* Ghost button (← Vista general) */
+.ws-btn-ghost {
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ws-btn-ghost:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* Empty state button */
+.ws-empty .ws-btn-secondary {
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .ws-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ws-actions-right {
+    margin-left: 0;
+    justify-content: flex-end;
   }
 }
