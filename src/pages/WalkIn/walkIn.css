@@ -1,0 +1,148 @@
+.walkin-page {
+  padding: 24px;
+  max-width: 760px;
+}
+
+.walkin-header {
+  margin-bottom: 24px;
+}
+
+.walkin-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 6px;
+}
+
+.walkin-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.walkin-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.walkin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.walkin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.walkin-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.walkin-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .walkin-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.walkin-input {
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.walkin-input:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.walkin-input-error {
+  border-color: #ef4444;
+}
+
+.walkin-input-readonly {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: default;
+}
+
+.walkin-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.walkin-error {
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.walkin-service-hint {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.walkin-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.walkin-btn-primary {
+  padding: 10px 24px;
+  background: #0d9488;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.walkin-btn-primary:hover:not(:disabled) {
+  background: #0f766e;
+}
+
+.walkin-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.walkin-btn-secondary {
+  padding: 10px 20px;
+  background: #f9fafb;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.walkin-btn-secondary:hover {
+  background: #f3f4f6;
+}

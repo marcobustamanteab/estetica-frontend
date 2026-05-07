@@ -19,6 +19,7 @@ import DocumentTitle from './components/common/DocumentTitle';
 import MyProfilePage from './pages/Users/MyProfilePage';
 import UserProfileView from './pages/Users/UserProfileView';
 import BookingPage from './pages/booking/BookingPage';
+import WalkInPage from './pages/WalkIn/WalkInPage';
 
 const ProtectedRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -75,6 +76,7 @@ const App: React.FC = () => {
               <Route path="/servicios" element={<ProtectedRoute element={<ServicesPage />} />} />
               <Route path="/agenda" element={<ProtectedRoute element={<AppointmentsPage />} />} />
               <Route path="/reportes" element={<ProtectedRoute element={<ReportsPage />} />} />
+              <Route path="/registro-manual" element={<ProtectedRoute element={<WalkInPage />} />} />
 
               {/* Ruta por defecto */}
               <Route path="/" element={<Navigate to="/dashboard" />} />

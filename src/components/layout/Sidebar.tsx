@@ -14,6 +14,7 @@ import {
   FiChevronRight,
   FiUserPlus,
   FiShield,
+  FiEdit,
 } from "react-icons/fi";
 import "./sidebar.css";
 
@@ -42,6 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
     { path: "/agenda", icon: <FiCalendar size={20} />, label: "Agenda" },
     { path: "/clientes", icon: <FiUserCheck size={20} />, label: "Clientes" },
     { path: "/reportes", icon: <FiBarChart2 size={20} />, label: "Reportes" },
+    { path: "/registro-manual", icon: <FiEdit size={20} />, label: "Registro Manual" },
   ];
 
   // Menú para admins y superadmins
