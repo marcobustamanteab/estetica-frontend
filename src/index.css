@@ -1,4 +1,9 @@
 /* index.css - Combinación de estilos existentes y nuevos */
+
+/* SweetAlert2 siempre por encima de cualquier modal */
+.swal2-container {
+  z-index: 99999 !important;
+}
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
