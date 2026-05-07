@@ -34,6 +34,10 @@ const routeMap: Record<string, { title: string, subtitle: string }> = {
   '/registro-manual': {
     title: 'Registro Manual',
     subtitle: 'Registro Manual de Atención'
+  },
+  '/horarios': {
+    title: 'Horarios',
+    subtitle: 'Horarios de Trabajo'
   }
 };
 

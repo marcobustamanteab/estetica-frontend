@@ -15,6 +15,7 @@ import {
   FiUserPlus,
   FiShield,
   FiEdit,
+  FiClock,
 } from "react-icons/fi";
 import "./sidebar.css";
 
@@ -66,6 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       ],
     },
     { path: "/servicios", icon: <FiScissors size={20} />, label: "Servicios" },
+    { path: "/horarios", icon: <FiClock size={20} />, label: "Horarios" },
   ];
 
   // Mantenedores solo para superadmin
