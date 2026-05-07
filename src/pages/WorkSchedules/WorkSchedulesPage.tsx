@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
-import { useUsers, User } from '../../hooks/useUsers';
+import { useUsers } from '../../hooks/useUsers';
 import { useWorkSchedules, DAYS_OF_WEEK } from '../../hooks/useWorkSchedules';
 import { toast } from 'react-toastify';
 import './workSchedules.css';
