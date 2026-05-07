@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useUsers } from '../../hooks/useUsers';
 import { useWorkSchedules, DAYS_OF_WEEK } from '../../hooks/useWorkSchedules';
+import { useAuth } from '../../context/AuthContext';
+import { useBusinessContext } from '../../context/BusinessContext';
 import { toast } from 'react-toastify';
 import './workSchedules.css';
 
@@ -22,7 +24,7 @@ const emptyDays = (): DayRow[] =>
     label: d.label,
     start_time: DEFAULT_START,
     end_time: DEFAULT_END,
-    is_active: d.value <= 4, // Lunes-Viernes activos por defecto
+    is_active: d.value <= 4,
   }));
 
 const WorkSchedulesPage: React.FC = () => {
@@ -30,15 +32,35 @@ const WorkSchedulesPage: React.FC = () => {
   const [rows, setRows] = useState<DayRow[]>(emptyDays());
   const [saving, setSaving] = useState(false);
 
+  const { currentUser } = useAuth();
+  const { selectedBusiness, setSelectedBusiness, businesses } = useBusinessContext();
   const { users, fetchUsers } = useUsers();
   const { schedules, fetchSchedules, saveEmployeeSchedules } = useWorkSchedules();
 
-  const employees = users.filter((u) => u.is_active);
+  const isSuperAdmin = (currentUser as any)?.is_superuser === true;
+
+  // Filtrar empleados según rol:
+  // - Superadmin: todos los usuarios del negocio seleccionado, excluyendo superadmins
+  // - Admin: sus propios empleados + él mismo, excluyendo superadmins
+  const employees = users.filter((u) => {
+    if (!(u as any).is_active) return false;
+    if ((u as any).is_superuser) return false;
+    if (isSuperAdmin) {
+      return (u as any).business === selectedBusiness;
+    }
+    return true; // admin ve a sus trabajadores y a sí mismo
+  });
 
   useEffect(() => {
     fetchUsers();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Cuando el superadmin cambia de negocio, deseleccionar empleado
+  useEffect(() => {
+    setSelectedEmployeeId(null);
+    setRows(emptyDays());
+  }, [selectedBusiness]);
 
   useEffect(() => {
     if (!selectedEmployeeId) return;
@@ -46,20 +68,13 @@ const WorkSchedulesPage: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEmployeeId]);
 
-  // Sincronizar rows cuando llegan los horarios del backend
+  // Sincronizar rows con los horarios traídos del backend
   useEffect(() => {
-    const base = emptyDays();
-    const merged = base.map((row) => {
+    const merged = emptyDays().map((row) => {
       const found = schedules.find((s) => s.day_of_week === row.day_of_week);
-      if (found) {
-        return {
-          ...row,
-          start_time: found.start_time.slice(0, 5),
-          end_time: found.end_time.slice(0, 5),
-          is_active: found.is_active,
-        };
-      }
-      return row;
+      return found
+        ? { ...row, start_time: found.start_time.slice(0, 5), end_time: found.end_time.slice(0, 5), is_active: found.is_active }
+        : row;
     });
     setRows(merged);
   }, [schedules]);
@@ -70,22 +85,17 @@ const WorkSchedulesPage: React.FC = () => {
   };
 
   const updateRow = (index: number, field: keyof DayRow, value: any) => {
-    setRows((prev) =>
-      prev.map((r, i) => (i === index ? { ...r, [field]: value } : r))
-    );
+    setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
   };
 
   const handleSave = async () => {
     if (!selectedEmployeeId) return;
-
-    // Validar horas en días activos
     for (const row of rows) {
       if (row.is_active && row.start_time >= row.end_time) {
         toast.error(`${row.label}: la hora de entrada debe ser anterior a la de salida.`);
         return;
       }
     }
-
     setSaving(true);
     try {
       await saveEmployeeSchedules(selectedEmployeeId, rows);
@@ -108,25 +118,55 @@ const WorkSchedulesPage: React.FC = () => {
         </p>
       </div>
 
+      {/* Selector de negocio — solo superadmin */}
+      {isSuperAdmin && businesses.length > 0 && (
+        <div className="ws-business-selector">
+          <label>Negocio</label>
+          <div className="ws-business-list">
+            {businesses.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                className={`ws-business-btn${selectedBusiness === b.id ? ' active' : ''}`}
+                onClick={() => setSelectedBusiness(b.id)}
+              >
+                {b.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Selector de empleado */}
       <div className="ws-employee-selector">
         <label>Trabajador/a</label>
-        <div className="ws-employee-list">
-          {employees.map((emp) => (
-            <button
-              key={emp.id}
-              type="button"
-              className={`ws-employee-btn${selectedEmployeeId === emp.id ? ' active' : ''}`}
-              onClick={() => handleEmployeeChange(emp.id)}
-            >
-              <div className="ws-employee-avatar">
-                {(emp.first_name?.[0] || '?').toUpperCase()}
-                {(emp.last_name?.[0] || '').toUpperCase()}
-              </div>
-              <span>{emp.first_name} {emp.last_name}</span>
-            </button>
-          ))}
-        </div>
+        {employees.length === 0 ? (
+          <p className="ws-empty-hint">
+            {isSuperAdmin && !selectedBusiness
+              ? 'Selecciona un negocio primero.'
+              : 'No hay trabajadores disponibles.'}
+          </p>
+        ) : (
+          <div className="ws-employee-list">
+            {employees.map((emp) => (
+              <button
+                key={emp.id}
+                type="button"
+                className={`ws-employee-btn${selectedEmployeeId === emp.id ? ' active' : ''}`}
+                onClick={() => handleEmployeeChange(emp.id)}
+              >
+                <div className="ws-employee-avatar">
+                  {(emp.first_name?.[0] || '?').toUpperCase()}
+                  {(emp.last_name?.[0] || '').toUpperCase()}
+                </div>
+                <span>{emp.first_name} {emp.last_name}</span>
+                {(emp as any).is_staff && (
+                  <span className="ws-admin-badge">Admin</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Editor de horarios */}
@@ -138,7 +178,6 @@ const WorkSchedulesPage: React.FC = () => {
           </div>
 
           <div className="ws-table">
-            {/* Encabezado */}
             <div className="ws-table-head">
               <span>Día</span>
               <span>Trabaja</span>
@@ -146,7 +185,6 @@ const WorkSchedulesPage: React.FC = () => {
               <span>Salida</span>
             </div>
 
-            {/* Filas */}
             {rows.map((row, i) => (
               <div key={row.day_of_week} className={`ws-table-row${!row.is_active ? ' ws-row-inactive' : ''}`}>
                 <span className="ws-day-label">{row.label}</span>
@@ -180,19 +218,10 @@ const WorkSchedulesPage: React.FC = () => {
           </div>
 
           <div className="ws-actions">
-            <button
-              type="button"
-              className="ws-btn-secondary"
-              onClick={() => setRows(emptyDays())}
-            >
+            <button type="button" className="ws-btn-secondary" onClick={() => setRows(emptyDays())}>
               Restablecer
             </button>
-            <button
-              type="button"
-              className="ws-btn-primary"
-              onClick={handleSave}
-              disabled={saving}
-            >
+            <button type="button" className="ws-btn-primary" onClick={handleSave} disabled={saving}>
               {saving ? 'Guardando...' : 'Guardar horarios'}
             </button>
           </div>

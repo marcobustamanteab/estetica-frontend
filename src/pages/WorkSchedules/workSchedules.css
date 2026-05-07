@@ -20,6 +20,51 @@
   margin: 0;
 }
 
+/* Selector de negocio (superadmin) */
+.ws-business-selector {
+  margin-bottom: 20px;
+}
+
+.ws-business-selector label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 10px;
+}
+
+.ws-business-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ws-business-btn {
+  padding: 7px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.15s;
+}
+
+.ws-business-btn:hover { border-color: #0d9488; color: #0d9488; }
+.ws-business-btn.active {
+  border-color: #0d9488;
+  background: #0d9488;
+  color: white;
+  font-weight: 600;
+}
+
+.ws-empty-hint {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+}
+
 /* Selector de empleado */
 .ws-employee-selector {
   margin-bottom: 24px;
@@ -64,6 +109,16 @@
   background: #f0fdfa;
   color: #0d9488;
   font-weight: 600;
+}
+
+.ws-admin-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 10px;
+  padding: 1px 7px;
+  margin-left: 2px;
 }
 
 .ws-employee-avatar {
