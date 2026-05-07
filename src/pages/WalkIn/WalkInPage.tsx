@@ -42,7 +42,7 @@ const WalkInPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const { createAppointment, fetchAvailableServices } = useAppointments();
-  const { fetchClients, createClient } = useClients();
+  const { clients, fetchClients, createClient } = useClients();
   const { services, fetchServices } = useServices();
   const { users, fetchUsers } = useUsers();
 
@@ -50,12 +50,9 @@ const WalkInPage: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
+      fetchClients();
       fetchServices();
       fetchUsers();
-      const clients = await fetchClients();
-      if (Array.isArray(clients)) {
-        setActiveClients(clients.filter((c: Client) => c.is_active !== false));
-      }
       try {
         const avail = await fetchAvailableServices();
         setAvailableServices(avail);
@@ -66,6 +63,10 @@ const WalkInPage: React.FC = () => {
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setActiveClients(clients.filter((c) => c.is_active !== false));
+  }, [clients]);
 
   useEffect(() => {
     setActiveEmployees(users.filter((u) => u.is_active));
@@ -136,10 +137,7 @@ const WalkInPage: React.FC = () => {
   const handleCreateClient = async (clientData: ClientFormData) => {
     try {
       const newClient = await createClient(clientData);
-      const updated = await fetchClients();
-      if (Array.isArray(updated)) {
-        setActiveClients(updated.filter((c: Client) => c.is_active !== false));
-      }
+      fetchClients();
       setForm((prev) => ({ ...prev, client: newClient.id }));
       setShowClientModal(false);
       toast.success("Cliente creado exitosamente");
