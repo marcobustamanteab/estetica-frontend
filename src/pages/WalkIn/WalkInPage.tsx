@@ -12,6 +12,7 @@ import ClientFormModal from "../../components/clients/ClientFormModal";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 import { useAuth } from "../../context/AuthContext";
+import { useGroups } from "../../hooks/useGroups";
 import "./walkIn.css";
 
 interface WalkInFormValues {
@@ -45,6 +46,7 @@ const WalkInPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const { currentUser } = useAuth();
+  const { groups, fetchGroups } = useGroups();
   const { createAppointment, fetchAvailableServices } = useAppointments();
   const { clients, fetchClients, createClient } = useClients();
   const { services, fetchServices } = useServices();
@@ -57,6 +59,7 @@ const WalkInPage: React.FC = () => {
       fetchClients();
       fetchServices();
       fetchUsers();
+      fetchGroups();
       try {
         const avail = await fetchAvailableServices();
         setAvailableServices(avail);
@@ -274,6 +277,7 @@ const WalkInPage: React.FC = () => {
               id="walkin-employee"
               name="employee"
               placeholder="Seleccione un trabajador/a..."
+              groups={groups}
             />
             {errors.employee && <span className="walkin-error">{errors.employee}</span>}
           </div>
