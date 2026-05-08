@@ -47,6 +47,7 @@ const WalkInPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const { currentUser } = useAuth();
+  const isAdmin = (currentUser as any)?.is_staff === true || (currentUser as any)?.is_superuser === true;
   const { groups, fetchGroups } = useGroups();
   const { createAppointment, fetchAvailableServices } = useAppointments();
   const { clients, fetchClients, createClient } = useClients();
@@ -76,23 +77,30 @@ const WalkInPage: React.FC = () => {
     setActiveClients(clients.filter((c) => c.is_active !== false));
   }, [clients]);
 
+  // Limita la lista al propio usuario si no es admin
+  const limitToSelf = (list: User[]): User[] => {
+    if (isAdmin) return list;
+    if (!currentUser) return [];
+    const self = list.find((u) => u.id === (currentUser as any).id);
+    return self ? [self] : (currentUser ? [currentUser as User] : []);
+  };
+
   useEffect(() => {
     if (users.length > 0) {
-      setActiveEmployees(users.filter((u) => u.is_active));
+      setActiveEmployees(limitToSelf(users.filter((u) => u.is_active)));
     } else if (currentUser) {
-      // Barbero sin acceso a /api/auth/users/ — usar solo el usuario actual
       setActiveEmployees([currentUser as User]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users, currentUser]);
 
   // Filtrar empleados habilitados para el servicio seleccionado
   useEffect(() => {
     if (!selectedService) {
-      // Sin servicio: mostrar todos los activos (estado inicial)
       const all = users.length > 0
         ? users.filter((u) => u.is_active)
         : currentUser ? [currentUser as User] : [];
-      setActiveEmployees(all);
+      setActiveEmployees(limitToSelf(all));
       return;
     }
     let cancelled = false;
@@ -100,9 +108,14 @@ const WalkInPage: React.FC = () => {
       setEmployeesLoading(true);
       try {
         const filtered = await fetchEmployeesByService(selectedService.id);
-        if (!cancelled) setActiveEmployees(filtered);
+        if (!cancelled) setActiveEmployees(limitToSelf(filtered));
       } catch {
-        if (!cancelled) setActiveEmployees(users.filter((u) => u.is_active));
+        if (!cancelled) {
+          const fallback = users.length > 0
+            ? users.filter((u) => u.is_active)
+            : currentUser ? [currentUser as User] : [];
+          setActiveEmployees(limitToSelf(fallback));
+        }
       } finally {
         if (!cancelled) setEmployeesLoading(false);
       }
