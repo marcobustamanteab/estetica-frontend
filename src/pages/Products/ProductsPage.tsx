@@ -25,6 +25,14 @@ const MOVEMENT_LABELS: Record<MovementType, string> = {
   return: 'Devolución',
 };
 
+const MOVEMENT_DESCRIPTIONS: Record<MovementType, string> = {
+  in:         'Recibiste stock nuevo (compra a proveedor, reposición)',
+  sale:       'Vendiste el producto a un cliente — aparece en reportes de ingresos',
+  out:        'Salió sin ser venta: uso interno, dañado, expiró, etc.',
+  adjustment: 'Corrección de inventario al hacer un conteo físico',
+  return:     'Un cliente te devolvió el producto',
+};
+
 const MOVEMENT_COLORS: Record<MovementType, string> = {
   in:         '#dcfce7',
   return:     '#dcfce7',
@@ -293,15 +301,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, categories, onClos
 interface MovementModalProps {
   products: Product[];
   preselectedProduct?: Product | null;
+  defaultMovementType?: MovementType;
   onClose: () => void;
   onSave: (data: any) => void;
 }
 
-const MovementModal: React.FC<MovementModalProps> = ({ products, preselectedProduct, onClose, onSave }) => {
+const MovementModal: React.FC<MovementModalProps> = ({
+  products, preselectedProduct, defaultMovementType = 'in', onClose, onSave,
+}) => {
   const activeProducts = products.filter((p) => p.is_active);
   const [form, setForm] = useState({
     product: preselectedProduct?.id ?? (activeProducts[0]?.id ?? 0),
-    movement_type: 'in' as MovementType,
+    movement_type: defaultMovementType,
     quantity: '',
     notes: '',
   });
@@ -332,7 +343,7 @@ const MovementModal: React.FC<MovementModalProps> = ({ products, preselectedProd
     <div className="modal-overlay">
       <div className="modal-container" style={{ maxWidth: 460 }}>
         <div className="modal-header">
-          <h3>Registrar Movimiento de Stock</h3>
+          <h3>{defaultMovementType === 'sale' ? 'Registrar Venta' : 'Movimiento de Stock'}</h3>
           <button className="close-button" onClick={onClose}>&times;</button>
         </div>
         <form onSubmit={handleSubmit} className="form">
@@ -373,6 +384,7 @@ const MovementModal: React.FC<MovementModalProps> = ({ products, preselectedProd
                 </button>
               ))}
             </div>
+            <span className="prod-field-hint">{MOVEMENT_DESCRIPTIONS[form.movement_type]}</span>
           </div>
 
           <div className="form-row">
@@ -427,6 +439,7 @@ const ProductsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [movementProduct, setMovementProduct] = useState<Product | null>(null);
+  const [movementDefaultType, setMovementDefaultType] = useState<MovementType>('in');
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
@@ -656,8 +669,8 @@ const ProductsPage: React.FC = () => {
         <div className="action-buttons">
           <button
             className="prod-movement-btn"
-            title="Registrar movimiento"
-            onClick={() => { setMovementProduct(i.row.original); setIsMovementModalOpen(true); }}
+            title="Registrar venta"
+            onClick={() => { setMovementProduct(i.row.original); setMovementDefaultType('sale'); setIsMovementModalOpen(true); }}
           >
             ±
           </button>
@@ -764,7 +777,7 @@ const ProductsPage: React.FC = () => {
             </button>
           )}
           {activeTab === 'movements' && (
-            <button className="add-button" onClick={() => { setMovementProduct(null); setIsMovementModalOpen(true); }}>
+            <button className="add-button" onClick={() => { setMovementProduct(null); setMovementDefaultType('in'); setIsMovementModalOpen(true); }}>
               <AddIcon fontSize="small" /> Registrar Movimiento
             </button>
           )}
@@ -943,6 +956,7 @@ const ProductsPage: React.FC = () => {
         <MovementModal
           products={products}
           preselectedProduct={movementProduct}
+          defaultMovementType={movementDefaultType}
           onClose={() => { setIsMovementModalOpen(false); setMovementProduct(null); }}
           onSave={handleSaveMovement}
         />
