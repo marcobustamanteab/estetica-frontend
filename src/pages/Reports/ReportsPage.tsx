@@ -6,9 +6,10 @@ import SalesReport from '../../components/reports/SalesReport';
 import ServicesReport from '../../components/reports/ServicesReport';
 import EmployeesReport from '../../components/reports/EmployeesReport';
 import MyEarningsReport from '../../components/reports/MyEarningsreport';
+import ProductsReport from '../../components/reports/ProductsReport';
 import './reportsPage.css';
 
-export type ReportType = 'sales' | 'services' | 'employees' | null;
+export type ReportType = 'sales' | 'services' | 'employees' | 'products' | null;
 
 const ReportsPage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -21,6 +22,7 @@ const ReportsPage: React.FC = () => {
       case 'sales':     return <SalesReport />;
       case 'services':  return <ServicesReport />;
       case 'employees': return <EmployeesReport />;
+      case 'products':  return <ProductsReport />;
       default:
         return (
           <div className="select-report-message">

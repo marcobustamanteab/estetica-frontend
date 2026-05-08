@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useProducts, Product, ProductCategory, StockMovement, MovementType } from '../../hooks/useProducts';
 import { useAuth } from '../../context/AuthContext';
+import { useBusinessContext } from '../../context/BusinessContext';
 import { createColumnHelper } from '@tanstack/react-table';
 import DataTable from '../../components/common/DataTable';
 import SwitchToggle from '../../components/common/SwitchToggle';
@@ -434,7 +435,9 @@ const ProductsPage: React.FC = () => {
   const [selectedProductForHistory, setSelectedProductForHistory] = useState<Product | null>(null);
 
   const { currentUser } = useAuth();
-  const isAdmin = (currentUser as any)?.is_staff || (currentUser as any)?.is_superuser;
+  const { selectedBusiness, setSelectedBusiness, businesses } = useBusinessContext();
+  const isSuperAdmin = (currentUser as any)?.is_superuser === true;
+  const isAdmin = (currentUser as any)?.is_staff || isSuperAdmin;
 
   const {
     categories, products, movements,
@@ -443,12 +446,14 @@ const ProductsPage: React.FC = () => {
     fetchMovements, createMovement, fetchProductMovements,
   } = useProducts();
 
+  // Cargar datos según negocio seleccionado
   useEffect(() => {
-    fetchCategories();
-    fetchProducts();
-    fetchMovements();
+    const biz = isSuperAdmin ? selectedBusiness : undefined;
+    fetchCategories(biz);
+    fetchProducts(undefined, biz);
+    fetchMovements({ businessId: biz });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedBusiness]);
 
   // ── Category handlers ──
 
@@ -735,6 +740,19 @@ const ProductsPage: React.FC = () => {
       <div className="page-header">
         <h2>Gestión de Productos</h2>
         <div className="header-actions">
+          {/* Selector de negocio — solo superadmin */}
+          {isSuperAdmin && businesses.length > 0 && (
+            <select
+              value={selectedBusiness ?? ''}
+              onChange={(e) => setSelectedBusiness(e.target.value ? Number(e.target.value) : null)}
+              className="filter-select"
+            >
+              <option value="">Todos los negocios</option>
+              {businesses.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          )}
           {activeTab === 'categories' && isAdmin && (
             <button className="add-button" onClick={() => { setSelectedCategory(null); setIsCategoryModalOpen(true); }}>
               <AddIcon fontSize="small" /> Nueva Categoría

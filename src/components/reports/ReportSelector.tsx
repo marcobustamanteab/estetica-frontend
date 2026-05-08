@@ -1,7 +1,7 @@
 // src/components/reports/ReportSelector.tsx
 import React from 'react';
 import { ReportType } from '../../pages/Reports/ReportsPage';
-import { BarChart, PieChart, User } from 'lucide-react';
+import { BarChart, PieChart, User, Package } from 'lucide-react';
 import './reportSelector.css';
 
 interface ReportSelectorProps {
@@ -28,6 +28,12 @@ const availableReports = [
     name: 'Rendimiento de Empleados',
     description: 'Evalúa la productividad de cada empleado',
     icon: <User size={24} />
+  },
+  {
+    type: 'products' as ReportType,
+    name: 'Ventas de Productos',
+    description: 'Analiza las ventas de stock: ingresos, unidades y trazabilidad por vendedor',
+    icon: <Package size={24} />
   }
 ];
 

@@ -109,13 +109,14 @@ export const useProducts = () => {
 
   // ── Categories ──────────────────────────────────────────────────────────────
 
-  const fetchCategories = useCallback(async (): Promise<ProductCategory[]> => {
+  const fetchCategories = useCallback(async (businessId?: number | null): Promise<ProductCategory[]> => {
     setLoading(true);
     setError(null);
     showLoading('Cargando categorías...');
     try {
       const ax = createAxios();
-      const res = await ax.get<ProductCategory[]>(`${BASE}/categories/`);
+      const url = businessId ? `${BASE}/categories/?business=${businessId}` : `${BASE}/categories/`;
+      const res = await ax.get<ProductCategory[]>(url);
       setCategories(res.data);
       return res.data;
     } catch {
@@ -176,13 +177,16 @@ export const useProducts = () => {
 
   // ── Products ─────────────────────────────────────────────────────────────────
 
-  const fetchProducts = useCallback(async (categoryId?: number): Promise<Product[]> => {
+  const fetchProducts = useCallback(async (categoryId?: number, businessId?: number | null): Promise<Product[]> => {
     setLoading(true);
     setError(null);
     showLoading('Cargando productos...');
     try {
       const ax = createAxios();
-      const url = categoryId ? `${BASE}/?category=${categoryId}` : `${BASE}/`;
+      const params = new URLSearchParams();
+      if (categoryId) params.append('category', String(categoryId));
+      if (businessId) params.append('business', String(businessId));
+      const url = `${BASE}/${params.toString() ? '?' + params.toString() : ''}`;
       const res = await ax.get<Product[]>(url);
       setProducts(res.data);
       return res.data;
@@ -250,6 +254,7 @@ export const useProducts = () => {
     performed_by?: number;
     date_from?: string;
     date_to?: string;
+    businessId?: number | null;
   }): Promise<StockMovement[]> => {
     setLoading(true);
     setError(null);
@@ -262,6 +267,7 @@ export const useProducts = () => {
       if (filters?.performed_by) params.append('performed_by', String(filters.performed_by));
       if (filters?.date_from) params.append('date_from', filters.date_from);
       if (filters?.date_to) params.append('date_to', filters.date_to);
+      if (filters?.businessId) params.append('business', String(filters.businessId));
       const url = `${BASE}/movements/${params.toString() ? '?' + params.toString() : ''}`;
       const res = await ax.get<StockMovement[]>(url);
       setMovements(res.data);
