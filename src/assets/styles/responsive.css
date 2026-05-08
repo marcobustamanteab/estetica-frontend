@@ -39,25 +39,15 @@
     margin-left: 0 !important;
   }
 
-  /* Main content — padding reducido + safe area inferior (iOS home bar) */
+  /* Main content — padding reducido */
   .main-content {
-    padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;
+    padding: 12px;
   }
 }
 
-/* ─── 2. Header — safe area iOS + hamburguesa más grande ────────────────── */
+/* ─── 2. Header — hamburguesa con área de toque correcta ────────────────── */
 
 @media (max-width: 768px) {
-  .header {
-    /*
-     * env(safe-area-inset-top) compensa el notch/dynamic island de iPhone.
-     * Requiere viewport-fit=cover en index.html.
-     */
-    padding-top: env(safe-area-inset-top, 0px);
-    height: calc(64px + env(safe-area-inset-top, 0px));
-    min-height: calc(64px + env(safe-area-inset-top, 0px));
-  }
-
   /* Hamburguesa — mínimo 44x44px (Apple HIG touch target) */
   .menu-button {
     min-width: 44px;
@@ -80,6 +70,13 @@
     padding: 8px 12px;
     font-size: 13px;
     flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title,
+  .title {
+    font-size: 16px;
   }
 }
 
