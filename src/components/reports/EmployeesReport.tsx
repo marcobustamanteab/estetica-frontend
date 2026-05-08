@@ -88,8 +88,8 @@ const EmployeesReport: React.FC = () => {
   // Estado para el tipo de gráfico
   const [chartType, setChartType] = useState<ChartType>("bar");
 
-  // Estado de carga
   const [loading, setLoading] = useState<boolean>(false);
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -371,18 +371,16 @@ const EmployeesReport: React.FC = () => {
     },
   ];
 
-  // Opciones para los filtros de categoría
   const categoryOptions = categories
-    .map((category) => ({ id: category.id, name: category.name }))
+    .filter((c) => c.is_active)
+    .map((c) => ({ id: c.id, name: c.name }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Opciones de empleado — si hay categoría seleccionada, filtrar por sus roles permitidos
+  // Empleados filtrados por la categoría activa en tiempo real
   const employeeOptions = (() => {
     let base = employees.filter((e) => !e.is_staff && e.is_active);
-
-    const catId = filters.category?.categoryId;
-    if (catId) {
-      const selectedCat = categories.find((c) => c.id === catId);
+    if (activeCategoryId) {
+      const selectedCat = categories.find((c) => c.id === activeCategoryId);
       if (selectedCat?.allowed_roles && selectedCat.allowed_roles.length > 0) {
         const allowedIds = new Set(selectedCat.allowed_roles.map((r) => r.id));
         base = base.filter((emp) => {
@@ -391,7 +389,6 @@ const EmployeesReport: React.FC = () => {
         });
       }
     }
-
     return base
       .map((e) => ({ id: e.id, name: `${e.first_name} ${e.last_name}` }))
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -593,6 +590,7 @@ const EmployeesReport: React.FC = () => {
         categoryOptions={categoryOptions}
         initialFilters={filters}
         onFilterChange={handleFilterChange}
+        onCategoryChange={setActiveCategoryId}
       />
 
       {/* Métricas de resumen */}

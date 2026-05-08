@@ -77,8 +77,9 @@ const SalesReport: React.FC = () => {
 
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
 
-  // Estado de carga
   const [loading, setLoading] = useState<boolean>(false);
+  // Categoría activa en tiempo real (antes de clickear Apply) — controla opciones dependientes
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -289,32 +290,26 @@ const SalesReport: React.FC = () => {
     },
   ];
 
-  // Opciones para los filtros de categoría
-  const categoryOptions = services
-    .reduce((unique: { id: number; name: string }[], service) => {
-      const exists = unique.some((item) => item.id === service.category);
-      if (!exists) {
-        const categoryName = service.category_name;
-        if (categoryName) {
-          unique.push({ id: service.category, name: categoryName });
-        }
-      }
-      return unique;
-    }, [])
+  const categoryOptions = categories
+    .filter((c) => c.is_active)
+    .map((c) => ({ id: c.id, name: c.name }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // Opciones para los filtros de servicio
-  const serviceOptions = services
-    .map((service) => ({ id: service.id, name: service.name }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  // Servicios filtrados por la categoría activa en tiempo real
+  const serviceOptions = (() => {
+    const base = activeCategoryId
+      ? services.filter((s) => s.category === activeCategoryId && s.is_active)
+      : services.filter((s) => s.is_active);
+    return base
+      .map((s) => ({ id: s.id, name: s.name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  })();
 
-  // Opciones de empleado — si hay categoría seleccionada, filtrar por sus roles permitidos
+  // Empleados filtrados por la categoría activa en tiempo real
   const employeeOptions = (() => {
     let base = employees.filter((e) => !e.is_staff && e.is_active);
-
-    const catId = filters.category?.categoryId;
-    if (catId) {
-      const selectedCat = categories.find((c) => c.id === catId);
+    if (activeCategoryId) {
+      const selectedCat = categories.find((c) => c.id === activeCategoryId);
       if (selectedCat?.allowed_roles && selectedCat.allowed_roles.length > 0) {
         const allowedIds = new Set(selectedCat.allowed_roles.map((r) => r.id));
         base = base.filter((emp) => {
@@ -323,7 +318,6 @@ const SalesReport: React.FC = () => {
         });
       }
     }
-
     return base
       .map((e) => ({ id: e.id, name: `${e.first_name} ${e.last_name}` }))
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -466,6 +460,7 @@ const SalesReport: React.FC = () => {
         serviceOptions={serviceOptions}
         initialFilters={filters}
         onFilterChange={handleFilterChange}
+        onCategoryChange={setActiveCategoryId}
       />
 
       {/* Métricas de resumen */}

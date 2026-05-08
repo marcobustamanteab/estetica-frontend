@@ -39,23 +39,18 @@ interface FilterOption {
 }
 
 interface ReportFiltersProps {
-  // Configuración de qué filtros mostrar
   showCategoryFilter?: boolean;
   showEmployeeFilter?: boolean;
   showServiceFilter?: boolean;
   showStatusFilter?: boolean;
-  
-  // Opciones para los selectores
   categoryOptions?: FilterOption[];
   employeeOptions?: FilterOption[];
   serviceOptions?: FilterOption[];
   statusOptions?: FilterOption[];
-  
-  // Valores iniciales
   initialFilters?: Partial<ReportFilters>;
-  
-  // Callback cuando cambian los filtros
   onFilterChange: (filters: ReportFilters) => void;
+  // Dispara en tiempo real cuando el usuario cambia la categoría (antes de Apply)
+  onCategoryChange?: (categoryId: number | null) => void;
 }
 
 const ReportFilters: React.FC<ReportFiltersProps> = ({
@@ -68,7 +63,8 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
   serviceOptions = [],
   statusOptions = [],
   initialFilters,
-  onFilterChange
+  onFilterChange,
+  onCategoryChange,
 }) => {
   // Crear valores por defecto
   const today = new Date();
@@ -108,28 +104,29 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
   
   // Manejar cambios en filtros de selector
   const handleSelectChange = (
-    filterType: 'category' | 'employee' | 'service' | 'status', 
+    filterType: 'category' | 'employee' | 'service' | 'status',
     value: string
   ) => {
     const numericValue = value ? Number(value) : null;
-    
+
     let newFilters: ReportFilters;
-    
+
     if (filterType === 'status') {
+      newFilters = { ...filters, status: { status: value || null } };
+    } else if (filterType === 'category') {
+      // Al cambiar categoría, limpiar servicio y empleado dependientes
       newFilters = {
         ...filters,
-        status: { 
-          status: value || null
-        }
+        category: { categoryId: numericValue },
+        service: { serviceId: null },
+        employee: { employeeId: null },
       };
+      // Notificar al padre en tiempo real para que actualice las opciones dependientes
+      onCategoryChange?.(numericValue);
     } else {
-      const filterValue = { [`${filterType}Id`]: numericValue };
-      newFilters = {
-        ...filters,
-        [filterType]: filterValue
-      };
+      newFilters = { ...filters, [filterType]: { [`${filterType}Id`]: numericValue } };
     }
-    
+
     setFilters(newFilters);
   };
   
@@ -143,15 +140,16 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
     const defaultFilters: ReportFilters = {
       dateRange: {
         startDate: format(firstDayOfMonth, 'yyyy-MM-dd'),
-        endDate: format(today, 'yyyy-MM-dd')
+        endDate: format(today, 'yyyy-MM-dd'),
       },
       category: { categoryId: null },
       employee: { employeeId: null },
       service: { serviceId: null },
-      status: { status: null }
+      status: { status: null },
     };
-    
+
     setFilters(defaultFilters);
+    onCategoryChange?.(null);
     onFilterChange(defaultFilters);
   };
   
