@@ -16,6 +16,7 @@ import {
   FiShield,
   FiEdit,
   FiClock,
+  FiPackage,
 } from "react-icons/fi";
 import "./sidebar.css";
 
@@ -67,6 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       ],
     },
     { path: "/servicios", icon: <FiScissors size={20} />, label: "Servicios" },
+    { path: "/productos", icon: <FiPackage size={20} />, label: "Productos" },
     { path: "/horarios", icon: <FiClock size={20} />, label: "Horarios" },
     { path: "/configuracion", icon: <FiSettings size={20} />, label: "Configuración" },
   ];
