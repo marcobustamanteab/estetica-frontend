@@ -124,6 +124,14 @@
   margin-left: 4px;
 }
 
+.prod-field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
 /* Tabla de historial */
 .prod-history-summary {
   display: flex;

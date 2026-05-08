@@ -121,6 +121,7 @@ interface ProductModalProps {
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({ product, categories, onClose, onSave }) => {
+  const isCreating = !product;
   const activeCategories = categories.filter((c) => c.is_active);
   const [form, setForm] = useState({
     category: product?.category ?? (activeCategories[0]?.id ?? 0),
@@ -128,6 +129,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, categories, onClos
     description: product?.description ?? '',
     sale_price: product?.sale_price ?? '',
     cost_price: product?.cost_price ?? '',
+    initial_stock: '',
     min_stock: product?.min_stock ?? 0,
     is_active: product?.is_active ?? true,
   });
@@ -149,6 +151,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, categories, onClos
       cost_price: form.cost_price !== '' ? Number(form.cost_price) : null,
       min_stock: Number(form.min_stock),
       is_active: form.is_active,
+      // solo al crear — el padre lo usa para generar la Entrada automática
+      initial_stock: isCreating && form.initial_stock !== '' ? Number(form.initial_stock) : 0,
     });
   };
 
@@ -223,26 +227,54 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, categories, onClos
           </div>
 
           <div className="form-row">
+            {/* Stock inicial solo al crear */}
+            {isCreating && (
+              <div className="form-group">
+                <label>
+                  Stock inicial
+                  <span className="prod-optional"> (unidades que tenés ahora)</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="ej: 6"
+                  className="form-input"
+                  value={form.initial_stock}
+                  onChange={(e) => setForm((p) => ({ ...p, initial_stock: e.target.value }))}
+                />
+                <span className="prod-field-hint">
+                  Se registrará como Entrada automática. Dejá en blanco si aún no tenés unidades.
+                </span>
+              </div>
+            )}
             <div className="form-group">
-              <label>Stock Mínimo (alerta)</label>
+              <label>
+                Alerta de stock bajo
+                <span className="prod-optional"> (mínimo)</span>
+              </label>
               <input
                 type="number"
                 min={0}
+                placeholder="ej: 2"
                 className="form-input"
                 value={form.min_stock}
                 onChange={(e) => setForm((p) => ({ ...p, min_stock: Number(e.target.value) }))}
               />
+              <span className="prod-field-hint">
+                Cuando el stock llegue a este número o menos, aparecerá un indicador de alerta.
+              </span>
             </div>
-            <div className="form-group" style={{ justifyContent: 'flex-end', paddingTop: 28 }}>
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={form.is_active}
-                  onChange={(e) => setForm((p) => ({ ...p, is_active: e.target.checked }))}
-                />
-                <span className="checkbox-text">Activo</span>
-              </label>
-            </div>
+          </div>
+
+          <div className="form-group" style={{ paddingTop: 4 }}>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={form.is_active}
+                onChange={(e) => setForm((p) => ({ ...p, is_active: e.target.checked }))}
+              />
+              <span className="checkbox-text">Activo</span>
+            </label>
           </div>
 
           <div className="form-actions">
@@ -463,17 +495,32 @@ const ProductsPage: React.FC = () => {
   // ── Product handlers ──
 
   const handleSaveProduct = async (data: any) => {
+    const { initial_stock, ...productData } = data;
     try {
       if (selectedProduct) {
-        await updateProduct(selectedProduct.id, data);
+        await updateProduct(selectedProduct.id, productData);
         toast.success('Producto actualizado');
       } else {
-        await createProduct(data);
-        toast.success('Producto creado');
+        const created = await createProduct(productData);
+        // Registrar Entrada automática si se indicó stock inicial
+        if (initial_stock > 0) {
+          await createMovement({
+            product: created.id,
+            movement_type: 'in',
+            quantity: initial_stock,
+            notes: 'Stock inicial al crear el producto',
+          });
+        }
+        toast.success(
+          initial_stock > 0
+            ? `Producto creado con ${initial_stock} unidad(es) en stock`
+            : 'Producto creado'
+        );
       }
       setIsProductModalOpen(false);
       setSelectedProduct(null);
       fetchProducts();
+      fetchMovements();
     } catch {
       toast.error('Error al guardar el producto');
     }
