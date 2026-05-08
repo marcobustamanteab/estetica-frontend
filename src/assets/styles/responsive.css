@@ -6,7 +6,7 @@
 
 /* ─── 1. Layout — Sidebar overlay en mobile ─────────────────────────────── */
 
-/* El backdrop solo se muestra en mobile */
+/* El backdrop se oculta por defecto */
 .sidebar-backdrop {
   display: none;
 }
@@ -17,11 +17,18 @@
     z-index: 1100;
   }
 
-  /* El backdrop oscurece el contenido detrás del sidebar */
+  /*
+   * El backdrop cubre SOLO el área a la derecha del sidebar (left: 250px).
+   * Así los toques sobre el sidebar no lo interceptan, solucionando
+   * el problema de navegación en iOS.
+   */
   .sidebar-backdrop {
     display: block;
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 250px;   /* empieza donde termina el sidebar */
+    right: 0;
+    bottom: 0;
     background: rgba(0, 0, 0, 0.45);
     z-index: 1099;
   }
@@ -32,17 +39,36 @@
     margin-left: 0 !important;
   }
 
-  /* Main content — padding reducido */
+  /* Main content — padding reducido + safe area inferior (iOS home bar) */
   .main-content {
-    padding: 12px;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;
   }
 }
 
-/* ─── 2. Header ──────────────────────────────────────────────────────────── */
+/* ─── 2. Header — safe area iOS + hamburguesa más grande ────────────────── */
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .header {
-    padding: 0 12px 0 52px;
+    /*
+     * env(safe-area-inset-top) compensa el notch/dynamic island de iPhone.
+     * Requiere viewport-fit=cover en index.html.
+     */
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(64px + env(safe-area-inset-top, 0px));
+    min-height: calc(64px + env(safe-area-inset-top, 0px));
+  }
+
+  /* Hamburguesa — mínimo 44x44px (Apple HIG touch target) */
+  .menu-button {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    font-size: 22px;
+    margin-right: 4px;
+    flex-shrink: 0;
   }
 
   .header-title,
@@ -51,8 +77,9 @@
   }
 
   .logout-button {
-    padding: 6px 10px;
+    padding: 8px 12px;
     font-size: 13px;
+    flex-shrink: 0;
   }
 }
 
