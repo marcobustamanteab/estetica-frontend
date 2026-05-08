@@ -463,49 +463,16 @@ export const useServices = (): ServicesHook => {
       setLoading(true);
       setError(null);
       showLoading("Cargando empleados disponibles...");
-
       try {
         const axiosInstance = createAxiosInstance();
-        const serviceResponse = await axiosInstance.get<Service>(`${API_URL}${serviceId}/`);
-        const service = serviceResponse.data;
-
-        const usersResponse = await axiosInstance.get<User[]>(`${API_BASE_URL}/api/auth/users/`);
-        const allUsers = usersResponse.data;
-
-        const categoryResponse = await axiosInstance.get<ServiceCategory>(
-          `${CATEGORIES_BASE_URL}/api/services/categories/${service.category}/`
-        );
-        const category = categoryResponse.data;
-
-        let availableEmployees: User[];
-
-        if (category.allowed_roles && category.allowed_roles.length > 0) {
-          const allowedRoleIds = category.allowed_roles.map((role) => role.id);
-          availableEmployees = allUsers.filter((user) => {
-            if (!user.is_active || !user.groups || user.groups.length === 0) return false;
-            const userRoleIds = user.groups.map((group: any) =>
-              typeof group === "object" ? group.id : group
-            );
-            return userRoleIds.some((roleId) => allowedRoleIds.includes(roleId));
-          });
-        } else {
-          availableEmployees = allUsers.filter(
-            (user) => user.is_active && user.groups && user.groups.length > 0
-          );
-        }
-
-        return availableEmployees;
+        // Usa el endpoint dedicado del backend — solo requiere IsAuthenticated,
+        // funciona para admins y para barberos por igual.
+        const response = await axiosInstance.get<User[]>(`${API_URL}${serviceId}/employees/`);
+        return response.data;
       } catch (error) {
         setError("Error al cargar empleados por servicio");
         console.error("Error al cargar empleados por servicio:", error);
-        try {
-          const axiosInstance = createAxiosInstance();
-          const response = await axiosInstance.get<User[]>(`${API_BASE_URL}/api/auth/users/`);
-          return response.data.filter((user) => user.is_active && user.groups && user.groups.length > 0);
-        } catch (fallbackError) {
-          console.error("Error en fallback:", fallbackError);
-          return [];
-        }
+        return [];
       } finally {
         setLoading(false);
         hideLoading();
