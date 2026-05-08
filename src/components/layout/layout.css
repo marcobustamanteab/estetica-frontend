@@ -89,13 +89,10 @@
   color: #666;
 }
 
-/* RESPONSIVE */
+/* RESPONSIVE — el archivo responsive.css maneja los detalles */
 @media (max-width: 768px) {
-  .sidebar-open .main-container {
-    margin-left: 0; /* En móvil, no desplazar el contenido */
-  }
-  
-  .sidebar {
-    z-index: 1000;
+  .sidebar-open .main-container,
+  .sidebar-closed .main-container {
+    margin-left: 0;
   }
 }

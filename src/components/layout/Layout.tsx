@@ -13,7 +13,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 768);
   const { currentUser, logout } = useAuth();
   const { selectedBusiness, setSelectedBusiness, businesses } = useBusinessContext();
   const navigate = useNavigate();
@@ -23,7 +23,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isSuperAdmin = (currentUser as any)?.is_superuser === true;
   const showBreadcrumbs = location.pathname !== '/dashboard';
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  // Cierra el sidebar al navegar en mobile
+  React.useEffect(() => {
+    if (window.innerWidth <= 768) setSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Reabre automáticamente al ampliar a desktop
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) setSidebarOpen(true);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
   const handleLogout = () => {
     logout();
@@ -34,6 +48,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className={`layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+      {/* Backdrop — visible solo en mobile cuando el sidebar está abierto */}
+      {sidebarOpen && (
+        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <Sidebar expanded={sidebarOpen} user={currentUser} />

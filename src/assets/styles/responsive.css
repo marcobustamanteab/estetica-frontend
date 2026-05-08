@@ -1,0 +1,510 @@
+/*
+ * responsive.css — Reglas globales de mobile-first para todo el sitio.
+ * Importado ÚLTIMO en main.tsx para que sobreescriba los estilos de módulo.
+ * Breakpoints: 768px (tablet/mobile), 480px (teléfonos pequeños)
+ */
+
+/* ─── 1. Layout — Sidebar overlay en mobile ─────────────────────────────── */
+
+/* El backdrop solo se muestra en mobile */
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Sidebar flota sobre el contenido */
+  .sidebar {
+    z-index: 1100;
+  }
+
+  /* El backdrop oscurece el contenido detrás del sidebar */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1099;
+  }
+
+  /* El contenido nunca tiene margin-left en mobile */
+  .sidebar-open .main-container,
+  .sidebar-closed .main-container {
+    margin-left: 0 !important;
+  }
+
+  /* Main content — padding reducido */
+  .main-content {
+    padding: 12px;
+  }
+}
+
+/* ─── 2. Header ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 12px 0 52px;
+  }
+
+  .header-title,
+  .title {
+    font-size: 18px;
+  }
+
+  .logout-button {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+}
+
+/* ─── 3. Page header — todos los módulos ─────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .page-header h2 {
+    font-size: 20px;
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .header-actions .add-button,
+  .header-actions button,
+  .header-actions select {
+    flex: 1;
+    min-width: 140px;
+    justify-content: center;
+  }
+}
+
+/* ─── 4. Botones de acción primarios ─────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .add-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ─── 5. Formularios — form-row apila en mobile ──────────────────────────── */
+
+@media (max-width: 640px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-group {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .form-input,
+  .filter-input,
+  select.form-input {
+    font-size: 16px; /* Evita zoom automático en iOS */
+  }
+}
+
+/* ─── 6. Modales — full width en mobile ──────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92dvh;
+    border-radius: 16px 16px 0 0;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .form-actions {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 12px 24px;
+    border-top: 1px solid #f3f4f6;
+    z-index: 10;
+  }
+}
+
+/* ─── 7. Tabs — scroll horizontal en mobile ──────────────────────────────── */
+
+@media (max-width: 640px) {
+  .tabs-header,
+  .tab-navigation {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0;
+  }
+
+  .tabs-header::-webkit-scrollbar,
+  .tab-navigation::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-button,
+  .tabs-header button {
+    flex-shrink: 0;
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+}
+
+/* ─── 8. Filtros — apilan en mobile ─────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .filters-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-group label {
+    font-size: 12px;
+  }
+
+  .button-container {
+    width: 100%;
+  }
+
+  .button-container .add-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ─── 9. Chips de categoría (Servicios, Productos) ───────────────────────── */
+
+@media (max-width: 640px) {
+  .category-filter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .category-buttons {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .category-filter-button {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+}
+
+/* ─── 10. Tablas — scroll horizontal garantizado ────────────────────────── */
+
+@media (max-width: 768px) {
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .datatable th,
+  .datatable td {
+    padding: 10px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* Botones de acción en filas — más compactos */
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+
+  .icon-button {
+    padding: 4px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+}
+
+/* ─── 11. Reportes ───────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .reports-container {
+    flex-direction: column;
+  }
+
+  .report-selector {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+  }
+
+  .report-cards {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .report-card {
+    flex-shrink: 0;
+    min-width: 200px;
+  }
+
+  .report-content {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  /* ReportFilters — apila */
+  .filter-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .date-filter .date-inputs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .date-inputs span {
+    display: none;
+  }
+
+  .date-input {
+    width: 100%;
+    font-size: 16px;
+  }
+
+  /* Controles de visualización */
+  .visualization-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Métricas de resumen — 2 columnas en mobile */
+  .summary-metrics,
+  .report-summary {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ─── 12. Agenda / Calendario ────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .appointments-page {
+    padding: 0 8px;
+  }
+
+  /* FullCalendar — reduce tamaño de texto */
+  .fc .fc-col-header-cell-cushion,
+  .fc .fc-daygrid-day-number {
+    font-size: 12px;
+    padding: 2px 4px;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 16px;
+  }
+
+  .fc .fc-button {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .fc .fc-event-title {
+    font-size: 11px;
+  }
+}
+
+/* ─── 13. Páginas de usuarios / clientes ─────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .users-page,
+  .clients-page,
+  .services-page,
+  .products-page {
+    padding: 12px 8px;
+  }
+}
+
+/* ─── 14. WalkIn ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .walkin-page {
+    padding: 12px 8px;
+  }
+
+  .walkin-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .walkin-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+/* ─── 15. Horarios de trabajo ────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .ws-page {
+    padding: 12px 8px;
+  }
+
+  .ws-employee-list {
+    gap: 6px;
+  }
+
+  .ws-employee-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
+
+/* ─── 16. Grid de horarios ───────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .ws-grid-wrap {
+    font-size: 11px;
+  }
+
+  .ws-grid-emp-col {
+    min-width: 100px;
+  }
+
+  .ws-grid-day-col {
+    width: 44px;
+  }
+}
+
+/* ─── 17. Productos ──────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .prod-movement-types {
+    gap: 6px;
+  }
+
+  .prod-movement-type-btn {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .prod-history-table {
+    font-size: 12px;
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* ─── 18. Dashboard ──────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .dashboard {
+    padding: 0 8px;
+  }
+
+  .dashboard h2 {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .card-value {
+    font-size: 24px;
+  }
+}
+
+/* ─── 19. Login ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .login-container,
+  .login-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 24px 16px !important;
+    border-radius: 0 !important;
+    min-height: 100dvh;
+  }
+}
+
+/* ─── 20. Configuración de negocio ───────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .settings-form .form-row {
+    flex-direction: column;
+  }
+}
+
+/* ─── 21. Paginación compacta ────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .pagination {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .pagination-numbers {
+    display: none; /* Ocultar números individuales, queda prev/next */
+  }
+
+  .goto-page {
+    display: none;
+  }
+}
+
+/* ─── 22. Utilidades extra ───────────────────────────────────────────────── */
+
+/* Evita que el texto se desborde en celdas de tabla */
+@media (max-width: 640px) {
+  .datatable td:first-child {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Fix: evita que inputs en iOS hagan zoom al hacer foco */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
