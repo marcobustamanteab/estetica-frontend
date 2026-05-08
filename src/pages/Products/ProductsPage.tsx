@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useProducts, Product, ProductCategory, StockMovement, MovementType } from '../../hooks/useProducts';
-import { useUsers } from '../../hooks/useUsers';
 import { useAuth } from '../../context/AuthContext';
 import { createColumnHelper } from '@tanstack/react-table';
 import DataTable from '../../components/common/DataTable';
@@ -411,8 +410,6 @@ const ProductsPage: React.FC = () => {
     fetchProducts, createProduct, updateProduct, deleteProduct, toggleProductStatus,
     fetchMovements, createMovement, fetchProductMovements,
   } = useProducts();
-
-  const { users } = useUsers();
 
   useEffect(() => {
     fetchCategories();
