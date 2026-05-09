@@ -42,6 +42,8 @@ const Dashboard: React.FC = () => {
   const [todayAppointments, setTodayAppointments] = useState<number>(0);
   const [totalSales, setTotalSales] = useState<number>(0);
   const [monthlySales, setMonthlySales] = useState<number>(0);
+  const [todayProductSales, setTodayProductSales] = useState<number>(0);
+  const [monthlyProductSales, setMonthlyProductSales] = useState<number>(0);
 
   const {
     appointments,
@@ -59,18 +61,46 @@ const Dashboard: React.FC = () => {
     fetchServices();
     fetchUsers();
 
-    // Obtener fecha actual
     const today = new Date();
     const firstDayOfMonth = startOfMonth(today);
     const lastDayOfMonth = endOfMonth(today);
+    const todayStr = format(today, "yyyy-MM-dd");
+    const monthFrom = format(firstDayOfMonth, "yyyy-MM-dd");
+    const monthTo = format(lastDayOfMonth, "yyyy-MM-dd");
 
-    // Filtros para citas del mes actual
     const filters: AppointmentFilters = {
-      date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
-      date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
+      date_from: monthFrom,
+      date_to: monthTo,
+    };
+    fetchAppointments(filters);
+
+    // Ventas de productos — fetch directo a la API
+    const fetchProductRevenue = async (dateFrom: string, dateTo: string): Promise<number> => {
+      const token = localStorage.getItem("access");
+      if (!token) return 0;
+      const apiBase = import.meta.env.PROD
+        ? (import.meta.env.VITE_API_URL || "https://estetica-backend-production.up.railway.app")
+        : "http://localhost:8000";
+      let url = `${apiBase}/api/products/movements/?movement_type=sale&date_from=${dateFrom}&date_to=${dateTo}`;
+      if (isBarber) url += `&performed_by=${(currentUser as any)?.id}`;
+      try {
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) return 0;
+        const data: any[] = await res.json();
+        return data.reduce((sum, m) => sum + Math.abs(m.quantity) * (m.unit_price || 0), 0);
+      } catch {
+        return 0;
+      }
     };
 
-    fetchAppointments(filters);
+    Promise.all([
+      fetchProductRevenue(todayStr, todayStr),
+      fetchProductRevenue(monthFrom, monthTo),
+    ]).then(([todayProd, monthProd]) => {
+      setTodayProductSales(todayProd);
+      setMonthlyProductSales(monthProd);
+    });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Solo ejecutar al montar el componente
 
@@ -344,9 +374,13 @@ const Dashboard: React.FC = () => {
             <div className="card-info">
               <h3>Ventas Hoy</h3>
               <div className="card-value">
-                <Counter end={totalSales} prefix="$" />
+                <Counter end={totalSales + todayProductSales} prefix="$" />
               </div>
-              <p>Ventas del día</p>
+              <p>
+                {todayProductSales > 0
+                  ? `Servicios $${totalSales.toLocaleString()} · Productos $${todayProductSales.toLocaleString()}`
+                  : "Ventas del día"}
+              </p>
             </div>
             <div className="card-icon">
               <DollarSign size={48} />
@@ -360,9 +394,13 @@ const Dashboard: React.FC = () => {
             <div className="card-info">
               <h3>Ventas Mensuales</h3>
               <div className="card-value">
-                <Counter end={monthlySales} prefix="$" />
+                <Counter end={monthlySales + monthlyProductSales} prefix="$" />
               </div>
-              <p>Total de ventas del mes</p>
+              <p>
+                {monthlyProductSales > 0
+                  ? `Servicios $${monthlySales.toLocaleString()} · Productos $${monthlyProductSales.toLocaleString()}`
+                  : "Total de ventas del mes"}
+              </p>
             </div>
             <div className="card-icon">
               <TrendingUp size={48} />

@@ -76,16 +76,39 @@ const SalesReport: React.FC = () => {
   const [currentView, setCurrentView] = useState<ReportView>("chart");
 
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
-
   const [loading, setLoading] = useState<boolean>(false);
-  // Categoría activa en tiempo real (antes de clickear Apply) — controla opciones dependientes
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+
+  // Ventas de productos para el período actual
+  const [productRevenue, setProductRevenue] = useState<number>(0);
+  // Totales de servicios — separados para poder combinar con productos en métricas
+  const [serviceTotals, setServiceTotals] = useState({ sales: 0, count: 0, avgDaily: 0 });
+
+  // Fetch ventas de productos para un rango de fechas
+  const fetchProductRevenueFn = async (dateFrom: string, dateTo: string): Promise<number> => {
+    const token = localStorage.getItem("access");
+    if (!token) return 0;
+    const apiBase = import.meta.env.PROD
+      ? (import.meta.env.VITE_API_URL || "https://estetica-backend-production.up.railway.app")
+      : "http://localhost:8000";
+    try {
+      const res = await fetch(
+        `${apiBase}/api/products/movements/?movement_type=sale&date_from=${dateFrom}&date_to=${dateTo}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!res.ok) return 0;
+      const data: any[] = await res.json();
+      return data.reduce((sum, m) => sum + Math.abs(m.quantity) * (m.unit_price || 0), 0);
+    } catch {
+      return 0;
+    }
+  };
 
   // Cargar datos iniciales
   useEffect(() => {
     const loadInitialData = async () => {
       setLoading(true);
-      await Promise.all([
+      const [,,,, prodRev] = await Promise.all([
         fetchServices(),
         fetchCategories(),
         fetchUsers(),
@@ -94,11 +117,14 @@ const SalesReport: React.FC = () => {
           date_to: filters.dateRange.endDate,
           status: "completed",
         }),
+        fetchProductRevenueFn(filters.dateRange.startDate, filters.dateRange.endDate),
       ]);
+      setProductRevenue(prodRev);
       setLoading(false);
     };
 
     loadInitialData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Procesar datos cuando cambian las citas o los filtros
@@ -199,56 +225,44 @@ const SalesReport: React.FC = () => {
     processData();
   }, [appointments, services, filters]);
 
-  // Calcular métricas de resumen
+  // Calcular totales de servicios y almacenarlos — las métricas se arman en el useEffect combinado
   const calculateSummaryMetrics = (filteredAppointments: Appointment[]) => {
-    // Total de ventas
     const totalSales = filteredAppointments.reduce((sum, appointment) => {
       const service = services.find((s) => s.id === appointment.service);
       return sum + (service?.price || 0);
     }, 0);
-
-    // Total de servicios
     const totalServices = filteredAppointments.length;
-
-    // Promedio diario de ventas
-    const days =
-      differenceInDays(
-        new Date(filters.dateRange.endDate),
-        new Date(filters.dateRange.startDate)
-      ) + 1;
-
+    const days = differenceInDays(
+      new Date(filters.dateRange.endDate),
+      new Date(filters.dateRange.startDate)
+    ) + 1;
     const averageDailySales = days > 0 ? totalSales / days : 0;
-
-    // Establecer las métricas de resumen
-    setSummaryMetrics([
-      {
-        label: "Total de Ventas",
-        value: totalSales,
-        isCurrency: true,
-        trend: "neutral",
-      },
-      {
-        label: "Servicios Completados",
-        value: totalServices,
-        trend: "neutral",
-      },
-      {
-        label: "Promedio Diario",
-        value: averageDailySales,
-        isCurrency: true,
-        trend: "neutral",
-      },
-    ]);
+    setServiceTotals({ sales: totalSales, count: totalServices, avgDaily: averageDailySales });
   };
+
+  // Métricas combinadas: servicios + productos — se recalculan cuando cambia cualquiera de los dos
+  useEffect(() => {
+    setSummaryMetrics([
+      { label: "Ventas Servicios",    value: serviceTotals.sales,    isCurrency: true, trend: "neutral" },
+      { label: "Servicios Realizados", value: serviceTotals.count,    trend: "neutral" },
+      { label: "Promedio Diario",      value: serviceTotals.avgDaily, isCurrency: true, trend: "neutral" },
+      { label: "Ventas Productos",     value: productRevenue,         isCurrency: true, trend: "neutral" },
+      { label: "Total Combinado",      value: serviceTotals.sales + productRevenue, isCurrency: true, trend: "neutral" },
+    ]);
+  }, [serviceTotals, productRevenue]);
 
   // Aplicar nuevos filtros — fetch primero, luego actualizar filtros para evitar flash de datos vacíos
   const handleFilterChange = async (newFilters: FiltersType) => {
     setLoading(true);
-    await fetchAppointments({
-      date_from: newFilters.dateRange.startDate,
-      date_to: newFilters.dateRange.endDate,
-      status: "completed",
-    });
+    const [, prodRev] = await Promise.all([
+      fetchAppointments({
+        date_from: newFilters.dateRange.startDate,
+        date_to: newFilters.dateRange.endDate,
+        status: "completed",
+      }),
+      fetchProductRevenueFn(newFilters.dateRange.startDate, newFilters.dateRange.endDate),
+    ]);
+    setProductRevenue(prodRev);
     setFilters(newFilters);
     setLoading(false);
   };
