@@ -605,7 +605,7 @@ const ProductsPage: React.FC = () => {
         </span>
       ),
     }),
-    catCol.display({
+    ...(isAdmin ? [catCol.display({
       id: 'actions',
       header: 'Acciones',
       cell: (i) => (
@@ -623,7 +623,7 @@ const ProductsPage: React.FC = () => {
           </button>
         </div>
       ),
-    }),
+    })] : []),
   ];
 
   const prodCol = createColumnHelper<Product>();
@@ -681,13 +681,13 @@ const ProductsPage: React.FC = () => {
           >
             📋
           </button>
-          <SwitchToggle
-            isActive={i.row.original.is_active}
-            onChange={() => toggleProductStatus(i.row.original.id, i.row.original.is_active)}
-            size="small"
-          />
           {isAdmin && (
             <>
+              <SwitchToggle
+                isActive={i.row.original.is_active}
+                onChange={() => toggleProductStatus(i.row.original.id, i.row.original.is_active)}
+                size="small"
+              />
               <button className="icon-button edit-button" onClick={() => { setSelectedProduct(i.row.original); setIsProductModalOpen(true); }}>
                 <EditIcon fontSize="small" />
               </button>
