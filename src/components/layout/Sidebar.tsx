@@ -44,6 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
     { path: "/dashboard", icon: <FiHome size={20} />, label: "Dashboard" },
     { path: "/agenda", icon: <FiCalendar size={20} />, label: "Agenda" },
     { path: "/clientes", icon: <FiUserCheck size={20} />, label: "Clientes" },
+    { path: "/productos", icon: <FiPackage size={20} />, label: "Productos" },
     { path: "/reportes", icon: <FiBarChart2 size={20} />, label: "Reportes" },
     { path: "/registro-manual", icon: <FiEdit size={20} />, label: "Registro Manual" },
   ];
@@ -68,7 +69,6 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       ],
     },
     { path: "/servicios", icon: <FiScissors size={20} />, label: "Servicios" },
-    { path: "/productos", icon: <FiPackage size={20} />, label: "Productos" },
     { path: "/horarios", icon: <FiClock size={20} />, label: "Horarios" },
     { path: "/configuracion", icon: <FiSettings size={20} />, label: "Configuración" },
   ];
