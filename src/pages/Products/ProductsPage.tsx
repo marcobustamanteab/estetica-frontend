@@ -959,7 +959,7 @@ const ProductsPage: React.FC = () => {
           defaultMovementType={movementDefaultType}
           onClose={() => { setIsMovementModalOpen(false); setMovementProduct(null); }}
           onSave={handleSaveMovement}
-        />
+        /> 
       )}
     </div>
   );

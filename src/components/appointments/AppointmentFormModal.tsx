@@ -322,6 +322,7 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
   const [employeeSchedulesMap, setEmployeeSchedulesMap] = useState<Record<number, number[]>>({});
 
   const { currentUser } = useAuth();
+  const isAdmin = (currentUser as any)?.is_staff === true || (currentUser as any)?.is_superuser === true;
   const loadingEmployeesRef = useRef<boolean>(false);
   const currentServiceIdRef = useRef<number | null>(null);
   const { fetchAvailableServices } = useAppointments();
@@ -384,13 +385,20 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
     );
   }, [selectedCategoryId, availableServices]);
 
+  // Si no es admin, restringe la lista al propio usuario
+  const limitToSelf = (list: User[]): User[] => {
+    if (isAdmin) return list;
+    if (!currentUser) return [];
+    const self = list.find((u) => u.id === (currentUser as any)?.id);
+    return self ? [self] : [currentUser as User];
+  };
+
   // Cargar empleados por servicio
   useEffect(() => {
     const loadEmployeesByService = async () => {
       if (!selectedService) {
         const activeUsers = employees.filter(u => u.is_active);
-        const inList = activeUsers.some(e => e.id === (currentUser as any)?.id);
-        setAvailableEmployees(inList || !(currentUser as any)?.is_active ? activeUsers : [...activeUsers, currentUser as User]);
+        setAvailableEmployees(limitToSelf(activeUsers));
         currentServiceIdRef.current = null;
         return;
       }
@@ -400,22 +408,22 @@ const AppointmentFormModal: React.FC<AppointmentFormModalProps> = ({
       setEmployeesLoading(true);
       try {
         const serviceEmployees = await fetchEmployeesByService(selectedService.id);
-        const inList = serviceEmployees.some(e => e.id === (currentUser as any)?.id);
-        setAvailableEmployees(inList || !(currentUser as any)?.is_active ? serviceEmployees : [...serviceEmployees, currentUser as User]);
-        if (!appointment && formData.employee && serviceEmployees.length > 0) {
-          if (!serviceEmployees.some(emp => emp.id === formData.employee)) {
+        const restricted = limitToSelf(serviceEmployees);
+        setAvailableEmployees(restricted);
+        if (!appointment && formData.employee && restricted.length > 0) {
+          if (!restricted.some(emp => emp.id === formData.employee)) {
             setFormData(prev => ({ ...prev, employee: 0 }));
           }
         }
       } catch {
-        const activeUsers = employees.filter(u => u.is_active);
-        setAvailableEmployees(activeUsers);
+        setAvailableEmployees(limitToSelf(employees.filter(u => u.is_active)));
       } finally {
         setEmployeesLoading(false);
         loadingEmployeesRef.current = false;
       }
     };
     loadEmployeesByService();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedService?.id, fetchEmployeesByService, employees, currentUser]);
 
   // Fetchear schedules cuando cambian los empleados disponibles
