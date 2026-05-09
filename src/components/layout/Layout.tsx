@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useBusinessContext } from '../../context/BusinessContext';
 import Sidebar from './Sidebar';
+import SubHeader from './SubHeader';
 import Breadcrumb from '../common/Breadcrumb';
 import useBreadcrumbs from '../../hooks/useBreadcrumb';
 import './layout.css';
@@ -91,6 +92,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <button className="logout-button" onClick={handleLogout}>Salir</button>
         </header>
+
+        {/* Sub-header — reloj + countdown próxima cita */}
+        <SubHeader />
 
         {/* Main Content */}
         <main className="main-content">
