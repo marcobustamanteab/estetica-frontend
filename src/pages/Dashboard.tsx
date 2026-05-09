@@ -81,13 +81,20 @@ const Dashboard: React.FC = () => {
       const apiBase = import.meta.env.PROD
         ? (import.meta.env.VITE_API_URL || "https://estetica-backend-production.up.railway.app")
         : "http://localhost:8000";
-      let url = `${apiBase}/api/products/movements/?movement_type=sale&date_from=${dateFrom}&date_to=${dateTo}`;
+      // Sin filtro de tipo para obtener ventas Y devoluciones
+      let url = `${apiBase}/api/products/movements/?date_from=${dateFrom}&date_to=${dateTo}`;
       if (isBarber) url += `&performed_by=${(currentUser as any)?.id}`;
       try {
         const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
         if (!res.ok) return 0;
         const data: any[] = await res.json();
-        return data.reduce((sum, m) => sum + Math.abs(m.quantity) * (m.unit_price || 0), 0);
+        // Ventas suman, devoluciones restan → ingreso neto
+        return data.reduce((sum, m) => {
+          const amount = Math.abs(m.quantity) * (m.unit_price || 0);
+          if (m.movement_type === 'sale')   return sum + amount;
+          if (m.movement_type === 'return') return sum - amount;
+          return sum;
+        }, 0);
       } catch {
         return 0;
       }

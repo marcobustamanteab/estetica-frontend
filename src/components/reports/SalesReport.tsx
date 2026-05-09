@@ -84,7 +84,7 @@ const SalesReport: React.FC = () => {
   // Totales de servicios — separados para poder combinar con productos en métricas
   const [serviceTotals, setServiceTotals] = useState({ sales: 0, count: 0, avgDaily: 0 });
 
-  // Fetch ventas de productos para un rango de fechas
+  // Fetch ventas de productos para un rango — ventas suman, devoluciones restan (ingreso neto)
   const fetchProductRevenueFn = async (dateFrom: string, dateTo: string): Promise<number> => {
     const token = localStorage.getItem("access");
     if (!token) return 0;
@@ -93,12 +93,17 @@ const SalesReport: React.FC = () => {
       : "http://localhost:8000";
     try {
       const res = await fetch(
-        `${apiBase}/api/products/movements/?movement_type=sale&date_from=${dateFrom}&date_to=${dateTo}`,
+        `${apiBase}/api/products/movements/?date_from=${dateFrom}&date_to=${dateTo}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!res.ok) return 0;
       const data: any[] = await res.json();
-      return data.reduce((sum, m) => sum + Math.abs(m.quantity) * (m.unit_price || 0), 0);
+      return data.reduce((sum, m) => {
+        const amount = Math.abs(m.quantity) * (m.unit_price || 0);
+        if (m.movement_type === 'sale')   return sum + amount;
+        if (m.movement_type === 'return') return sum - amount;
+        return sum;
+      }, 0);
     } catch {
       return 0;
     }

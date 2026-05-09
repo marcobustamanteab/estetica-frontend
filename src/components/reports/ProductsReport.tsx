@@ -71,7 +71,6 @@ const ProductsReport: React.FC = () => {
         fetchCategories(),
         fetchUsers(),
         fetchMovements({
-          movement_type: 'sale',
           date_from: filters.dateRange.startDate,
           date_to: filters.dateRange.endDate,
         }),
@@ -95,27 +94,31 @@ const ProductsReport: React.FC = () => {
     const productCatMap: Record<number, string> = {};
     products.forEach((p) => { productCatMap[p.id] = p.category_name; });
 
-    // Filter movements to sales in date range
-    let filtered = movements.filter((m) => {
-      if (m.movement_type !== 'sale') return false;
+    // Separar ventas y devoluciones dentro del rango de fechas
+    const inRange = (m: any) => {
       const d = m.created_at.slice(0, 10);
       return d >= filters.dateRange.startDate && d <= filters.dateRange.endDate;
-    });
+    };
 
-    // Category filter (via product lookup)
+    let filtered = movements.filter((m) => m.movement_type === 'sale' && inRange(m));
+    let returns  = movements.filter((m) => m.movement_type === 'return' && inRange(m));
+
+    // Category filter
     if (activeCategoryId) {
       const prodIdsInCat = new Set(
         products.filter((p) => p.category === activeCategoryId).map((p) => p.id)
       );
       filtered = filtered.filter((m) => prodIdsInCat.has(m.product));
+      returns  = returns.filter((m) => prodIdsInCat.has(m.product));
     }
 
     // Employee filter
     if (filters.employee?.employeeId) {
       filtered = filtered.filter((m) => m.performed_by === filters.employee?.employeeId);
+      returns  = returns.filter((m) => m.performed_by === filters.employee?.employeeId);
     }
 
-    // Build rows
+    // Build sale rows (tabla — solo ventas)
     const rows: SaleRow[] = filtered.map((m) => {
       const qty = Math.abs(m.quantity);
       const price = m.unit_price ?? 0;
@@ -135,7 +138,7 @@ const ProductsReport: React.FC = () => {
     });
 
     setSaleRows(rows);
-    calculateMetrics(rows);
+    calculateMetrics(rows, returns);
     buildChart(rows, chartMode);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [movements, products, filters, activeCategoryId, chartMode]);
@@ -144,19 +147,22 @@ const ProductsReport: React.FC = () => {
 
   function emptyMetrics(): SummaryMetric[] {
     return [
-      { label: 'Total Vendido',      value: 0, isCurrency: true, trend: 'neutral' },
-      { label: 'Unidades Vendidas',  value: 0, trend: 'neutral' },
-      { label: 'Ticket Promedio',    value: 0, isCurrency: true, trend: 'neutral' },
-      { label: 'Ganancia Estimada',  value: 0, isCurrency: true, trend: 'neutral' },
+      { label: 'Ventas Brutas',     value: 0, isCurrency: true, trend: 'neutral' },
+      { label: 'Devoluciones',      value: 0, isCurrency: true, trend: 'neutral' },
+      { label: 'Total Neto',        value: 0, isCurrency: true, trend: 'neutral' },
+      { label: 'Unidades Netas',    value: 0, trend: 'neutral' },
+      { label: 'Ganancia Estimada', value: 0, isCurrency: true, trend: 'neutral' },
     ];
   }
 
-  function calculateMetrics(rows: SaleRow[]) {
-    const totalRevenue = rows.reduce((s, r) => s + r.total, 0);
-    const totalUnits   = rows.reduce((s, r) => s + r.quantity, 0);
-    const avgTicket    = rows.length > 0 ? totalRevenue / rows.length : 0;
+  function calculateMetrics(rows: SaleRow[], returnMovements: any[]) {
+    const grossRevenue   = rows.reduce((s, r) => s + r.total, 0);
+    const returnRevenue  = returnMovements.reduce((s, m) => s + Math.abs(m.quantity) * (m.unit_price || 0), 0);
+    const netRevenue     = grossRevenue - returnRevenue;
+    const soldUnits      = rows.reduce((s, r) => s + r.quantity, 0);
+    const returnedUnits  = returnMovements.reduce((s, m) => s + Math.abs(m.quantity), 0);
+    const netUnits       = soldUnits - returnedUnits;
 
-    // Ganancia estimada: (sale_price - cost_price) * qty si hay costo cargado
     let estimatedProfit = 0;
     rows.forEach((r) => {
       const prod = products.find((p) => p.id === r.product_id);
@@ -164,12 +170,20 @@ const ProductsReport: React.FC = () => {
         estimatedProfit += (r.unit_price - prod.cost_price) * r.quantity;
       }
     });
+    // Restar el margen de los productos devueltos
+    returnMovements.forEach((m) => {
+      const prod = products.find((p) => p.id === m.product);
+      if (prod?.cost_price != null) {
+        estimatedProfit -= ((m.unit_price || prod.sale_price) - prod.cost_price) * Math.abs(m.quantity);
+      }
+    });
 
     setSummaryMetrics([
-      { label: 'Total Vendido',     value: totalRevenue,      isCurrency: true, trend: 'neutral' },
-      { label: 'Unidades Vendidas', value: totalUnits,        trend: 'neutral' },
-      { label: 'Ticket Promedio',   value: avgTicket,         isCurrency: true, trend: 'neutral' },
-      { label: 'Ganancia Estimada', value: estimatedProfit,   isCurrency: true, trend: 'neutral' },
+      { label: 'Ventas Brutas',     value: grossRevenue,     isCurrency: true, trend: 'neutral' },
+      { label: 'Devoluciones',      value: -returnRevenue,   isCurrency: true, trend: 'neutral' },
+      { label: 'Total Neto',        value: netRevenue,       isCurrency: true, trend: 'neutral' },
+      { label: 'Unidades Netas',    value: netUnits,         trend: 'neutral' },
+      { label: 'Ganancia Estimada', value: estimatedProfit,  isCurrency: true, trend: 'neutral' },
     ]);
   }
 
@@ -200,7 +214,6 @@ const ProductsReport: React.FC = () => {
   const handleFilterChange = async (newFilters: FiltersType) => {
     setLoading(true);
     await fetchMovements({
-      movement_type: 'sale',
       date_from: newFilters.dateRange.startDate,
       date_to: newFilters.dateRange.endDate,
     });
