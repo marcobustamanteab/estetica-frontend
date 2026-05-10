@@ -39,54 +39,48 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
   const isSuperAdmin = user?.is_superuser === true;
   const isAdmin = user?.is_staff === true;
 
-  // Menú base para todos los usuarios
-  const baseMenuItems: MenuItem[] = [
-    { path: "/dashboard", icon: <FiHome size={20} />, label: "Dashboard" },
-    { path: "/agenda", icon: <FiCalendar size={20} />, label: "Agenda" },
-    { path: "/clientes", icon: <FiUserCheck size={20} />, label: "Clientes" },
-    { path: "/productos", icon: <FiPackage size={20} />, label: "Productos" },
-    { path: "/reportes", icon: <FiBarChart2 size={20} />, label: "Reportes" },
-    { path: "/registro-manual", icon: <FiEdit size={20} />, label: "Registro Manual" },
-  ];
+  // Menú en el orden exacto — los ítems admin-only aparecen en su posición correcta
+  const menuItems: MenuItem[] = [
+    { path: "/dashboard",       icon: <FiHome size={20} />,     label: "Dashboard" },
+    { path: "/agenda",          icon: <FiCalendar size={20} />, label: "Agenda" },
 
-  // Menú para admins y superadmins
-  const adminMenuItems: MenuItem[] = [
-    {
+    // Usuarios — solo admin/superadmin
+    ...(isAdmin || isSuperAdmin ? [{
       path: "/usuarios",
       icon: <FiUsers size={20} />,
       label: "Usuarios",
       subMenus: [
-        {
-          path: "/usuarios/administracion",
-          icon: <FiUserPlus size={20} />,
-          label: "Administración de Usuarios",
-        },
-        {
-          path: "/usuarios/roles",
-          icon: <FiShield size={20} />,
-          label: "Administración de Roles",
-        },
+        { path: "/usuarios/administracion", icon: <FiUserPlus size={20} />, label: "Administración de Usuarios" },
+        { path: "/usuarios/roles",          icon: <FiShield size={20} />,   label: "Administración de Roles" },
       ],
-    },
-    { path: "/servicios", icon: <FiScissors size={20} />, label: "Servicios" },
-    { path: "/horarios", icon: <FiClock size={20} />, label: "Horarios" },
-    { path: "/configuracion", icon: <FiSettings size={20} />, label: "Configuración" },
-  ];
+    }] : []),
 
-  // Mantenedores solo para superadmin
-  const superAdminMenuItems: MenuItem[] = [
-    {
-      path: "/mantenedores",
-      icon: <FiSettings size={20} />,
-      label: "Mantenedores",
-    },
-  ];
+    { path: "/clientes",        icon: <FiUserCheck size={20} />, label: "Clientes" },
+    { path: "/registro-manual", icon: <FiEdit size={20} />,      label: "Registro Manual" },
 
-  // Construir menú según rol
-  const menuItems: MenuItem[] = [
-    ...baseMenuItems,
-    ...(isAdmin || isSuperAdmin ? adminMenuItems : []),
-    ...(isSuperAdmin ? superAdminMenuItems : []),
+    // Servicios — solo admin/superadmin
+    ...(isAdmin || isSuperAdmin
+      ? [{ path: "/servicios", icon: <FiScissors size={20} />, label: "Servicios" }]
+      : []),
+
+    { path: "/productos",  icon: <FiPackage size={20} />,   label: "Productos" },
+
+    // Horarios — solo admin/superadmin
+    ...(isAdmin || isSuperAdmin
+      ? [{ path: "/horarios", icon: <FiClock size={20} />, label: "Horarios" }]
+      : []),
+
+    { path: "/reportes", icon: <FiBarChart2 size={20} />, label: "Reportes" },
+
+    // Configuración — solo admin/superadmin
+    ...(isAdmin || isSuperAdmin
+      ? [{ path: "/configuracion", icon: <FiSettings size={20} />, label: "Configuración" }]
+      : []),
+
+    // Mantenedores — solo superadmin
+    ...(isSuperAdmin
+      ? [{ path: "/mantenedores", icon: <FiSettings size={20} />, label: "Mantenedores" }]
+      : []),
   ];
 
   const getUserRole = (): string => {
