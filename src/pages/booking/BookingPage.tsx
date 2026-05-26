@@ -89,8 +89,8 @@ function MiniCalendar({ selected, onSelect, workingDays, primaryColor = '#0d9488
   );
 }
 
-interface Service { id: number; name: string; duration: number; price: number; description: string; }
-interface Employee { id: number; first_name: string; last_name: string; }
+interface Service { id: number; name: string; duration: number; price: number; description: string; allowed_role_ids: number[]; }
+interface Employee { id: number; first_name: string; last_name: string; specialty: string | null; role_ids: number[]; }
 interface BusinessInfo {
   id: number; name: string; slug: string; logo_url: string | null;
   services: Service[]; employees: Employee[]; working_days: number[];
@@ -182,6 +182,16 @@ export default function BookingPage() {
       .catch(() => { setAvailableTimes([]); setLoadingTimes(false); });
   }, [date, employee, slug]);
 
+  // Si el empleado seleccionado ya no está en la lista elegible (cambió el servicio), limpiarlo
+  useEffect(() => {
+    if (employee && !eligibleEmployees.find(e => e.id === employee)) {
+      setEmployee(null);
+      setDate("");
+      setTime("");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [service]);
+
   const canNext = () => {
     if (step === 1) return !!service;
     if (step === 2) return !!employee;
@@ -216,6 +226,16 @@ export default function BookingPage() {
   const selectedEmployee = business?.employees.find(e => e.id === employee);
   const empLabel = business?.employee_label || 'Especialista';
   const steps = ["Servicio", empLabel, "Fecha", "Datos"];
+
+  // Empleados que pueden realizar el servicio seleccionado.
+  // Si el servicio no tiene allowed_role_ids configurados, se muestran todos.
+  const eligibleEmployees = (() => {
+    if (!business) return [];
+    if (!selectedService || selectedService.allowed_role_ids.length === 0) return business.employees;
+    return business.employees.filter(
+      e => e.role_ids.some(rid => selectedService.allowed_role_ids.includes(rid))
+    );
+  })();
 
   const pc = business?.primary_color || '#0d9488';
   const pcLight = lighten(pc, 0.92);
@@ -385,7 +405,7 @@ export default function BookingPage() {
             <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: "#1a1a2e", margin: "0 0 4px" }}>Elige tu {empLabel}</h3>
             <p style={{ color: "#9ca3af", fontSize: 13, margin: "0 0 16px" }}>¿Con quién te gustaría atenderte?</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {business?.employees.map(e => (
+              {eligibleEmployees.map(e => (
                 <button key={e.id} onClick={() => setEmployee(e.id)} style={{
                   border: employee === e.id ? `2px solid ${pc}` : "2px solid #f3f4f6",
                   borderRadius: 14, padding: "14px 16px", cursor: "pointer",
@@ -399,12 +419,17 @@ export default function BookingPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, color: "#1a1a2e", fontSize: 14 }}>{e.first_name} {e.last_name}</div>
-                    <div style={{ color: "#9ca3af", fontSize: 12, marginTop: 2 }}>
+                    <div style={{ color: "#9ca3af", fontSize: 12, marginTop: 2, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      {e.specialty && (
+                        <span style={{ background: pcLighter, color: pc, fontWeight: 600, fontSize: 10, padding: "2px 8px", borderRadius: 20, border: `1px solid ${colorAlpha(pc, 0.2)}` }}>
+                          {e.specialty}
+                        </span>
+                      )}
                       {employeeSchedules[e.id] !== undefined ? (
                         <>
-                          {formatWorkDays(employeeSchedules[e.id].days)}
+                          <span>{formatWorkDays(employeeSchedules[e.id].days)}</span>
                           {employeeSchedules[e.id].time_range && (
-                            <span style={{ marginLeft: 6, color: pc, fontWeight: 600 }}>
+                            <span style={{ color: pc, fontWeight: 600 }}>
                               · {employeeSchedules[e.id].time_range!.from} - {employeeSchedules[e.id].time_range!.to}
                             </span>
                           )}
@@ -415,6 +440,11 @@ export default function BookingPage() {
                   {employee === e.id && <div style={{ color: pc, fontSize: 18, fontWeight: 700 }}>✓</div>}
                 </button>
               ))}
+              {eligibleEmployees.length === 0 && (
+                <p style={{ color: "#9ca3af", fontSize: 13, textAlign: "center", padding: "20px 0" }}>
+                  No hay especialistas disponibles para este servicio.
+                </p>
+              )}
             </div>
           </div>
         )}
