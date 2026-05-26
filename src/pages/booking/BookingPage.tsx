@@ -27,10 +27,11 @@ function formatWorkDays(days: number[]): string {
   return sorted.map(d => fullNames[d]).join(" · ");
 }
 
-function MiniCalendar({ selected, onSelect, workingDays }: {
+function MiniCalendar({ selected, onSelect, workingDays, primaryColor = '#0d9488' }: {
   selected: string;
   onSelect: (d: string) => void;
   workingDays: number[];
+  primaryColor?: string;
 }) {
   const today = new Date();
   const [month, setMonth] = useState(today.getMonth());
@@ -49,9 +50,9 @@ function MiniCalendar({ selected, onSelect, workingDays }: {
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", width: "100%" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <button onClick={prevMonth} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: "#0d9488", padding: "4px 10px" }}>‹</button>
+        <button onClick={prevMonth} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: primaryColor, padding: "4px 10px" }}>‹</button>
         <span style={{ fontWeight: 600, color: "#1a1a2e", fontSize: 14 }}>{MONTHS[month]} {year}</span>
-        <button onClick={nextMonth} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: "#0d9488", padding: "4px 10px" }}>›</button>
+        <button onClick={nextMonth} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: primaryColor, padding: "4px 10px" }}>›</button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
         {DAYS.map(d => (
@@ -75,8 +76,8 @@ function MiniCalendar({ selected, onSelect, workingDays }: {
                 border: "none", borderRadius: 8, padding: "8px 0",
                 cursor: isPast || isClosedDay ? "not-allowed" : "pointer",
                 fontSize: 12, fontWeight: isSelected ? 700 : 400,
-                background: isSelected ? "#0d9488" : isToday ? "#f0fdfa" : "none",
-                color: isSelected ? "white" : isPast || isClosedDay ? "#d1d5db" : isToday ? "#0d9488" : "#374151",
+                background: isSelected ? primaryColor : isToday ? colorAlpha(primaryColor, 0.08) : "none",
+                color: isSelected ? "white" : isPast || isClosedDay ? "#d1d5db" : isToday ? primaryColor : "#374151",
                 transition: "all 0.15s",
                 minWidth: 0,
               }}
@@ -90,8 +91,29 @@ function MiniCalendar({ selected, onSelect, workingDays }: {
 
 interface Service { id: number; name: string; duration: number; price: number; description: string; }
 interface Employee { id: number; first_name: string; last_name: string; }
-interface BusinessInfo { id: number; name: string; slug: string; logo_url: string | null; services: Service[]; employees: Employee[]; working_days: number[]; }
+interface BusinessInfo {
+  id: number; name: string; slug: string; logo_url: string | null;
+  services: Service[]; employees: Employee[]; working_days: number[];
+  primary_color: string; employee_label: string; booking_tagline: string;
+}
 interface EmployeeSchedule { days: number[]; time_range: { from: string; to: string } | null; }
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+}
+function colorAlpha(hex: string, alpha: number): string {
+  const rgb = hexToRgb(hex);
+  return rgb ? `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})` : hex;
+}
+function lighten(hex: string, amount: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const r = Math.min(255, rgb.r + Math.round((255 - rgb.r) * amount)).toString(16).padStart(2, '0');
+  const g = Math.min(255, rgb.g + Math.round((255 - rgb.g) * amount)).toString(16).padStart(2, '0');
+  const b = Math.min(255, rgb.b + Math.round((255 - rgb.b) * amount)).toString(16).padStart(2, '0');
+  return `#${r}${g}${b}`;
+}
 
 export default function BookingPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -192,7 +214,15 @@ export default function BookingPage() {
 
   const selectedService = business?.services.find(s => s.id === service);
   const selectedEmployee = business?.employees.find(e => e.id === employee);
-  const steps = ["Servicio", "Barbero/a", "Fecha", "Datos"];
+  const empLabel = business?.employee_label || 'Especialista';
+  const steps = ["Servicio", empLabel, "Fecha", "Datos"];
+
+  const pc = business?.primary_color || '#0d9488';
+  const pcLight = lighten(pc, 0.92);
+  const pcLighter = lighten(pc, 0.96);
+  const pcAlpha15 = colorAlpha(pc, 0.15);
+  const pcAlpha30 = colorAlpha(pc, 0.3);
+  const pcAlpha10 = colorAlpha(pc, 0.1);
 
   const serviceIcons: Record<string, string> = {
     manicure: "💅", pedicure: "🦶", tinte: "🎨", maquillaje: "💄",
@@ -208,8 +238,8 @@ export default function BookingPage() {
 
   const css = `
     * { box-sizing: border-box; }
-    .booking-wrap { min-height: 100vh; background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%); font-family: 'DM Sans', sans-serif; padding: 16px 12px 40px; }
-    .booking-card { max-width: 580px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(13,148,136,0.1); overflow: hidden; }
+    .booking-wrap { min-height: 100vh; background: linear-gradient(135deg, ${pcLight} 0%, ${lighten(pc, 0.88)} 100%); font-family: 'DM Sans', sans-serif; padding: 16px 12px 40px; }
+    .booking-card { max-width: 580px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px ${pcAlpha10}; overflow: hidden; }
     .card-body { padding: 24px 20px; }
     .card-footer { padding: 16px 20px; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-between; gap: 10px; }
     .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -225,12 +255,12 @@ export default function BookingPage() {
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     input, textarea { width: 100%; border: 2px solid #f3f4f6; border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none; font-family: 'DM Sans', sans-serif; transition: border 0.2s; }
-    input:focus, textarea:focus { border-color: #0d9488; }
+    input:focus, textarea:focus { border-color: ${pc}; }
   `;
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%)" }}>
-      <style>{css}</style>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)" }}>
+      <style>{"@keyframes spin { to { transform: rotate(360deg); } }"}</style>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
       <div style={{ textAlign: "center" }}>
         <div style={{ width: 44, height: 44, border: "3px solid #0d9488", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 14px" }} />
@@ -254,20 +284,20 @@ export default function BookingPage() {
       <style>{css}</style>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
       <div style={{ maxWidth: 480, margin: "40px auto 0", background: "white", borderRadius: 20, padding: "40px 24px", textAlign: "center", boxShadow: "0 20px 60px rgba(13,148,136,0.12)" }}>
-        <div style={{ width: 68, height: 68, background: "linear-gradient(135deg, #0d9488, #14b8a6)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 30, color: "white", fontWeight: 700 }}>✓</div>
+        <div style={{ width: 68, height: 68, background: `linear-gradient(135deg, ${pc}, ${lighten(pc, 0.2)})`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 30, color: "white", fontWeight: 700 }}>✓</div>
         <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: "#1a1a2e", margin: "0 0 10px" }}>¡Cita confirmada!</h2>
         <p style={{ color: "#6b7280", marginBottom: 24, lineHeight: 1.6, fontSize: 14 }}>
           Enviamos confirmación a <strong>{form.email}</strong>
         </p>
-        <div style={{ background: "#f0fdfa", borderRadius: 12, padding: "16px", textAlign: "left", marginBottom: 24 }}>
+        <div style={{ background: pcLighter, borderRadius: 12, padding: "16px", textAlign: "left", marginBottom: 24 }}>
           {[
             ["✂️ Servicio", selectedService?.name],
-            ["👩‍💼 Barbero/a", `${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`],
+            [`👩‍💼 ${empLabel}`, `${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`],
             ["📅 Fecha", date],
             ["🕐 Hora", time],
             ["💰 Total", formatPrice(selectedService?.price || 0)],
           ].map(([label, val]) => (
-            <div key={label as string} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #e0f2fe" }}>
+            <div key={label as string} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${pcAlpha10}` }}>
               <span style={{ color: "#6b7280", fontSize: 13 }}>{label}</span>
               <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1a2e" }}>{val}</span>
             </div>
@@ -275,7 +305,7 @@ export default function BookingPage() {
         </div>
         <button
           onClick={() => { setStep(1); setService(null); setEmployee(null); setDate(""); setTime(""); setForm({ name: "", email: "", phone: "", notes: "" }); setConfirmed(false); }}
-          style={{ background: "linear-gradient(135deg, #0d9488, #14b8a6)", color: "white", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%" }}
+          style={{ background: `linear-gradient(135deg, ${pc}, ${lighten(pc, 0.2)})`, color: "white", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%" }}
         >Agendar otra cita</button>
       </div>
     </div>
@@ -288,16 +318,16 @@ export default function BookingPage() {
 
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 20, paddingTop: 32 }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "white", borderRadius: 50, padding: "6px 16px", boxShadow: "0 4px 16px rgba(13,148,136,0.1)", marginBottom: 14 }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "white", borderRadius: 50, padding: "6px 16px", boxShadow: `0 4px 16px ${pcAlpha10}`, marginBottom: 14 }}>
           {business?.logo_url ? (
             <img src={business.logo_url} alt={business.name} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
           ) : (
-            <div style={{ width: 28, height: 28, background: "linear-gradient(135deg, #0d9488, #14b8a6)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>✂</div>
+            <div style={{ width: 28, height: 28, background: `linear-gradient(135deg, ${pc}, ${lighten(pc, 0.2)})`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>✂</div>
           )}
-          <span style={{ fontWeight: 700, color: "#0d9488", fontSize: 13 }}>{business?.name}</span>
+          <span style={{ fontWeight: 700, color: pc, fontSize: 13 }}>{business?.name}</span>
         </div>
         <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: "#1a1a2e", margin: "0 0 4px" }}>Reserva tu cita</h1>
-        <p style={{ color: "#6b7280", margin: 0, fontSize: 13 }}>Elige tu servicio y agenda en minutos</p>
+        <p style={{ color: "#6b7280", margin: 0, fontSize: 13 }}>{business?.booking_tagline || 'Elige tu servicio y agenda en minutos'}</p>
       </div>
 
       {/* Steps indicator */}
@@ -307,17 +337,17 @@ export default function BookingPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 4, opacity: i + 1 > step ? 0.35 : 1, transition: "opacity 0.3s" }}>
               <div style={{
                 width: 24, height: 24, borderRadius: "50%",
-                background: i + 1 < step ? "#0d9488" : i + 1 === step ? "linear-gradient(135deg, #0d9488, #14b8a6)" : "white",
+                background: i + 1 < step ? pc : i + 1 === step ? `linear-gradient(135deg, ${pc}, ${lighten(pc, 0.2)})` : "white",
                 border: i + 1 <= step ? "none" : "2px solid #d1d5db",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 10, fontWeight: 700,
                 color: i + 1 <= step ? "white" : "#9ca3af",
-                boxShadow: i + 1 === step ? "0 4px 12px rgba(13,148,136,0.3)" : "none",
+                boxShadow: i + 1 === step ? `0 4px 12px ${pcAlpha30}` : "none",
                 flexShrink: 0,
               }}>{i + 1 < step ? "✓" : i + 1}</div>
-              <span className="step-label" style={{ fontSize: 10, fontWeight: 600, color: i + 1 === step ? "#0d9488" : "#9ca3af" }}>{s}</span>
+              <span className="step-label" style={{ fontSize: 10, fontWeight: 600, color: i + 1 === step ? pc : "#9ca3af" }}>{s}</span>
             </div>
-            {i < steps.length - 1 && <div style={{ width: 16, height: 2, background: i + 1 < step ? "#0d9488" : "#e5e7eb", borderRadius: 2, flexShrink: 0 }} />}
+            {i < steps.length - 1 && <div style={{ width: 16, height: 2, background: i + 1 < step ? pc : "#e5e7eb", borderRadius: 2, flexShrink: 0 }} />}
           </div>
         ))}
       </div>
@@ -333,16 +363,16 @@ export default function BookingPage() {
             <div className="services-grid">
               {business?.services.map(s => (
                 <button key={s.id} onClick={() => setService(s.id)} style={{
-                  border: service === s.id ? "2px solid #0d9488" : "2px solid #f3f4f6",
+                  border: service === s.id ? `2px solid ${pc}` : "2px solid #f3f4f6",
                   borderRadius: 14, padding: "14px 12px", cursor: "pointer",
-                  background: service === s.id ? "#f0fdfa" : "white", textAlign: "left",
-                  transition: "all 0.2s", boxShadow: service === s.id ? "0 4px 16px rgba(13,148,136,0.15)" : "none",
+                  background: service === s.id ? pcLighter : "white", textAlign: "left",
+                  transition: "all 0.2s", boxShadow: service === s.id ? `0 4px 16px ${pcAlpha15}` : "none",
                   width: "100%",
                 }}>
                   <div style={{ fontSize: 22, marginBottom: 6 }}>{getIcon(s.name)}</div>
                   <div style={{ fontWeight: 600, fontSize: 13, color: "#1a1a2e", marginBottom: 2 }}>{s.name}</div>
                   <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 4 }}>{s.duration} min</div>
-                  <div style={{ fontWeight: 700, color: "#0d9488", fontSize: 13 }}>{formatPrice(s.price)}</div>
+                  <div style={{ fontWeight: 700, color: pc, fontSize: 13 }}>{formatPrice(s.price)}</div>
                 </button>
               ))}
             </div>
@@ -352,19 +382,19 @@ export default function BookingPage() {
         {/* Step 2 - Empleado */}
         {step === 2 && (
           <div className="card-body">
-            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: "#1a1a2e", margin: "0 0 4px" }}>Elige tu Barbero/a</h3>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: "#1a1a2e", margin: "0 0 4px" }}>Elige tu {empLabel}</h3>
             <p style={{ color: "#9ca3af", fontSize: 13, margin: "0 0 16px" }}>¿Con quién te gustaría atenderte?</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {business?.employees.map(e => (
                 <button key={e.id} onClick={() => setEmployee(e.id)} style={{
-                  border: employee === e.id ? "2px solid #0d9488" : "2px solid #f3f4f6",
+                  border: employee === e.id ? `2px solid ${pc}` : "2px solid #f3f4f6",
                   borderRadius: 14, padding: "14px 16px", cursor: "pointer",
-                  background: employee === e.id ? "#f0fdfa" : "white",
+                  background: employee === e.id ? pcLighter : "white",
                   display: "flex", alignItems: "center", gap: 12,
-                  transition: "all 0.2s", boxShadow: employee === e.id ? "0 4px 16px rgba(13,148,136,0.15)" : "none",
+                  transition: "all 0.2s", boxShadow: employee === e.id ? `0 4px 16px ${pcAlpha15}` : "none",
                   width: "100%", textAlign: "left",
                 }}>
-                  <div style={{ width: 42, height: 42, borderRadius: "50%", background: "linear-gradient(135deg, #0d9488, #14b8a6)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
+                  <div style={{ width: 42, height: 42, borderRadius: "50%", background: `linear-gradient(135deg, ${pc}, ${lighten(pc, 0.2)})`, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
                     {e.first_name[0]}{e.last_name[0]}
                   </div>
                   <div style={{ flex: 1 }}>
@@ -374,7 +404,7 @@ export default function BookingPage() {
                         <>
                           {formatWorkDays(employeeSchedules[e.id].days)}
                           {employeeSchedules[e.id].time_range && (
-                            <span style={{ marginLeft: 6, color: "#0d9488", fontWeight: 600 }}>
+                            <span style={{ marginLeft: 6, color: pc, fontWeight: 600 }}>
                               · {employeeSchedules[e.id].time_range!.from} - {employeeSchedules[e.id].time_range!.to}
                             </span>
                           )}
@@ -382,7 +412,7 @@ export default function BookingPage() {
                       ) : "Cargando..."}
                     </div>
                   </div>
-                  {employee === e.id && <div style={{ color: "#0d9488", fontSize: 18, fontWeight: 700 }}>✓</div>}
+                  {employee === e.id && <div style={{ color: pc, fontSize: 18, fontWeight: 700 }}>✓</div>}
                 </button>
               ))}
             </div>
@@ -398,6 +428,7 @@ export default function BookingPage() {
               selected={date}
               onSelect={setDate}
               workingDays={employeeWorkDays.filter(d => (business?.working_days ?? [0,1,2,3,4,5,6]).includes(d))}
+              primaryColor={pc}
             />
             {date && (
               <div style={{ marginTop: 20 }}>
@@ -410,9 +441,9 @@ export default function BookingPage() {
                   <div className="times-grid">
                     {availableTimes.map(t => (
                       <button key={t} onClick={() => setTime(t)} style={{
-                        border: time === t ? "2px solid #0d9488" : "2px solid #f3f4f6",
+                        border: time === t ? `2px solid ${pc}` : "2px solid #f3f4f6",
                         borderRadius: 10, padding: "10px 4px", cursor: "pointer",
-                        background: time === t ? "#0d9488" : "white",
+                        background: time === t ? pc : "white",
                         color: time === t ? "white" : "#374151",
                         fontWeight: 600, fontSize: 13, transition: "all 0.15s",
                         width: "100%",
@@ -430,16 +461,16 @@ export default function BookingPage() {
           <div className="card-body">
             <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 19, color: "#1a1a2e", margin: "0 0 4px" }}>Tus datos</h3>
             <p style={{ color: "#9ca3af", fontSize: 13, margin: "0 0 16px" }}>Casi listo — cuéntanos cómo contactarte</p>
-            <div style={{ background: "#f0fdfa", borderRadius: 12, padding: "12px 14px", marginBottom: 18, display: "flex", flexWrap: "wrap", gap: 12 }}>
+            <div style={{ background: pcLighter, borderRadius: 12, padding: "12px 14px", marginBottom: 18, display: "flex", flexWrap: "wrap", gap: 12 }}>
               {[
                 ["Servicio", selectedService?.name],
-                ["Barbero/a", `${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`],
+                [empLabel, `${selectedEmployee?.first_name} ${selectedEmployee?.last_name}`],
                 ["Fecha", date],
                 ["Hora", time],
               ].map(([label, val]) => (
                 <div key={label as string}>
                   <div style={{ fontSize: 10, color: "#9ca3af", fontWeight: 600, textTransform: "uppercase" }}>{label}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#0d9488" }}>{val}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: pc }}>{val}</div>
                 </div>
               ))}
             </div>
@@ -478,13 +509,13 @@ export default function BookingPage() {
             disabled={!canNext() || submitting}
             style={{
               marginLeft: "auto", flex: step === 1 ? 1 : "unset",
-              background: canNext() && !submitting ? "linear-gradient(135deg, #0d9488, #14b8a6)" : "#f3f4f6",
+              background: canNext() && !submitting ? `linear-gradient(135deg, ${pc}, ${lighten(pc, 0.2)})` : "#f3f4f6",
               color: canNext() && !submitting ? "white" : "#9ca3af",
               border: "none", borderRadius: 10, padding: "11px 22px",
               fontSize: 13, fontWeight: 700,
               cursor: canNext() && !submitting ? "pointer" : "not-allowed",
               transition: "all 0.2s",
-              boxShadow: canNext() && !submitting ? "0 4px 16px rgba(13,148,136,0.3)" : "none",
+              boxShadow: canNext() && !submitting ? `0 4px 16px ${pcAlpha30}` : "none",
             }}
           >
             {submitting ? "Agendando..." : step === 4 ? "✓ Confirmar cita" : "Continuar →"}

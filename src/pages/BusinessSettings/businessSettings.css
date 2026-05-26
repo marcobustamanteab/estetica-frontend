@@ -116,6 +116,27 @@
 }
 .bs-copy-btn:hover { background: #0f766e; }
 
+/* Color picker */
+.bs-color-row { display: flex; align-items: center; gap: 10px; }
+.bs-color-picker {
+  width: 44px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  flex-shrink: 0;
+}
+.bs-color-hex { max-width: 120px; font-family: monospace; }
+.bs-color-preview {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
 /* Acciones */
 .bs-actions {
   display: flex;

@@ -25,6 +25,9 @@ interface BusinessData {
   slug: string;
   logo_url: string;
   working_days: number[];
+  primary_color: string;
+  employee_label: string;
+  booking_tagline: string;
 }
 
 const BookingURL: React.FC<{ slug: string }> = ({ slug }) => {
@@ -52,7 +55,10 @@ const BusinessSettingsPage: React.FC = () => {
   const { selectedBusiness, businesses, setSelectedBusiness } = useBusinessContext();
   const isSuperAdmin = (currentUser as any)?.is_superuser === true;
 
-  const [form, setForm] = useState<BusinessData>({ id: 0, name: '', slug: '', logo_url: '', working_days: [] });
+  const [form, setForm] = useState<BusinessData>({
+    id: 0, name: '', slug: '', logo_url: '', working_days: [],
+    primary_color: '#0d9488', employee_label: 'Especialista', booking_tagline: 'Elige tu servicio y agenda en minutos',
+  });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -66,7 +72,14 @@ const BusinessSettingsPage: React.FC = () => {
         : `${API_BASE_URL}/api/auth/businesses/me/`;
       const res = await fetch(url, { headers: authHeader() });
       const data = await res.json();
-      setForm({ ...data, logo_url: data.logo_url || '', working_days: data.working_days || [] });
+      setForm({
+        ...data,
+        logo_url: data.logo_url || '',
+        working_days: data.working_days || [],
+        primary_color: data.primary_color || '#0d9488',
+        employee_label: data.employee_label || 'Especialista',
+        booking_tagline: data.booking_tagline || 'Elige tu servicio y agenda en minutos',
+      });
     } catch {
       toast.error('Error al cargar los datos del negocio');
     } finally {
@@ -103,7 +116,14 @@ const BusinessSettingsPage: React.FC = () => {
       const res = await fetch(url, {
         method: 'PATCH',
         headers: authHeader(),
-        body: JSON.stringify({ name: form.name, logo_url: form.logo_url || null, working_days: form.working_days }),
+        body: JSON.stringify({
+          name: form.name,
+          logo_url: form.logo_url || null,
+          working_days: form.working_days,
+          primary_color: form.primary_color || '#0d9488',
+          employee_label: form.employee_label || 'Especialista',
+          booking_tagline: form.booking_tagline || '',
+        }),
       });
       if (!res.ok) throw new Error();
       const updated = await res.json();
@@ -174,6 +194,60 @@ const BusinessSettingsPage: React.FC = () => {
                 placeholder="https://ejemplo.com/logo.png"
               />
             </div>
+          </div>
+
+          {/* Color primario */}
+          <div className="bs-section">
+            <label className="bs-label">Color del sitio de reservas</label>
+            <p className="bs-hint">Define el color principal que verán tus clientes al agendar.</p>
+            <div className="bs-color-row">
+              <input
+                type="color"
+                className="bs-color-picker"
+                value={form.primary_color}
+                onChange={(e) => setForm((p) => ({ ...p, primary_color: e.target.value }))}
+              />
+              <input
+                type="text"
+                className="bs-input bs-color-hex"
+                value={form.primary_color}
+                maxLength={7}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) setForm((p) => ({ ...p, primary_color: val }));
+                }}
+                placeholder="#0d9488"
+              />
+              <div className="bs-color-preview" style={{ background: form.primary_color }} />
+            </div>
+          </div>
+
+          {/* Etiqueta de empleados */}
+          <div className="bs-section">
+            <label className="bs-label">Cómo llamar a tus profesionales</label>
+            <p className="bs-hint">Este texto aparece en el paso de selección de profesional (ej: "Barbero/a", "Esteticista", "Especialista").</p>
+            <input
+              type="text"
+              className="bs-input"
+              value={form.employee_label}
+              onChange={(e) => setForm((p) => ({ ...p, employee_label: e.target.value }))}
+              placeholder="Especialista"
+              maxLength={60}
+            />
+          </div>
+
+          {/* Tagline de booking */}
+          <div className="bs-section">
+            <label className="bs-label">Frase del sitio de reservas</label>
+            <p className="bs-hint">Texto corto que aparece debajo del título "Reserva tu cita".</p>
+            <input
+              type="text"
+              className="bs-input"
+              value={form.booking_tagline}
+              onChange={(e) => setForm((p) => ({ ...p, booking_tagline: e.target.value }))}
+              placeholder="Elige tu servicio y agenda en minutos"
+              maxLength={120}
+            />
           </div>
 
           {/* Días hábiles */}
