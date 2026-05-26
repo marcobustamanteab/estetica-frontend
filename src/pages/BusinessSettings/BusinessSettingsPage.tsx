@@ -222,20 +222,6 @@ const BusinessSettingsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Etiqueta de empleados */}
-          <div className="bs-section">
-            <label className="bs-label">Cómo llamar a tus profesionales</label>
-            <p className="bs-hint">Este texto aparece en el paso de selección de profesional (ej: "Barbero/a", "Esteticista", "Especialista").</p>
-            <input
-              type="text"
-              className="bs-input"
-              value={form.employee_label}
-              onChange={(e) => setForm((p) => ({ ...p, employee_label: e.target.value }))}
-              placeholder="Especialista"
-              maxLength={60}
-            />
-          </div>
-
           {/* Tagline de booking */}
           <div className="bs-section">
             <label className="bs-label">Frase del sitio de reservas</label>

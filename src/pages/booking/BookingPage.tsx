@@ -224,9 +224,6 @@ export default function BookingPage() {
 
   const selectedService = business?.services.find(s => s.id === service);
   const selectedEmployee = business?.employees.find(e => e.id === employee);
-  const empLabel = business?.employee_label || 'Especialista';
-  const steps = ["Servicio", empLabel, "Fecha", "Datos"];
-
   // Empleados que pueden realizar el servicio seleccionado.
   // Si el servicio no tiene allowed_role_ids configurados, se muestran todos.
   const eligibleEmployees = (() => {
@@ -236,6 +233,15 @@ export default function BookingPage() {
       e => e.role_ids.some(rid => selectedService.allowed_role_ids.includes(rid))
     );
   })();
+
+  // Etiqueta del paso 2: si todos los elegibles comparten la misma especialidad, usarla
+  const empLabel = (() => {
+    if (eligibleEmployees.length === 0) return 'Especialista';
+    const specialties = [...new Set(eligibleEmployees.map(e => e.specialty).filter(Boolean))];
+    return specialties.length === 1 ? specialties[0]! : 'Especialista';
+  })();
+
+  const steps = ["Servicio", empLabel, "Fecha", "Datos"];
 
   const pc = business?.primary_color || '#0d9488';
   const pcLight = lighten(pc, 0.92);
