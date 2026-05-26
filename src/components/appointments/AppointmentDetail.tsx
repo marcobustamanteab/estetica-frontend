@@ -9,7 +9,7 @@ import { CheckCircle } from 'lucide-react';
 interface AppointmentDetailProps {
   appointment: Appointment;
   onClose: () => void;
-  onChangeStatus: (status: string) => void;
+  onChangeStatus: (status: string, paymentMethod?: string) => void;
   onEdit: () => void;
   onDelete: () => void;
   isAdmin?: boolean;
@@ -32,6 +32,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
   });
   const [loading, setLoading] = useState(false);
   const hasAttemptedLoad = useRef(false);
+  const [pendingComplete, setPendingComplete] = useState(false);
 
   // Cargar servicios y categorías una sola vez cuando se muestra el componente
   useEffect(() => {
@@ -110,6 +111,15 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
     }
   };
   
+  const getPaymentMethodLabel = (method: string | null): string => {
+    switch (method) {
+      case 'efectivo': return 'Efectivo';
+      case 'transferencia': return 'Transferencia';
+      case 'pos': return 'POS';
+      default: return 'No especificado';
+    }
+  };
+
   const getStatusText = (status: string): string => {
     switch (status) {
       case 'pending': return 'Pendiente';
@@ -166,7 +176,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
           </div>
         </div>
         
-        {/* Estado solo */}
+        {/* Estado y Medio de pago */}
         <div className="detail-row">
           <div className="detail-item">
             <h4>Estado</h4>
@@ -174,6 +184,12 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
               {getStatusText(appointment.status)}
             </p>
           </div>
+          {appointment.payment_method && (
+            <div className="detail-item">
+              <h4>Medio de pago</h4>
+              <p>{getPaymentMethodLabel(appointment.payment_method)}</p>
+            </div>
+          )}
         </div>
         
         {/* Información del servicio (precio y duración) */}
@@ -227,13 +243,33 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
               </button>
             )}
             
-            {appointment.status !== 'completed' && (
-              <button 
+            {appointment.status !== 'completed' && !pendingComplete && (
+              <button
                 className="status-button completed"
-                onClick={() => onChangeStatus('completed')}
+                onClick={() => setPendingComplete(true)}
               >
                 Completar
               </button>
+            )}
+
+            {pendingComplete && (
+              <div className="payment-method-picker">
+                <p className="payment-method-picker-label">Seleccionar medio de pago:</p>
+                <div className="payment-method-picker-buttons">
+                  {['efectivo', 'transferencia', 'pos'].map((method) => (
+                    <button
+                      key={method}
+                      className="payment-method-option"
+                      onClick={() => { onChangeStatus('completed', method); setPendingComplete(false); }}
+                    >
+                      {method === 'efectivo' ? 'Efectivo' : method === 'transferencia' ? 'Transferencia' : 'POS'}
+                    </button>
+                  ))}
+                </div>
+                <button className="payment-method-cancel" onClick={() => setPendingComplete(false)}>
+                  Cancelar
+                </button>
+              </div>
             )}
           </div>
           

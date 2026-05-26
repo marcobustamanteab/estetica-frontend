@@ -28,6 +28,7 @@ export interface Appointment {
     end_time: string;
     status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
     notes: string | null;
+    payment_method: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -41,6 +42,7 @@ export interface AppointmentFormData {
     end_time?: string;
     status?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
     notes?: string;
+    payment_method?: string;
 }
 
 export interface AppointmentsHook {
@@ -52,7 +54,7 @@ export interface AppointmentsHook {
     createAppointment: (appointmentData: AppointmentFormData) => Promise<Appointment>;
     updateAppointment: (id: number, appointmentData: AppointmentFormData) => Promise<Appointment>;
     deleteAppointment: (id: number) => Promise<boolean>;
-    changeAppointmentStatus: (id: number, status: string) => Promise<Appointment>;
+    changeAppointmentStatus: (id: number, status: string, paymentMethod?: string) => Promise<Appointment>;
     checkEmployeeAvailability: (date: string, startTime: string, serviceId: number) => Promise<User[]>;
     fetchAvailableServices: () => Promise<Service[]>;
 }
@@ -64,6 +66,7 @@ export interface AppointmentFilters {
     date_from?: string;
     date_to?: string;
     status?: string;
+    payment_method?: string;
     period?: 'week' | 'month';
 }
 
@@ -125,6 +128,7 @@ export const useAppointments = (): AppointmentsHook => {
                 if (filters.date_from) queryParams.append('date_from', filters.date_from);
                 if (filters.date_to) queryParams.append('date_to', filters.date_to);
                 if (filters.status) queryParams.append('status', filters.status);
+                if (filters.payment_method) queryParams.append('payment_method', filters.payment_method);
                 if (filters.period) queryParams.append('period', filters.period);
 
                 if (queryParams.toString()) {
@@ -224,14 +228,16 @@ export const useAppointments = (): AppointmentsHook => {
         }
     }, [createAxiosInstance, showLoading, hideLoading]);
 
-    const changeAppointmentStatus = useCallback(async (id: number, status: string): Promise<Appointment> => {
+    const changeAppointmentStatus = useCallback(async (id: number, status: string, paymentMethod?: string): Promise<Appointment> => {
         setLoading(true);
         setError(null);
         showLoading('Actualizando estado de la cita...');
 
         try {
             const axiosInstance = createAxiosInstance();
-            const response = await axiosInstance.patch<Appointment>(`${API_URL}${id}/`, { status });
+            const body: Record<string, string> = { status };
+            if (paymentMethod) body.payment_method = paymentMethod;
+            const response = await axiosInstance.patch<Appointment>(`${API_URL}${id}/`, body);
             // Actualizar la lista de citas
             setAppointments(prevAppointments =>
                 prevAppointments.map(appointment => appointment.id === id ? response.data : appointment)

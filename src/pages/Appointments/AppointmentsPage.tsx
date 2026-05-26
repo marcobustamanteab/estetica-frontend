@@ -240,7 +240,7 @@ const AppointmentsPage: React.FC = () => {
   };
 
   // Cambiar el estado de una cita
-  const handleChangeStatus = async (id: number, status: string) => {
+  const handleChangeStatus = async (id: number, status: string, paymentMethod?: string) => {
     try {
       // Buscar la cita en el array de citas
       const appointmentToUpdate = appointments.find((app) => app.id === id);
@@ -251,7 +251,7 @@ const AppointmentsPage: React.FC = () => {
         return;
       }
 
-      await changeAppointmentStatus(id, status);
+      await changeAppointmentStatus(id, status, paymentMethod);
       setShowDetail(false);
       toast.success(
         `Estado de la cita actualizado a: ${getStatusText(status)}`
@@ -550,8 +550,8 @@ const AppointmentsPage: React.FC = () => {
           <AppointmentDetail
             appointment={selectedAppointment}
             onClose={handleCloseDetail}
-            onChangeStatus={(status: string) =>
-              handleChangeStatus(selectedAppointment.id, status)
+            onChangeStatus={(status: string, paymentMethod?: string) =>
+              handleChangeStatus(selectedAppointment.id, status, paymentMethod)
             }
             onEdit={() => handleEditAppointment(selectedAppointment)}
             onDelete={() => handleDeleteAppointment(selectedAppointment.id)}

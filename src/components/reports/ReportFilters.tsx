@@ -25,12 +25,17 @@ export interface StatusFilter {
   status: string | null;
 }
 
+export interface PaymentMethodFilter {
+  paymentMethod: string | null;
+}
+
 export interface ReportFilters {
   dateRange: DateRangeFilter;
   category?: CategoryFilter;
   employee?: EmployeeFilter;
   service?: ServiceFilter;
   status?: StatusFilter;
+  paymentMethod?: PaymentMethodFilter;
 }
 
 interface FilterOption {
@@ -43,6 +48,7 @@ interface ReportFiltersProps {
   showEmployeeFilter?: boolean;
   showServiceFilter?: boolean;
   showStatusFilter?: boolean;
+  showPaymentMethodFilter?: boolean;
   categoryOptions?: FilterOption[];
   employeeOptions?: FilterOption[];
   serviceOptions?: FilterOption[];
@@ -58,6 +64,7 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
   showEmployeeFilter = false,
   showServiceFilter = false,
   showStatusFilter = false,
+  showPaymentMethodFilter = false,
   categoryOptions = [],
   employeeOptions = [],
   serviceOptions = [],
@@ -80,6 +87,7 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
     employee: { employeeId: null },
     service: { serviceId: null },
     status: { status: null },
+    paymentMethod: { paymentMethod: null },
     ...initialFilters
   });
   
@@ -104,7 +112,7 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
   
   // Manejar cambios en filtros de selector
   const handleSelectChange = (
-    filterType: 'category' | 'employee' | 'service' | 'status',
+    filterType: 'category' | 'employee' | 'service' | 'status' | 'paymentMethod',
     value: string
   ) => {
     const numericValue = value ? Number(value) : null;
@@ -113,6 +121,8 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
 
     if (filterType === 'status') {
       newFilters = { ...filters, status: { status: value || null } };
+    } else if (filterType === 'paymentMethod') {
+      newFilters = { ...filters, paymentMethod: { paymentMethod: value || null } };
     } else if (filterType === 'category') {
       // Al cambiar categoría, limpiar servicio y empleado dependientes
       newFilters = {
@@ -146,6 +156,7 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
       employee: { employeeId: null },
       service: { serviceId: null },
       status: { status: null },
+      paymentMethod: { paymentMethod: null },
     };
 
     setFilters(defaultFilters);
@@ -253,6 +264,23 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
                     {option.name}
                   </option>
                 ))}
+              </select>
+            </div>
+          )}
+
+          {/* Filtro de Medio de pago */}
+          {showPaymentMethodFilter && (
+            <div className="filter-group">
+              <label>Medio de pago</label>
+              <select
+                value={filters.paymentMethod?.paymentMethod || ''}
+                onChange={(e) => handleSelectChange('paymentMethod', e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Todos los medios</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="transferencia">Transferencia</option>
+                <option value="pos">POS</option>
               </select>
             </div>
           )}

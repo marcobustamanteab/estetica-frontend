@@ -64,6 +64,7 @@ const SalesReport: React.FC = () => {
     category: { categoryId: null },
     employee: { employeeId: null },
     service: { serviceId: null },
+    paymentMethod: { paymentMethod: null },
   });
 
   // Estado para los datos de ventas procesados
@@ -172,6 +173,13 @@ const SalesReport: React.FC = () => {
       if (filters.employee?.employeeId) {
         filteredAppointments = filteredAppointments.filter(
           (appointment) => appointment.employee === filters.employee?.employeeId
+        );
+      }
+
+      // Aplicar filtro de medio de pago si está seleccionado
+      if (filters.paymentMethod?.paymentMethod) {
+        filteredAppointments = filteredAppointments.filter(
+          (appointment) => appointment.payment_method === filters.paymentMethod?.paymentMethod
         );
       }
 
@@ -474,6 +482,7 @@ const SalesReport: React.FC = () => {
         showCategoryFilter={true}
         showEmployeeFilter={true}
         showServiceFilter={true}
+        showPaymentMethodFilter={true}
         categoryOptions={categoryOptions}
         employeeOptions={employeeOptions}
         serviceOptions={serviceOptions}

@@ -23,6 +23,7 @@ interface WalkInFormValues {
   start_time: string;
   end_time: string;
   notes: string;
+  payment_method: string;
 }
 
 const emptyForm = (): WalkInFormValues => ({
@@ -33,6 +34,7 @@ const emptyForm = (): WalkInFormValues => ({
   start_time: "",
   end_time: "",
   notes: "",
+  payment_method: "",
 });
 
 const WalkInPage: React.FC = () => {
@@ -143,6 +145,7 @@ const WalkInPage: React.FC = () => {
     if (!form.service) e.service = "Debe seleccionar un servicio";
     if (!form.employee) e.employee = "Debe seleccionar un trabajador/a";
     if (!form.date) e.date = "La fecha es obligatoria";
+    if (!form.payment_method) e.payment_method = "Debe seleccionar un medio de pago";
     if (form.start_time && form.end_time && form.start_time >= form.end_time)
       e.end_time = "La hora de fin debe ser posterior a la de inicio";
     setErrors(e);
@@ -214,6 +217,7 @@ const WalkInPage: React.FC = () => {
         end_time,
         status: "completed",
         notes: form.notes,
+        payment_method: form.payment_method,
       });
       toast.success("Registro agregado correctamente");
       setForm(emptyForm());
@@ -327,6 +331,22 @@ const WalkInPage: React.FC = () => {
               groups={groups}
             />
             {errors.employee && <span className="walkin-error">{errors.employee}</span>}
+          </div>
+
+          {/* Medio de pago */}
+          <div className="walkin-field">
+            <label>Medio de pago</label>
+            <select
+              value={form.payment_method}
+              onChange={(e) => setForm((prev) => ({ ...prev, payment_method: e.target.value }))}
+              className={`walkin-input${errors.payment_method ? " walkin-input-error" : ""}`}
+            >
+              <option value="">Seleccione un medio de pago...</option>
+              <option value="efectivo">Efectivo</option>
+              <option value="transferencia">Transferencia</option>
+              <option value="pos">POS</option>
+            </select>
+            {errors.payment_method && <span className="walkin-error">{errors.payment_method}</span>}
           </div>
 
           {/* Fecha y hora en fila */}
