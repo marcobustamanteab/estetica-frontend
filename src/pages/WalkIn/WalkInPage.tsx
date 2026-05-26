@@ -50,6 +50,11 @@ const WalkInPage: React.FC = () => {
 
   const { currentUser } = useAuth();
   const isAdmin = (currentUser as any)?.is_staff === true || (currentUser as any)?.is_superuser === true;
+  const currentUserId: number = (currentUser as any)?.id ?? 0;
+  const currentUserName = currentUser
+    ? `${(currentUser as any).first_name || ""} ${(currentUser as any).last_name || ""}`.trim() || (currentUser as any).username
+    : "";
+
   const { groups, fetchGroups } = useGroups();
   const { createAppointment, fetchAvailableServices } = useAppointments();
   const { clients, fetchClients, createClient } = useClients();
@@ -62,8 +67,7 @@ const WalkInPage: React.FC = () => {
     const load = async () => {
       fetchClients();
       fetchServices();
-      fetchUsers();
-      fetchGroups();
+      if (isAdmin) { fetchUsers(); fetchGroups(); }
       try {
         const avail = await fetchAvailableServices();
         setAvailableServices(avail);
@@ -75,34 +79,34 @@ const WalkInPage: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Pre-llenar el empleado con el usuario actual si no es admin
+  useEffect(() => {
+    if (!isAdmin && currentUserId) {
+      setForm((prev) => ({ ...prev, employee: currentUserId }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId, isAdmin]);
+
   useEffect(() => {
     setActiveClients(clients.filter((c) => c.is_active !== false));
   }, [clients]);
 
-  // Limita la lista al propio usuario si no es admin
-  const limitToSelf = (list: User[]): User[] => {
-    if (isAdmin) return list;
-    if (!currentUser) return [];
-    const self = list.find((u) => u.id === (currentUser as any).id);
-    return self ? [self] : (currentUser ? [currentUser as User] : []);
-  };
-
+  // Solo admins necesitan la lista filtrada de empleados
   useEffect(() => {
+    if (!isAdmin) return;
     if (users.length > 0) {
-      setActiveEmployees(limitToSelf(users.filter((u) => u.is_active)));
-    } else if (currentUser) {
-      setActiveEmployees([currentUser as User]);
+      setActiveEmployees(users.filter((u) => u.is_active));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users, currentUser]);
+  }, [users]);
 
-  // Filtrar empleados habilitados para el servicio seleccionado
+  // Filtrar empleados por servicio — solo para admins
   useEffect(() => {
-    if (!selectedService) {
-      const all = users.length > 0
-        ? users.filter((u) => u.is_active)
-        : currentUser ? [currentUser as User] : [];
-      setActiveEmployees(limitToSelf(all));
+    if (!isAdmin || !selectedService) {
+      if (isAdmin) {
+        const all = users.length > 0 ? users.filter((u) => u.is_active) : [];
+        setActiveEmployees(all);
+      }
       return;
     }
     let cancelled = false;
@@ -110,14 +114,9 @@ const WalkInPage: React.FC = () => {
       setEmployeesLoading(true);
       try {
         const filtered = await fetchEmployeesByService(selectedService.id);
-        if (!cancelled) setActiveEmployees(limitToSelf(filtered));
+        if (!cancelled) setActiveEmployees(filtered);
       } catch {
-        if (!cancelled) {
-          const fallback = users.length > 0
-            ? users.filter((u) => u.is_active)
-            : currentUser ? [currentUser as User] : [];
-          setActiveEmployees(limitToSelf(fallback));
-        }
+        if (!cancelled) setActiveEmployees(users.filter((u) => u.is_active));
       } finally {
         if (!cancelled) setEmployeesLoading(false);
       }
@@ -125,7 +124,7 @@ const WalkInPage: React.FC = () => {
     load();
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedService?.id]);
+  }, [selectedService?.id, isAdmin]);
 
   // Recalcular end_time cuando cambia servicio u hora de inicio
   useEffect(() => {
@@ -193,13 +192,25 @@ const WalkInPage: React.FC = () => {
   const handleCategoryChange = (categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
     setSelectedService(null);
-    setForm((prev) => ({ ...prev, service: 0, employee: 0, start_time: "", end_time: "" }));
+    setForm((prev) => ({
+      ...prev,
+      service: 0,
+      employee: isAdmin ? 0 : currentUserId,
+      start_time: "",
+      end_time: "",
+    }));
   };
 
   const handleServiceChange = (serviceId: number) => {
     const svc = availableServices.find((s) => s.id === serviceId) || null;
     setSelectedService(svc);
-    setForm((prev) => ({ ...prev, service: serviceId, employee: 0, start_time: "", end_time: "" }));
+    setForm((prev) => ({
+      ...prev,
+      service: serviceId,
+      employee: isAdmin ? 0 : currentUserId,
+      start_time: "",
+      end_time: "",
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -314,23 +325,32 @@ const WalkInPage: React.FC = () => {
           {/* Trabajador/a */}
           <div className="walkin-field">
             <label>Trabajador/a</label>
-            <EmployeeSearchSelect
-              employees={activeEmployees}
-              value={form.employee}
-              onChange={(id) => setForm((prev) => ({ ...prev, employee: id }))}
-              disabled={!selectedService}
-              loading={employeesLoading}
-              error={!!errors.employee}
-              id="walkin-employee"
-              name="employee"
-              placeholder={
-                employeesLoading ? "Cargando empleados..."
-                : selectedService ? "Seleccione un trabajador/a..."
-                : "Primero seleccione un servicio"
-              }
-              groups={groups}
-            />
-            {errors.employee && <span className="walkin-error">{errors.employee}</span>}
+            {isAdmin ? (
+              <>
+                <EmployeeSearchSelect
+                  employees={activeEmployees}
+                  value={form.employee}
+                  onChange={(id) => setForm((prev) => ({ ...prev, employee: id }))}
+                  disabled={!selectedService}
+                  loading={employeesLoading}
+                  error={!!errors.employee}
+                  id="walkin-employee"
+                  name="employee"
+                  placeholder={
+                    employeesLoading ? "Cargando empleados..."
+                    : selectedService ? "Seleccione un trabajador/a..."
+                    : "Primero seleccione un servicio"
+                  }
+                  groups={groups}
+                />
+                {errors.employee && <span className="walkin-error">{errors.employee}</span>}
+              </>
+            ) : (
+              <div className="walkin-employee-display">
+                <span className="walkin-employee-name">{currentUserName}</span>
+                <span className="walkin-employee-badge">Tú</span>
+              </div>
+            )}
           </div>
 
           {/* Medio de pago */}
@@ -408,7 +428,12 @@ const WalkInPage: React.FC = () => {
             <button
               type="button"
               className="walkin-btn-secondary"
-              onClick={() => { setForm(emptyForm()); setSelectedService(null); setSelectedCategoryId(null); setErrors({}); }}
+              onClick={() => {
+                setForm({ ...emptyForm(), employee: isAdmin ? 0 : currentUserId });
+                setSelectedService(null);
+                setSelectedCategoryId(null);
+                setErrors({});
+              }}
             >
               Limpiar
             </button>

@@ -137,6 +137,32 @@
   cursor: not-allowed;
 }
 
+/* Display de empleado para no-admins */
+.walkin-employee-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+}
+
+.walkin-employee-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.walkin-employee-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0d9488;
+  background: #ccfbf1;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
 .walkin-btn-secondary {
   padding: 10px 20px;
   background: #f9fafb;
