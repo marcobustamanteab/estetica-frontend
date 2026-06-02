@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 import { useAppointments } from "../../hooks/useAppointments";
 import { useServices } from "../../hooks/useServices";
 import { useAuth } from "../../context/AuthContext";
@@ -10,111 +11,164 @@ import {
 } from "recharts";
 import "./myEarningsReport.css";
 
-type Period = "week" | "month";
+type PeriodMode = "week" | "month" | "custom";
+
+const today = () => format(new Date(), "yyyy-MM-dd");
+const thisWeekStart = () => format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+const thisWeekEnd   = () => format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+const thisMonthStart = () => format(startOfMonth(new Date()), "yyyy-MM-dd");
+const thisMonthEnd   = () => format(endOfMonth(new Date()), "yyyy-MM-dd");
 
 const MyEarningsReport: React.FC = () => {
   const { currentUser } = useAuth();
   const { appointments, fetchAppointments } = useAppointments();
   const { services, fetchServices } = useServices();
 
-  const [period, setPeriod] = useState<Period>("month");
+  const [periodMode, setPeriodMode] = useState<PeriodMode>("month");
+  const [customStart, setCustomStart] = useState(thisMonthStart());
+  const [customEnd, setCustomEnd]     = useState(today());
+  const [appliedStart, setAppliedStart] = useState(thisMonthStart());
+  const [appliedEnd, setAppliedEnd]     = useState(thisMonthEnd());
   const [loading, setLoading] = useState(false);
 
-  const commissionRate = (currentUser as any)?.commission_rate || 50;
+  const commissionRate: number = (currentUser as any)?.commission_rate || 50;
 
-  const getDateRange = (p: Period) => {
-    const now = new Date();
-    if (p === "week") {
-      return {
-        startDate: format(startOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd"),
-        endDate: format(endOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd"),
-      };
-    }
-    return {
-      startDate: format(startOfMonth(now), "yyyy-MM-dd"),
-      endDate: format(endOfMonth(now), "yyyy-MM-dd"),
-    };
+  const loadData = async (start: string, end: string) => {
+    setLoading(true);
+    await Promise.all([
+      fetchServices(),
+      fetchAppointments({ date_from: start, date_to: end, status: "completed" }),
+    ]);
+    setLoading(false);
   };
 
+  // Carga inicial
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      const { startDate, endDate } = getDateRange(period);
-      await Promise.all([
-        fetchServices(),
-        fetchAppointments({ date_from: startDate, date_to: endDate, status: "completed" }),
-      ]);
-      setLoading(false);
-    };
-    loadData();
-  }, [period]);
+    loadData(appliedStart, appliedEnd);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Filtrar solo mis citas completadas
+  const handlePeriodChange = (mode: PeriodMode) => {
+    setPeriodMode(mode);
+    if (mode === "week") {
+      const s = thisWeekStart(), e = thisWeekEnd();
+      setAppliedStart(s); setAppliedEnd(e);
+      loadData(s, e);
+    } else if (mode === "month") {
+      const s = thisMonthStart(), e = thisMonthEnd();
+      setAppliedStart(s); setAppliedEnd(e);
+      loadData(s, e);
+    }
+    // "custom" no dispara fetch hasta que el usuario haga clic en Aplicar
+  };
+
+  const handleApplyCustom = () => {
+    if (customStart > customEnd) return;
+    setAppliedStart(customStart);
+    setAppliedEnd(customEnd);
+    loadData(customStart, customEnd);
+  };
+
+  // Mis citas completadas en el rango aplicado
   const myAppointments = appointments.filter(
-    (a) => a.employee === (currentUser as any)?.id && a.status === "completed"
+    (a) =>
+      a.employee === (currentUser as any)?.id &&
+      a.status === "completed" &&
+      a.date >= appliedStart &&
+      a.date <= appliedEnd
   );
 
-  const { startDate, endDate } = getDateRange(period);
-  const filtered = myAppointments.filter(
-    (a) => a.date >= startDate && a.date <= endDate
-  );
-
-  // Calcular ganancias
-  const totalEarnings = filtered.reduce((sum, a) => {
-    const service = services.find((s) => s.id === a.service);
-    return sum + (service ? (service.price * commissionRate) / 100 : 0);
+  // Métricas
+  const totalEarnings = myAppointments.reduce((sum, a) => {
+    const svc = services.find((s) => s.id === a.service);
+    return sum + (svc ? (Number(svc.price) * commissionRate) / 100 : 0);
   }, 0);
-
-  const totalServices = filtered.length;
-
+  const totalServices = myAppointments.length;
   const avgEarning = totalServices > 0 ? totalEarnings / totalServices : 0;
 
-  // Agrupar por servicio para el gráfico
+  // Ganancias por servicio (para el gráfico)
   const serviceMap: Record<string, { name: string; count: number; earnings: number }> = {};
-  filtered.forEach((a) => {
-    const service = services.find((s) => s.id === a.service);
-    if (!service) return;
-    if (!serviceMap[service.id]) {
-      serviceMap[service.id] = { name: service.name, count: 0, earnings: 0 };
-    }
-    serviceMap[service.id].count += 1;
-    serviceMap[service.id].earnings += (service.price * commissionRate) / 100;
+  myAppointments.forEach((a) => {
+    const svc = services.find((s) => s.id === a.service);
+    if (!svc) return;
+    const key = String(svc.id);
+    if (!serviceMap[key]) serviceMap[key] = { name: svc.name, count: 0, earnings: 0 };
+    serviceMap[key].count += 1;
+    serviceMap[key].earnings += (Number(svc.price) * commissionRate) / 100;
   });
-
   const chartData = Object.values(serviceMap).sort((a, b) => b.earnings - a.earnings);
 
-  // Agrupar por día para tabla
-  const byDay: Record<string, { date: string; count: number; earnings: number }> = {};
-  filtered.forEach((a) => {
-    if (!byDay[a.date]) byDay[a.date] = { date: a.date, count: 0, earnings: 0 };
-    const service = services.find((s) => s.id === a.service);
-    if (service) {
-      byDay[a.date].count += 1;
-      byDay[a.date].earnings += (service.price * commissionRate) / 100;
-    }
-  });
-  const dayRows = Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date));
+  // Detalle por atención (tabla)
+  const detailRows = [...myAppointments]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((a) => {
+      const svc = services.find((s) => s.id === a.service);
+      const price = svc ? Number(svc.price) : 0;
+      return {
+        id: a.id,
+        date: a.date,
+        service: a.service_name,
+        client: a.client_name,
+        price,
+        earning: (price * commissionRate) / 100,
+      };
+    });
 
   const formatCLP = (n: number) => `$${Math.round(n).toLocaleString("es-CL")}`;
 
+  const periodLabel = periodMode === "week"
+    ? "Esta semana"
+    : periodMode === "month"
+    ? "Este mes"
+    : `${format(parseISO(appliedStart), "d MMM", { locale: es })} – ${format(parseISO(appliedEnd), "d MMM yyyy", { locale: es })}`;
+
   return (
     <div className="my-earnings-report">
-      {/* Header */}
+
+      {/* Header + filtros */}
       <div className="earnings-header">
-        <h3>Mis Ganancias</h3>
-        <div className="period-toggle">
-          <button
-            className={period === "week" ? "active" : ""}
-            onClick={() => setPeriod("week")}
-          >
-            Esta Semana
-          </button>
-          <button
-            className={period === "month" ? "active" : ""}
-            onClick={() => setPeriod("month")}
-          >
-            Este Mes
-          </button>
+        <div>
+          <h3>Mis Ganancias</h3>
+          <p className="earnings-period-label">{periodLabel}</p>
+        </div>
+        <div className="earnings-filters">
+          <div className="period-toggle">
+            {(["week", "month", "custom"] as PeriodMode[]).map((m) => (
+              <button
+                key={m}
+                className={periodMode === m ? "active" : ""}
+                onClick={() => handlePeriodChange(m)}
+              >
+                {m === "week" ? "Semana" : m === "month" ? "Mes" : "Personalizado"}
+              </button>
+            ))}
+          </div>
+          {periodMode === "custom" && (
+            <div className="earnings-custom-range">
+              <input
+                type="date"
+                value={customStart}
+                max={customEnd}
+                onChange={(e) => setCustomStart(e.target.value)}
+                className="earnings-date-input"
+              />
+              <span className="earnings-range-sep">a</span>
+              <input
+                type="date"
+                value={customEnd}
+                min={customStart}
+                onChange={(e) => setCustomEnd(e.target.value)}
+                className="earnings-date-input"
+              />
+              <button
+                className="earnings-apply-btn"
+                onClick={handleApplyCustom}
+                disabled={customStart > customEnd}
+              >
+                Aplicar
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -128,36 +182,28 @@ const MyEarningsReport: React.FC = () => {
           {/* Summary Cards */}
           <div className="earnings-cards">
             <div className="earnings-card">
-              <div className="earnings-card-icon green">
-                <DollarSign size={22} />
-              </div>
+              <div className="earnings-card-icon green"><DollarSign size={22} /></div>
               <div>
                 <div className="earnings-card-value">{formatCLP(totalEarnings)}</div>
                 <div className="earnings-card-label">Total Ganancias</div>
               </div>
             </div>
             <div className="earnings-card">
-              <div className="earnings-card-icon teal">
-                <Calendar size={22} />
-              </div>
+              <div className="earnings-card-icon teal"><Calendar size={22} /></div>
               <div>
                 <div className="earnings-card-value">{totalServices}</div>
                 <div className="earnings-card-label">Servicios Completados</div>
               </div>
             </div>
             <div className="earnings-card">
-              <div className="earnings-card-icon blue">
-                <TrendingUp size={22} />
-              </div>
+              <div className="earnings-card-icon blue"><TrendingUp size={22} /></div>
               <div>
                 <div className="earnings-card-value">{formatCLP(avgEarning)}</div>
                 <div className="earnings-card-label">Promedio por Servicio</div>
               </div>
             </div>
             <div className="earnings-card">
-              <div className="earnings-card-icon purple">
-                <Scissors size={22} />
-              </div>
+              <div className="earnings-card-icon purple"><Scissors size={22} /></div>
               <div>
                 <div className="earnings-card-value">{commissionRate}%</div>
                 <div className="earnings-card-label">Tu Comisión</div>
@@ -165,13 +211,13 @@ const MyEarningsReport: React.FC = () => {
             </div>
           </div>
 
-          {filtered.length === 0 ? (
+          {myAppointments.length === 0 ? (
             <div className="earnings-empty">
               <p>📅 No hay servicios completados en este período.</p>
             </div>
           ) : (
             <>
-              {/* Chart */}
+              {/* Gráfico por servicio */}
               <div className="earnings-chart-container">
                 <h4>Ganancias por Servicio</h4>
                 <ResponsiveContainer width="100%" height={250}>
@@ -185,32 +231,40 @@ const MyEarningsReport: React.FC = () => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Table by day */}
+              {/* Tabla de detalle por atención */}
               <div className="earnings-table-container">
-                <h4>Detalle por Día</h4>
-                <table className="earnings-table">
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-                      <th>Servicios</th>
-                      <th>Ganancias</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dayRows.map((row) => (
-                      <tr key={row.date}>
-                        <td>{format(new Date(row.date + "T00:00:00"), "dd/MM/yyyy")}</td>
-                        <td>{row.count}</td>
-                        <td style={{ fontWeight: 600, color: "#0d9488" }}>{formatCLP(row.earnings)}</td>
+                <h4>Detalle de Atenciones</h4>
+                <div className="earnings-table-wrap">
+                  <table className="earnings-table">
+                    <thead>
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Servicio</th>
+                        <th>Cliente</th>
+                        <th>Precio base</th>
+                        <th>Tu ganancia</th>
                       </tr>
-                    ))}
-                    <tr className="earnings-total-row">
-                      <td><strong>Total</strong></td>
-                      <td><strong>{totalServices}</strong></td>
-                      <td><strong style={{ color: "#0d9488" }}>{formatCLP(totalEarnings)}</strong></td>
-                    </tr>
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {detailRows.map((row) => (
+                        <tr key={row.id}>
+                          <td>{format(parseISO(row.date + "T00:00:00"), "dd/MM/yyyy")}</td>
+                          <td>{row.service}</td>
+                          <td className="earnings-client-name">{row.client}</td>
+                          <td>{formatCLP(row.price)}</td>
+                          <td className="earnings-highlight">{formatCLP(row.earning)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="earnings-total-row">
+                        <td colSpan={3}><strong>Total ({totalServices} atenciones)</strong></td>
+                        <td>—</td>
+                        <td><strong className="earnings-highlight">{formatCLP(totalEarnings)}</strong></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
             </>
           )}
