@@ -13,6 +13,7 @@ interface MiniCalendarProps {
   onDateClick: (date: string) => void;
   onAppointmentClick: (appointment: Appointment) => void;
   onNewAppointment?: (date: Date, time: string) => void;
+  onRangeChange?: (start: string, end: string) => void;
 }
 
 const MiniCalendar: React.FC<MiniCalendarProps> = ({
@@ -20,6 +21,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
   onDateClick,
   onAppointmentClick,
   onNewAppointment,
+  onRangeChange,
 }) => {
   const calendarRef = useRef<FullCalendar>(null);
   const [activeView, setActiveView] = useState<
@@ -217,6 +219,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
             center: "title",
             right: "next",
           }}
+          datesSet={(info) => onRangeChange?.(info.startStr.slice(0, 10), info.endStr.slice(0, 10))}
           height="auto"
           aspectRatio={1.35}
           dayMaxEventRows={3}

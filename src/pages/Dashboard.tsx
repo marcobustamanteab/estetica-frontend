@@ -68,12 +68,6 @@ const Dashboard: React.FC = () => {
     const monthFrom = format(firstDayOfMonth, "yyyy-MM-dd");
     const monthTo = format(lastDayOfMonth, "yyyy-MM-dd");
 
-    const filters: AppointmentFilters = {
-      date_from: monthFrom,
-      date_to: monthTo,
-    };
-    fetchAppointments(filters);
-
     // Ventas de productos — fetch directo a la API
     const fetchProductRevenue = async (dateFrom: string, dateTo: string): Promise<number> => {
       const token = localStorage.getItem("access");
@@ -159,6 +153,11 @@ const Dashboard: React.FC = () => {
       });
       setMonthlySales(monthlySalesTotal);
     }, [appointments, services]);
+
+  // Fetch de citas cuando FullCalendar cambia el rango visible (navegación entre meses)
+  const handleCalendarRangeChange = (start: string, end: string) => {
+    fetchAppointments({ date_from: start, date_to: end });
+  };
 
   // Manejar clic en fecha del calendario - Ahora solo actualiza la fecha seleccionada
   const handleDateClick = (date: string) => {
@@ -424,6 +423,7 @@ const Dashboard: React.FC = () => {
             onDateClick={handleDateClick}
             onAppointmentClick={handleAppointmentClick}
             onNewAppointment={handleNewAppointmentFromCalendar}
+            onRangeChange={handleCalendarRangeChange}
           />
         </div>
         <div className="upcoming-appointments-widget">
