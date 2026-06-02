@@ -98,48 +98,29 @@ const AppointmentsPage: React.FC = () => {
     const today = format(new Date(), "yyyy-MM-dd");
     setFilterDate(today);
 
-    // Cargar citas según la pestaña activa
-    if (activeTab === "calendar") {
-      const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-      const initialFilters: AppointmentFilters = {
-        date_from: format(firstDayOfMonth, "yyyy-MM-dd"),
-        date_to: format(lastDayOfMonth, "yyyy-MM-dd"),
-      };
-
-      setFilters(initialFilters);
-      fetchAppointments(initialFilters);
-    } else {
-      const listFilters: AppointmentFilters = {
-        date_from: today,
-        date_to: today,
-      };
+    // Vista lista: cargar citas de hoy al montar
+    // Vista calendario: el fetch lo dispara datesSet de FullCalendar automáticamente
+    if (activeTab === "list") {
+      const listFilters: AppointmentFilters = { date_from: today, date_to: today };
       setFilters(listFilters);
       fetchAppointments(listFilters);
     }
   }, []);
 
-  useEffect(() => {
-    fetchAppointments(filters);
-  }, [filters]);
+
+  // Callback para cuando FullCalendar cambia el rango visible (navegación o cambio de vista)
+  const handleCalendarRangeChange = useCallback((start: string, end: string) => {
+    const newFilters: AppointmentFilters = { date_from: start, date_to: end };
+    setFilters(newFilters);
+    fetchAppointments(newFilters);
+  }, [fetchAppointments]);
 
   const handleTabChange = (tab: TabType) => {
-    if (tab === activeTab) return; 
+    if (tab === activeTab) return;
     setActiveTab(tab);
 
     if (tab === "calendar") {
-      const today = new Date();
-      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-      const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-      const calendarFilters: AppointmentFilters = {
-        date_from: format(firstDay, "yyyy-MM-dd"),
-        date_to: format(lastDay, "yyyy-MM-dd"),
-      };
-
-      setFilters(calendarFilters);
+      // El fetch lo dispara datesSet automáticamente al montar CalendarView
     } else {
       // Si volvemos a lista, usar filtro de fecha única
       const today = format(new Date(), "yyyy-MM-dd");
@@ -327,29 +308,24 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
-  // Cambiar filtro de fecha
+  // Cambiar filtro de fecha (vista lista)
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
     setFilterDate(newDate);
-
-    const newFilters = { ...filters };
-    newFilters.date_from = newDate;
-    newFilters.date_to = newDate;
+    const newFilters: AppointmentFilters = { ...filters, date_from: newDate, date_to: newDate };
     setFilters(newFilters);
+    fetchAppointments(newFilters);
   };
 
-  // Cambiar filtro de estado
+  // Cambiar filtro de estado (vista lista)
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = e.target.value;
     setFilterStatus(newStatus);
-
-    const newFilters = { ...filters };
-    if (newStatus) {
-      newFilters.status = newStatus;
-    } else {
-      delete newFilters.status;
-    }
+    const newFilters: AppointmentFilters = { ...filters };
+    if (newStatus) newFilters.status = newStatus;
+    else delete newFilters.status;
     setFilters(newFilters);
+    fetchAppointments(newFilters);
   };
 
   // Manejar clic en fecha en el calendario - Ahora abre directamente el modal
@@ -450,12 +426,12 @@ const AppointmentsPage: React.FC = () => {
       {/* Vista de Calendario (ahora mostrada por defecto) */}
       {activeTab === "calendar" && (
         <CalendarView
-          key={appointments.length}
           appointments={appointments}
           onDateClick={handleCalendarDateClick}
           onEventClick={handleViewAppointment}
           onNewAppointment={handleNewAppointmentFromCalendar}
           handleAddAppointment={handleAddAppointment}
+          onRangeChange={handleCalendarRangeChange}
         />
       )}
 

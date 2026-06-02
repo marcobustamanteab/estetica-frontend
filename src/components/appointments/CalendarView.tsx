@@ -15,6 +15,7 @@ interface CalendarViewProps {
   onEventClick: (appointment: Appointment) => void;
   onNewAppointment: (date: Date, time: string) => void;
   handleAddAppointment: () => void;
+  onRangeChange?: (start: string, end: string) => void;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
@@ -22,6 +23,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   onEventClick,
   onNewAppointment,
   handleAddAppointment,
+  onRangeChange,
 }) => {
   const [calendarView, setCalendarView] = useState<
     "dayGridMonth" | "timeGridWeek" | "timeGridDay"
@@ -156,6 +158,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           selectable={true}
           selectMirror={true}
           select={handleDateSelect}
+          datesSet={(info) => onRangeChange?.(info.startStr.slice(0, 10), info.endStr.slice(0, 10))}
           editable={false}
           dayMaxEvents={true}
           slotMinTime="07:00:00"
