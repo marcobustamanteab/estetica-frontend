@@ -100,23 +100,33 @@ const UsersPage: React.FC = () => {
 
   const handleDeleteUser = async (id: number) => {
     const result = await Swal.fire({
-      title: '¿Eliminar usuario?',
-      text: 'Esta acción no se puede deshacer',
+      title: '¿Desactivar usuario?',
+      html: `
+        <p style="color:#374151;font-size:14px;margin:0 0 12px">
+          El usuario quedará <strong>inactivo</strong> y no podrá iniciar sesión.
+        </p>
+        <div style="background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;padding:10px 14px;font-size:13px;color:#0f766e;text-align:left">
+          ✅ Sus citas, ventas y registros históricos se conservan intactos.
+        </div>
+        <p style="color:#6b7280;font-size:12px;margin:10px 0 0">
+          Podés reactivarlo en cualquier momento desde esta pantalla.
+        </p>
+      `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
       cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: 'Sí, desactivar',
       cancelButtonText: 'Cancelar'
     });
 
     if (result.isConfirmed) {
       try {
         await deleteUser(id);
-        toast.success('Usuario eliminado correctamente');
+        toast.success('Usuario desactivado correctamente. Su historial se conserva.');
       } catch (error) {
-        console.error('Error al eliminar usuario:', error);
-        toast.error('Ocurrió un error al eliminar el usuario');
+        console.error('Error al desactivar usuario:', error);
+        toast.error('Ocurrió un error al desactivar el usuario');
       }
     }
   };
@@ -304,7 +314,7 @@ const UsersPage: React.FC = () => {
               <button
                 className="icon-button delete-button"
                 onClick={() => handleDeleteUser(info.row.original.id)}
-                title="Eliminar usuario"
+                title="Desactivar usuario"
               >
                 <DeleteIcon fontSize="small" />
               </button>
