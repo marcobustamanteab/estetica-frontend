@@ -9,6 +9,8 @@ import { DollarSign, Calendar, TrendingUp, Scissors } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+import ExportData from "../common/ExportData";
+import { ExportColumn } from "../../types/ExportColumn";
 import "./myEarningsReport.css";
 
 type PeriodMode = "week" | "month" | "custom";
@@ -115,6 +117,26 @@ const MyEarningsReport: React.FC = () => {
     });
 
   const formatCLP = (n: number) => `$${Math.round(n).toLocaleString("es-CL")}`;
+
+  const exportColumns: ExportColumn[] = [
+    {
+      header: "Fecha",
+      accessor: "date",
+      formatFn: (v) => format(parseISO(v + "T00:00:00"), "dd/MM/yyyy"),
+    },
+    { header: "Servicio",     accessor: "service" },
+    { header: "Cliente",      accessor: "client" },
+    {
+      header: "Precio Base",
+      accessor: "price",
+      formatFn: (v) => formatCLP(v),
+    },
+    {
+      header: `Ganancia (${commissionRate}%)`,
+      accessor: "earning",
+      formatFn: (v) => formatCLP(v),
+    },
+  ];
 
   const periodLabel = periodMode === "week"
     ? "Esta semana"
@@ -233,7 +255,16 @@ const MyEarningsReport: React.FC = () => {
 
               {/* Tabla de detalle por atención */}
               <div className="earnings-table-container">
-                <h4>Detalle de Atenciones</h4>
+                <div className="earnings-table-header">
+                  <h4>Detalle de Atenciones</h4>
+                  <ExportData
+                    data={detailRows}
+                    columns={exportColumns}
+                    fileName={`mis-ganancias-${appliedStart}-${appliedEnd}`}
+                    title={`Mis Ganancias — ${periodLabel}`}
+                    showCSV={false}
+                  />
+                </div>
                 <div className="earnings-table-wrap">
                   <table className="earnings-table">
                     <thead>

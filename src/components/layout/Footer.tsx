@@ -7,7 +7,9 @@ const Footer: React.FC = () => {
   return (
     <footer className="footer">
       <div className="footer-content">
-        <p>Beauty Care &copy; {currentYear} - Tu centro de belleza y bienestar</p>
+        <p>Beauty Care &copy; {currentYear} -       <p style={{ textAlign: "center", color: "#9ca3af", fontSize: 11, marginTop: 18 }}>
+        Powered by <strong style={{ color: "#0d9488" }}><a href="https://devsign.cl" target="_blank" rel="noopener noreferrer">Devsign</a></strong></p>
+        </p>
       </div>
     </footer>
   );
