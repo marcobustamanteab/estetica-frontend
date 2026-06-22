@@ -104,9 +104,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Footer */}
         <footer className="footer">
-          <p>Beauty Care © 2026 - <p style={{ textAlign: "center", color: "#9ca3af", fontSize: 11, marginTop: 18 }}>
-        Powered by <strong style={{ color: "#0d9488" }}><a href="https://devsign.cl" target="_blank" rel="noopener noreferrer">Devsign</a></strong>
-      </p></p>
+          <p style={{ textAlign: "center", color: "#9ca3af", fontSize: 11, marginTop: 18 }}>
+        Beautycare 2026 - Powered by <strong style={{ color: "#0d9488" }}><a href="https://devsign.cl" target="_blank" rel="noopener noreferrer">Devsign</a></strong>
+      </p>
         </footer>
       </div>
     </div>
