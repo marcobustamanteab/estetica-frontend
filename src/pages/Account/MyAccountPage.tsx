@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
-import { Mail, Lock, User, Shield, Percent, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, Shield, Percent, Eye, EyeOff, CheckCircle2, Building2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import './myAccount.css';
 
@@ -29,15 +29,16 @@ const MyAccountPage: React.FC = () => {
   const { currentUser } = useAuth();
   const [imgError, setImgError] = useState(false);
 
-  const [newEmail, setNewEmail] = useState('');
-  const [savingEmail, setSavingEmail] = useState(false);
+  const [newEmail, setNewEmail]         = useState('');
+  const [savingEmail, setSavingEmail]   = useState(false);
 
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [savingPassword, setSavingPassword] = useState(false);
+  const [newPassword, setNewPassword]           = useState('');
+  const [confirmPassword, setConfirmPassword]   = useState('');
+  const [showNew, setShowNew]                   = useState(false);
+  const [showConfirm, setShowConfirm]           = useState(false);
+  const [savingPassword, setSavingPassword]     = useState(false);
 
+  /* ── helpers ── */
   const getAllRoles = (): string[] => {
     const groups = (currentUser as any)?.groups;
     if (!groups || groups.length === 0) return [];
@@ -46,17 +47,18 @@ const MyAccountPage: React.FC = () => {
     );
   };
 
-  const roles = getAllRoles();
-  const initials = getInitials(currentUser?.first_name || '', currentUser?.last_name || '');
-  const avatarBg = getAvatarColor(initials);
+  const roles          = getAllRoles();
+  const initials       = getInitials(currentUser?.first_name || '', currentUser?.last_name || '');
+  const avatarBg       = getAvatarColor(initials);
   const commissionRate = (currentUser as any)?.commission_rate;
-  const isActive = (currentUser as any)?.is_active !== false;
+  const isActive       = (currentUser as any)?.is_active !== false;
 
-  const rawImage = (currentUser as any)?.profile_image;
+  const rawImage       = (currentUser as any)?.profile_image;
   const profileImageUrl = rawImage
     ? (rawImage.startsWith('http') ? rawImage : `${API_BASE_URL}${rawImage}`)
     : null;
 
+  /* ── handlers ── */
   const handleSaveEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmail.trim()) return;
@@ -74,20 +76,13 @@ const MyAccountPage: React.FC = () => {
 
   const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.error('Las contraseñas no coinciden');
-      return;
-    }
-    if (newPassword.length < 6) {
-      toast.error('La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
+    if (newPassword !== confirmPassword) { toast.error('Las contraseñas no coinciden'); return; }
+    if (newPassword.length < 6)          { toast.error('Mínimo 6 caracteres'); return; }
     setSavingPassword(true);
     try {
       await authService.updateProfile({ password: newPassword } as any);
       toast.success('Contraseña actualizada correctamente');
-      setNewPassword('');
-      setConfirmPassword('');
+      setNewPassword(''); setConfirmPassword('');
     } catch {
       toast.error('Error al actualizar la contraseña');
     } finally {
@@ -95,161 +90,173 @@ const MyAccountPage: React.FC = () => {
     }
   };
 
+  /* ── render ── */
   return (
-    <div className="mac-page">
-      <h2 className="mac-title">Mi cuenta</h2>
+    <div className="buk-page">
 
-      {/* ── Hero: foto + nombre + badges ── */}
-      <div className="mac-hero">
-        <div className="mac-photo-ring">
+      {/* ── BANNER + FOTO ── */}
+      <div className="buk-banner">
+        <div className="buk-banner-bg" />
+        <div className="buk-avatar-wrap">
           {profileImageUrl && !imgError ? (
             <img
               src={profileImageUrl}
               alt={currentUser?.first_name || 'Perfil'}
-              className="mac-photo-img"
+              className="buk-avatar-img"
               onError={() => setImgError(true)}
             />
           ) : (
-            <div className="mac-photo-initials" style={{ background: avatarBg }}>
+            <div className="buk-avatar-initials" style={{ background: avatarBg }}>
               {initials}
             </div>
           )}
-          <span className={`mac-status-dot ${isActive ? 'active' : 'inactive'}`} />
         </div>
+      </div>
 
-        <div className="mac-hero-body">
-          <div className="mac-hero-name">
-            {currentUser?.first_name} {currentUser?.last_name}
-          </div>
-
-          <div className="mac-badges">
-            {roles.length > 0
-              ? roles.map((r, i) => <span key={i} className="mac-badge">{r}</span>)
-              : <span className="mac-badge">Sin rol asignado</span>
-            }
-          </div>
-
-          <span className={`mac-active-label ${isActive ? 'active' : 'inactive'}`}>
-            <CheckCircle size={13} />
+      {/* ── NOMBRE + BADGES ── */}
+      <div className="buk-identity">
+        <div className="buk-name">
+          {currentUser?.first_name} {currentUser?.last_name}
+        </div>
+        <div className="buk-chips">
+          {roles.length > 0
+            ? roles.map((r, i) => <span key={i} className="buk-chip">{r}</span>)
+            : <span className="buk-chip">Sin rol</span>}
+          <span className={`buk-chip-status ${isActive ? 'active' : 'inactive'}`}>
+            <CheckCircle2 size={12} />
             {isActive ? 'Activo' : 'Inactivo'}
           </span>
         </div>
       </div>
 
-      {/* ── Grilla de información ── */}
-      <div className="mac-info-grid">
-        <div className="mac-info-cell">
-          <div className="mac-info-icon"><User size={16} /></div>
-          <div>
-            <div className="mac-info-label">Usuario</div>
-            <div className="mac-info-value">{currentUser?.username || '—'}</div>
-          </div>
+      {/* ── SECCIÓN: INFORMACIÓN PERSONAL ── */}
+      <div className="buk-card">
+        <div className="buk-card-title">
+          <User size={16} />
+          Información personal
         </div>
 
-        <div className="mac-info-cell">
-          <div className="mac-info-icon"><Mail size={16} /></div>
-          <div>
-            <div className="mac-info-label">Correo electrónico</div>
-            <div className="mac-info-value">{currentUser?.email || '—'}</div>
+        <div className="buk-info-grid">
+          <div className="buk-info-item">
+            <span className="buk-info-label"><User size={13} /> Usuario</span>
+            <span className="buk-info-value">{currentUser?.username || '—'}</span>
           </div>
-        </div>
 
-        <div className="mac-info-cell">
-          <div className="mac-info-icon"><Shield size={16} /></div>
-          <div>
-            <div className="mac-info-label">Tipo de cuenta</div>
-            <div className="mac-info-value">Trabajador</div>
+          <div className="buk-info-item">
+            <span className="buk-info-label"><Mail size={13} /> Correo electrónico</span>
+            <span className="buk-info-value">{currentUser?.email || '—'}</span>
           </div>
-        </div>
 
-        {commissionRate != null && (
-          <div className="mac-info-cell">
-            <div className="mac-info-icon"><Percent size={16} /></div>
-            <div>
-              <div className="mac-info-label">Comisión</div>
-              <div className="mac-info-value">{commissionRate}%</div>
+          <div className="buk-info-item">
+            <span className="buk-info-label"><Shield size={13} /> Tipo de cuenta</span>
+            <span className="buk-info-value">Trabajador</span>
+          </div>
+
+          {commissionRate != null && (
+            <div className="buk-info-item">
+              <span className="buk-info-label"><Percent size={13} /> Comisión</span>
+              <span className="buk-info-value">{commissionRate}%</span>
             </div>
+          )}
+
+          <div className="buk-info-item">
+            <span className="buk-info-label"><Building2 size={13} /> Área</span>
+            <span className="buk-info-value">
+              {roles.length > 0 ? roles.join(' · ') : 'Sin asignar'}
+            </span>
           </div>
-        )}
+
+          <div className="buk-info-item">
+            <span className="buk-info-label"><CheckCircle2 size={13} /> Estado</span>
+            <span className={`buk-info-value status-val ${isActive ? 'active' : 'inactive'}`}>
+              {isActive ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* ── Seguridad ── */}
-      <div className="mac-section-title">Seguridad de la cuenta</div>
-
-      <div className="mac-settings-row">
-        {/* Correo */}
-        <div className="mac-settings-card">
-          <div className="mac-settings-card-head">
-            <Mail size={18} />
-            <span>Correo electrónico</span>
-          </div>
-          <p className="mac-settings-hint">
-            Correo actual: <strong>{currentUser?.email}</strong>
-          </p>
-          <form onSubmit={handleSaveEmail}>
-            <div className="mac-field">
-              <label htmlFor="newEmail">Nuevo correo</label>
-              <input
-                id="newEmail"
-                type="email"
-                value={newEmail}
-                onChange={e => setNewEmail(e.target.value)}
-                placeholder="nuevo@correo.com"
-                required
-              />
-            </div>
-            <button type="submit" className="mac-btn" disabled={savingEmail}>
-              {savingEmail ? 'Guardando...' : 'Actualizar correo'}
-            </button>
-          </form>
+      {/* ── SECCIÓN: SEGURIDAD ── */}
+      <div className="buk-card">
+        <div className="buk-card-title">
+          <Lock size={16} />
+          Seguridad de la cuenta
         </div>
 
-        {/* Contraseña */}
-        <div className="mac-settings-card">
-          <div className="mac-settings-card-head">
-            <Lock size={18} />
-            <span>Contraseña</span>
+        <div className="buk-security-grid">
+
+          {/* Correo */}
+          <div className="buk-security-block">
+            <div className="buk-security-block-title">
+              <Mail size={15} />
+              Cambiar correo
+            </div>
+            <p className="buk-security-hint">
+              Actual: <strong>{currentUser?.email}</strong>
+            </p>
+            <form onSubmit={handleSaveEmail}>
+              <div className="buk-field">
+                <label htmlFor="newEmail">Nuevo correo</label>
+                <input
+                  id="newEmail"
+                  type="email"
+                  value={newEmail}
+                  onChange={e => setNewEmail(e.target.value)}
+                  placeholder="nuevo@correo.com"
+                  required
+                />
+              </div>
+              <button type="submit" className="buk-btn" disabled={savingEmail}>
+                {savingEmail ? 'Guardando…' : 'Actualizar correo'}
+              </button>
+            </form>
           </div>
-          <p className="mac-settings-hint">
-            Elige una contraseña de al menos 6 caracteres.
-          </p>
-          <form onSubmit={handleSavePassword}>
-            <div className="mac-field">
-              <label htmlFor="newPassword">Nueva contraseña</label>
-              <div className="mac-pw-wrap">
-                <input
-                  id="newPassword"
-                  type={showNewPassword ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                />
-                <button type="button" className="mac-pw-toggle" onClick={() => setShowNewPassword(v => !v)} tabIndex={-1}>
-                  {showNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
+
+          {/* Contraseña */}
+          <div className="buk-security-block">
+            <div className="buk-security-block-title">
+              <Lock size={15} />
+              Cambiar contraseña
             </div>
-            <div className="mac-field">
-              <label htmlFor="confirmPassword">Confirmar contraseña</label>
-              <div className="mac-pw-wrap">
-                <input
-                  id="confirmPassword"
-                  type={showConfirm ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                />
-                <button type="button" className="mac-pw-toggle" onClick={() => setShowConfirm(v => !v)} tabIndex={-1}>
-                  {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
+            <p className="buk-security-hint">Mínimo 6 caracteres.</p>
+            <form onSubmit={handleSavePassword}>
+              <div className="buk-field">
+                <label htmlFor="newPw">Nueva contraseña</label>
+                <div className="buk-pw-wrap">
+                  <input
+                    id="newPw"
+                    type={showNew ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button type="button" className="buk-pw-eye" onClick={() => setShowNew(v => !v)} tabIndex={-1}>
+                    {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
               </div>
-            </div>
-            <button type="submit" className="mac-btn" disabled={savingPassword}>
-              {savingPassword ? 'Guardando...' : 'Actualizar contraseña'}
-            </button>
-          </form>
+              <div className="buk-field">
+                <label htmlFor="confirmPw">Confirmar contraseña</label>
+                <div className="buk-pw-wrap">
+                  <input
+                    id="confirmPw"
+                    type={showConfirm ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button type="button" className="buk-pw-eye" onClick={() => setShowConfirm(v => !v)} tabIndex={-1}>
+                    {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+              <button type="submit" className="buk-btn" disabled={savingPassword}>
+                {savingPassword ? 'Guardando…' : 'Actualizar contraseña'}
+              </button>
+            </form>
+          </div>
+
         </div>
       </div>
     </div>

@@ -1,254 +1,276 @@
-/* ── Layout ── */
-.mac-page {
+/* ───────────────────────────────────────────────
+   Página Mi Cuenta — estilo Buk
+   ─────────────────────────────────────────────── */
+
+.buk-page {
   width: 100%;
-  padding: 0 15px;
-  max-width: 900px;
+  max-width: 860px;
+  padding: 0 0 40px;
 }
 
-.mac-title {
-  margin: 0 0 24px;
-  font-size: 24px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-/* ── Hero card ── */
-.mac-hero {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  background: #fff;
-  border-radius: 14px;
-  padding: 28px 32px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
-  border: 1px solid #f1f5f9;
-}
-
-/* Photo circle */
-.mac-photo-ring {
+/* ── BANNER ── */
+.buk-banner {
   position: relative;
-  flex-shrink: 0;
-  width: 108px;
-  height: 108px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px #fff, 0 0 0 6px #e2e8f0;
+  height: 130px;
+  border-radius: 14px 14px 0 0;
+  overflow: visible;
+  margin-bottom: 60px; /* espacio para la foto que sobresale */
 }
 
-.mac-photo-img,
-.mac-photo-initials {
-  width: 108px;
-  height: 108px;
+.buk-banner-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+}
+
+/* ── FOTO ── */
+.buk-avatar-wrap {
+  position: absolute;
+  bottom: -50px;
+  left: 36px;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px #fff, 0 4px 14px rgba(0,0,0,0.18);
+  z-index: 2;
+}
+
+.buk-avatar-img,
+.buk-avatar-initials {
+  width: 104px;
+  height: 104px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-.mac-photo-initials {
+.buk-avatar-initials {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
-  font-weight: 700;
+  font-size: 34px;
+  font-weight: 800;
   color: #fff;
   letter-spacing: 1px;
 }
 
-.mac-status-dot {
-  position: absolute;
-  bottom: 6px;
-  right: 6px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 3px solid #fff;
-}
-.mac-status-dot.active   { background: #22c55e; }
-.mac-status-dot.inactive { background: #94a3b8; }
-
-/* Hero right side */
-.mac-hero-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* ── NOMBRE + CHIPS ── */
+.buk-identity {
+  background: #fff;
+  border-radius: 0;
+  padding: 12px 36px 24px 160px; /* left da espacio a la foto */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 20px;
 }
 
-.mac-hero-name {
-  font-size: 26px;
+.buk-name {
+  font-size: 22px;
   font-weight: 700;
   color: #0f172a;
-  line-height: 1.2;
+  margin-bottom: 8px;
 }
 
-/* Badges — plomo oscuro */
-.mac-badges {
+.buk-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: center;
 }
 
-.mac-badge {
+.buk-chip {
   background: #1e293b;
   color: #f1f5f9;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 11px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.buk-chip-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 20px;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
 }
 
-.mac-active-label {
-  display: inline-flex;
+.buk-chip-status.active {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.buk-chip-status.inactive {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+/* ── CARDS ── */
+.buk-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.buk-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.buk-card-title svg {
+  color: #0d9488;
+}
+
+/* ── INFO GRID (datos personales) ── */
+.buk-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.buk-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+}
+
+.buk-info-item:nth-child(even) {
+  border-right: none;
+}
+
+/* quitar borde inferior de los últimos dos */
+.buk-info-item:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
+.buk-info-label {
+  display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  width: fit-content;
-}
-.mac-active-label.active   { color: #16a34a; }
-.mac-active-label.inactive { color: #94a3b8; }
-
-/* ── Info grid ── */
-.mac-info-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 28px;
-}
-
-.mac-info-cell {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 16px;
-}
-
-.mac-info-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: #475569;
-}
-
-.mac-info-label {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 4px;
 }
 
-.mac-info-value {
+.buk-info-label svg {
+  color: #cbd5e1;
+}
+
+.buk-info-value {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #0f172a;
   word-break: break-all;
 }
 
-/* ── Section title ── */
-.mac-section-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 14px;
-}
+.buk-info-value.status-val.active   { color: #16a34a; font-weight: 600; }
+.buk-info-value.status-val.inactive { color: #94a3b8; }
 
-/* ── Settings cards ── */
-.mac-settings-row {
+/* ── SECURITY GRID ── */
+.buk-security-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
 }
 
-.mac-settings-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+.buk-security-block {
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-right: 1px solid #f1f5f9;
 }
 
-.mac-settings-card-head {
+.buk-security-block:last-child {
+  border-right: none;
+}
+
+.buk-security-block-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 15px;
+  gap: 7px;
+  font-size: 14px;
   font-weight: 700;
-  color: #0f172a;
+  color: #1e293b;
   margin-bottom: 6px;
 }
 
-.mac-settings-card-head svg {
+.buk-security-block-title svg {
   color: #0d9488;
 }
 
-.mac-settings-hint {
-  font-size: 13px;
+.buk-security-hint {
+  font-size: 12px;
   color: #94a3b8;
   margin: 0 0 18px;
+  line-height: 1.5;
 }
 
-.mac-settings-hint strong {
-  color: #475569;
+.buk-security-hint strong {
+  color: #64748b;
 }
 
-/* Fields */
-.mac-field {
+/* ── FIELDS ── */
+.buk-field {
   margin-bottom: 14px;
 }
 
-.mac-field label {
+.buk-field label {
   display: block;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   margin-bottom: 6px;
 }
 
-.mac-field input {
+.buk-field input {
   width: 100%;
   padding: 9px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   color: #0f172a;
   background: #f8fafc;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
   box-sizing: border-box;
 }
 
-.mac-field input:focus {
+.buk-field input:focus {
   border-color: #0d9488;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(13,148,136,0.12);
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
 }
 
-/* Password wrapper */
-.mac-pw-wrap {
+/* ── PASSWORD INPUT ── */
+.buk-pw-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.mac-pw-wrap input {
+.buk-pw-wrap input {
   padding-right: 40px;
 }
 
-.mac-pw-toggle {
+.buk-pw-eye {
   position: absolute;
   right: 11px;
   background: none;
@@ -258,59 +280,70 @@
   padding: 0;
   display: flex;
   align-items: center;
+  transition: color 0.15s;
 }
-.mac-pw-toggle:hover { color: #0d9488; }
 
-/* Save button */
-.mac-btn {
+.buk-pw-eye:hover { color: #0d9488; }
+
+/* ── BOTÓN ── */
+.buk-btn {
   width: 100%;
   padding: 10px 16px;
-  background: #1e293b;
-  color: #f8fafc;
+  background: #0d9488;
+  color: #fff;
   border: none;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.18s;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
-.mac-btn:hover:not(:disabled) {
-  background: #0f172a;
+.buk-btn:hover:not(:disabled) {
+  background: #0f766e;
 }
 
-.mac-btn:disabled {
+.buk-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* ── Responsive ── */
-@media (max-width: 1100px) {
-  .mac-info-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .mac-hero {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-    padding: 24px;
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .buk-identity {
+    padding: 12px 20px 20px;
+    margin-top: 60px; /* la foto queda sobre el banner en mobile */
   }
 
-  .mac-info-grid {
-    grid-template-columns: 1fr 1fr;
+  .buk-avatar-wrap {
+    left: 50%;
+    transform: translateX(-50%);
   }
 
-  .mac-settings-row {
+  .buk-info-grid,
+  .buk-security-grid {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 480px) {
-  .mac-info-grid {
-    grid-template-columns: 1fr;
+  .buk-info-item {
+    border-right: none;
+  }
+
+  .buk-info-item:nth-last-child(-n+2) {
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .buk-info-item:last-child {
+    border-bottom: none;
+  }
+
+  .buk-security-block {
+    border-right: none;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .buk-security-block:last-child {
+    border-bottom: none;
   }
 }
