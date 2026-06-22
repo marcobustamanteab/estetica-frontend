@@ -23,6 +23,7 @@ import WalkInPage from './pages/WalkIn/WalkInPage';
 import WorkSchedulesPage from './pages/WorkSchedules/WorkSchedulesPage';
 import BusinessSettingsPage from './pages/BusinessSettings/BusinessSettingsPage';
 import ProductsPage from './pages/Products/ProductsPage';
+import MyAccountPage from './pages/Account/MyAccountPage';
 
 const ProtectedRoute: React.FC<{ element: React.ReactNode }> = ({ element }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -83,6 +84,7 @@ const App: React.FC = () => {
               <Route path="/horarios" element={<ProtectedRoute element={<WorkSchedulesPage />} />} />
               <Route path="/configuracion" element={<ProtectedRoute element={<BusinessSettingsPage />} />} />
               <Route path="/productos" element={<ProtectedRoute element={<ProductsPage />} />} />
+              <Route path="/mi-cuenta" element={<ProtectedRoute element={<MyAccountPage />} />} />
 
               {/* Ruta por defecto */}
               <Route path="/" element={<Navigate to="/dashboard" />} />

@@ -17,6 +17,7 @@ import {
   FiEdit,
   FiClock,
   FiPackage,
+  FiUser,
 } from "react-icons/fi";
 import "./sidebar.css";
 
@@ -71,6 +72,11 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       : []),
 
     { path: "/reportes", icon: <FiBarChart2 size={20} />, label: "Reportes" },
+
+    // Mi cuenta — solo trabajadores (no admin ni superadmin)
+    ...(!isAdmin && !isSuperAdmin
+      ? [{ path: "/mi-cuenta", icon: <FiUser size={20} />, label: "Mi cuenta" }]
+      : []),
 
     // Configuración — solo admin/superadmin
     ...(isAdmin || isSuperAdmin
