@@ -2,13 +2,32 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
-import Avatar from '../../components/common/Avatar';
-import { Mail, Lock, User, Shield, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Shield, Percent, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import './myAccount.css';
 
+const API_BASE_URL = import.meta.env.PROD
+  ? (import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app')
+  : 'http://localhost:8000';
+
+const AVATAR_COLORS = [
+  '#0d9488', '#0891b2', '#7c3aed', '#dc2626',
+  '#ea580c', '#65a30d', '#c026d3', '#2563eb',
+  '#059669', '#7c2d12',
+];
+
+function getInitials(first: string, last: string) {
+  return ((first?.[0] || '') + (last?.[0] || '')).toUpperCase() || 'U';
+}
+
+function getAvatarColor(initials: string) {
+  const code = initials.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
+  return AVATAR_COLORS[code % AVATAR_COLORS.length];
+}
+
 const MyAccountPage: React.FC = () => {
   const { currentUser } = useAuth();
+  const [imgError, setImgError] = useState(false);
 
   const [newEmail, setNewEmail] = useState('');
   const [savingEmail, setSavingEmail] = useState(false);
@@ -19,13 +38,24 @@ const MyAccountPage: React.FC = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
 
-  const getUserRole = (): string => {
+  const getAllRoles = (): string[] => {
     const groups = (currentUser as any)?.groups;
-    if (!groups || groups.length === 0) return 'Sin rol asignado';
-    const first = groups[0];
-    if (typeof first === 'object' && first !== null && 'name' in first) return first.name;
-    return `Rol ${first}`;
+    if (!groups || groups.length === 0) return [];
+    return groups.map((g: any) =>
+      typeof g === 'object' && g !== null && 'name' in g ? g.name : `Rol ${g}`
+    );
   };
+
+  const roles = getAllRoles();
+  const initials = getInitials(currentUser?.first_name || '', currentUser?.last_name || '');
+  const avatarBg = getAvatarColor(initials);
+  const commissionRate = (currentUser as any)?.commission_rate;
+  const isActive = (currentUser as any)?.is_active !== false;
+
+  const rawImage = (currentUser as any)?.profile_image;
+  const profileImageUrl = rawImage
+    ? (rawImage.startsWith('http') ? rawImage : `${API_BASE_URL}${rawImage}`)
+    : null;
 
   const handleSaveEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,47 +96,99 @@ const MyAccountPage: React.FC = () => {
   };
 
   return (
-    <div className="my-account-page">
-      <h2>Mi cuenta</h2>
+    <div className="mac-page">
+      <h2 className="mac-title">Mi cuenta</h2>
 
-      <div className="account-profile-card">
-        <div className="account-avatar-wrapper">
-          <Avatar
-            firstName={currentUser?.first_name ?? ''}
-            lastName={currentUser?.last_name ?? ''}
-            size="large"
-          />
+      {/* ── Hero: foto + nombre + badges ── */}
+      <div className="mac-hero">
+        <div className="mac-photo-ring">
+          {profileImageUrl && !imgError ? (
+            <img
+              src={profileImageUrl}
+              alt={currentUser?.first_name || 'Perfil'}
+              className="mac-photo-img"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="mac-photo-initials" style={{ background: avatarBg }}>
+              {initials}
+            </div>
+          )}
+          <span className={`mac-status-dot ${isActive ? 'active' : 'inactive'}`} />
         </div>
-        <div className="account-profile-info">
-          <h3>{currentUser?.first_name} {currentUser?.last_name}</h3>
-          <span className="account-role-badge">{getUserRole()}</span>
-          <div className="account-info-row">
-            <User size={15} />
-            <span>{currentUser?.username}</span>
+
+        <div className="mac-hero-body">
+          <div className="mac-hero-name">
+            {currentUser?.first_name} {currentUser?.last_name}
           </div>
-          <div className="account-info-row">
-            <Mail size={15} />
-            <span>{currentUser?.email}</span>
+
+          <div className="mac-badges">
+            {roles.length > 0
+              ? roles.map((r, i) => <span key={i} className="mac-badge">{r}</span>)
+              : <span className="mac-badge">Sin rol asignado</span>
+            }
           </div>
-          <div className="account-info-row">
-            <Shield size={15} />
-            <span>Trabajador</span>
-          </div>
+
+          <span className={`mac-active-label ${isActive ? 'active' : 'inactive'}`}>
+            <CheckCircle size={13} />
+            {isActive ? 'Activo' : 'Inactivo'}
+          </span>
         </div>
       </div>
 
-      <div className="account-edit-sections">
-        <div className="account-edit-card">
-          <h4>
+      {/* ── Grilla de información ── */}
+      <div className="mac-info-grid">
+        <div className="mac-info-cell">
+          <div className="mac-info-icon"><User size={16} /></div>
+          <div>
+            <div className="mac-info-label">Usuario</div>
+            <div className="mac-info-value">{currentUser?.username || '—'}</div>
+          </div>
+        </div>
+
+        <div className="mac-info-cell">
+          <div className="mac-info-icon"><Mail size={16} /></div>
+          <div>
+            <div className="mac-info-label">Correo electrónico</div>
+            <div className="mac-info-value">{currentUser?.email || '—'}</div>
+          </div>
+        </div>
+
+        <div className="mac-info-cell">
+          <div className="mac-info-icon"><Shield size={16} /></div>
+          <div>
+            <div className="mac-info-label">Tipo de cuenta</div>
+            <div className="mac-info-value">Trabajador</div>
+          </div>
+        </div>
+
+        {commissionRate != null && (
+          <div className="mac-info-cell">
+            <div className="mac-info-icon"><Percent size={16} /></div>
+            <div>
+              <div className="mac-info-label">Comisión</div>
+              <div className="mac-info-value">{commissionRate}%</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Seguridad ── */}
+      <div className="mac-section-title">Seguridad de la cuenta</div>
+
+      <div className="mac-settings-row">
+        {/* Correo */}
+        <div className="mac-settings-card">
+          <div className="mac-settings-card-head">
             <Mail size={18} />
-            Cambiar correo electrónico
-          </h4>
-          <p className="account-edit-hint">
+            <span>Correo electrónico</span>
+          </div>
+          <p className="mac-settings-hint">
             Correo actual: <strong>{currentUser?.email}</strong>
           </p>
           <form onSubmit={handleSaveEmail}>
-            <div className="account-field">
-              <label htmlFor="newEmail">Nuevo correo electrónico</label>
+            <div className="mac-field">
+              <label htmlFor="newEmail">Nuevo correo</label>
               <input
                 id="newEmail"
                 type="email"
@@ -116,21 +198,25 @@ const MyAccountPage: React.FC = () => {
                 required
               />
             </div>
-            <button type="submit" className="account-save-btn" disabled={savingEmail}>
-              {savingEmail ? 'Guardando...' : 'Guardar correo'}
+            <button type="submit" className="mac-btn" disabled={savingEmail}>
+              {savingEmail ? 'Guardando...' : 'Actualizar correo'}
             </button>
           </form>
         </div>
 
-        <div className="account-edit-card">
-          <h4>
+        {/* Contraseña */}
+        <div className="mac-settings-card">
+          <div className="mac-settings-card-head">
             <Lock size={18} />
-            Cambiar contraseña
-          </h4>
+            <span>Contraseña</span>
+          </div>
+          <p className="mac-settings-hint">
+            Elige una contraseña de al menos 6 caracteres.
+          </p>
           <form onSubmit={handleSavePassword}>
-            <div className="account-field">
+            <div className="mac-field">
               <label htmlFor="newPassword">Nueva contraseña</label>
-              <div className="account-password-input">
+              <div className="mac-pw-wrap">
                 <input
                   id="newPassword"
                   type={showNewPassword ? 'text' : 'password'}
@@ -139,19 +225,14 @@ const MyAccountPage: React.FC = () => {
                   placeholder="••••••••"
                   required
                 />
-                <button
-                  type="button"
-                  className="account-toggle-pw"
-                  onClick={() => setShowNewPassword(v => !v)}
-                  tabIndex={-1}
-                >
-                  {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                <button type="button" className="mac-pw-toggle" onClick={() => setShowNewPassword(v => !v)} tabIndex={-1}>
+                  {showNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
-            <div className="account-field">
+            <div className="mac-field">
               <label htmlFor="confirmPassword">Confirmar contraseña</label>
-              <div className="account-password-input">
+              <div className="mac-pw-wrap">
                 <input
                   id="confirmPassword"
                   type={showConfirm ? 'text' : 'password'}
@@ -160,18 +241,13 @@ const MyAccountPage: React.FC = () => {
                   placeholder="••••••••"
                   required
                 />
-                <button
-                  type="button"
-                  className="account-toggle-pw"
-                  onClick={() => setShowConfirm(v => !v)}
-                  tabIndex={-1}
-                >
-                  {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                <button type="button" className="mac-pw-toggle" onClick={() => setShowConfirm(v => !v)} tabIndex={-1}>
+                  {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
-            <button type="submit" className="account-save-btn" disabled={savingPassword}>
-              {savingPassword ? 'Guardando...' : 'Guardar contraseña'}
+            <button type="submit" className="mac-btn" disabled={savingPassword}>
+              {savingPassword ? 'Guardando...' : 'Actualizar contraseña'}
             </button>
           </form>
         </div>
