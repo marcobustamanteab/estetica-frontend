@@ -19,7 +19,7 @@ import { useClients } from "../hooks/useClients";
 import { useServices } from "../hooks/useServices";
 import { useUsers } from "../hooks/useUsers";
 import { toast } from "react-toastify";
-import { Users, Calendar, DollarSign, TrendingUp } from "lucide-react";
+import { Users, Calendar, DollarSign, TrendingUp, Scissors } from "lucide-react";
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -44,6 +44,7 @@ const Dashboard: React.FC = () => {
   const [monthlySales, setMonthlySales] = useState<number>(0);
   const [todayProductSales, setTodayProductSales] = useState<number>(0);
   const [monthlyProductSales, setMonthlyProductSales] = useState<number>(0);
+  const [completedServicesCount, setCompletedServicesCount] = useState<number>(0);
 
   const {
     appointments,
@@ -152,6 +153,13 @@ const Dashboard: React.FC = () => {
         }
       });
       setMonthlySales(monthlySalesTotal);
+
+      if (isBarber) {
+        const myCompleted = appointments.filter(
+          (a) => a.status === "completed" && a.employee === (currentUser as any)?.id
+        );
+        setCompletedServicesCount(myCompleted.length);
+      }
     }, [appointments, services]);
 
   // Fetch de citas cuando FullCalendar cambia el rango visible (navegación entre meses)
@@ -342,21 +350,38 @@ const Dashboard: React.FC = () => {
       <h2>Bienvenido, {currentUser?.first_name || currentUser?.username}!</h2>
 
       <div className="dashboard-cards">
-        {/* Tarjeta de Clientes */}
-        <div className="dashboard-card">
-          <div className="card-content">
-            <div className="card-info">
-              <h3>Clientes</h3>
-              <div className="card-value">
-                <Counter end={totalClients} />
+        {/* Tarjeta de Clientes (admin) / Servicios terminados (trabajador) */}
+        {isBarber ? (
+          <div className="dashboard-card">
+            <div className="card-content">
+              <div className="card-info">
+                <h3>Servicios terminados</h3>
+                <div className="card-value">
+                  <Counter end={completedServicesCount} />
+                </div>
+                <p>Servicios completados este mes</p>
               </div>
-              <p>Total de clientes registrados</p>
-            </div>
-            <div className="card-icon">
-              <Users size={48} />
+              <div className="card-icon">
+                <Scissors size={48} />
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="dashboard-card">
+            <div className="card-content">
+              <div className="card-info">
+                <h3>Clientes</h3>
+                <div className="card-value">
+                  <Counter end={totalClients} />
+                </div>
+                <p>Total de clientes registrados</p>
+              </div>
+              <div className="card-icon">
+                <Users size={48} />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tarjeta de Citas Hoy */}
         <div className="dashboard-card">
