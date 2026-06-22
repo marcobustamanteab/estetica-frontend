@@ -27,7 +27,8 @@ const DocumentTitle: React.FC = () => {
         'usuarios/administracion': 'Administración de Usuarios',
         'usuarios/roles': 'Roles y Permisos',
         'login': 'Iniciar Sesión',
-        'register': 'Registro'
+        'register': 'Registro',
+        'mi-cuenta': 'Mi cuenta'
       };
 
       // Buscar la ruta más específica que coincida

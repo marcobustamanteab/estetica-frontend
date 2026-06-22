@@ -1,45 +1,53 @@
-/* ───────────────────────────────────────────────
-   Página Mi Cuenta — estilo Buk
-   ─────────────────────────────────────────────── */
-
+/* ── Página ── */
 .buk-page {
   width: 100%;
-  max-width: 860px;
   padding: 0 0 40px;
 }
 
-/* ── BANNER ── */
-.buk-banner {
-  position: relative;
-  height: 130px;
-  border-radius: 14px 14px 0 0;
-  overflow: visible;
-  margin-bottom: 60px; /* espacio para la foto que sobresale */
+/* ══════════════════════════════════════════
+   FILA SUPERIOR: Hero (5/12) + Info (7/12)
+══════════════════════════════════════════ */
+.buk-top-row {
+  display: grid;
+  grid-template-columns: 5fr 7fr;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: stretch;
 }
 
+/* ── Hero card (izquierda) ── */
+.buk-hero-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Banner teal */
 .buk-banner-bg {
-  position: absolute;
-  inset: 0;
-  border-radius: 14px 14px 0 0;
-  background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+  height: 100px;
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 55%, #14b8a6 100%);
+  flex-shrink: 0;
 }
 
-/* ── FOTO ── */
+/* Foto circular */
 .buk-avatar-wrap {
-  position: absolute;
-  bottom: -50px;
-  left: 36px;
-  width: 104px;
-  height: 104px;
+  margin: -44px 0 0 24px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  box-shadow: 0 0 0 4px #fff, 0 4px 14px rgba(0,0,0,0.18);
-  z-index: 2;
+  box-shadow: 0 0 0 4px #fff, 0 4px 12px rgba(0,0,0,0.18);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .buk-avatar-img,
 .buk-avatar-initials {
-  width: 104px;
-  height: 104px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -48,27 +56,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
+  font-size: 28px;
   font-weight: 800;
   color: #fff;
-  letter-spacing: 1px;
 }
 
-/* ── NOMBRE + CHIPS ── */
-.buk-identity {
-  background: #fff;
-  border-radius: 0;
-  padding: 12px 36px 24px 160px; /* left da espacio a la foto */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-  border-bottom: 1px solid #f1f5f9;
-  margin-bottom: 20px;
+/* Nombre y chips */
+.buk-hero-body {
+  padding: 12px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
 }
 
 .buk-name {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 8px;
+  line-height: 1.2;
 }
 
 .buk-chips {
@@ -78,17 +84,19 @@
   align-items: center;
 }
 
+/* Badges plomo oscuro */
 .buk-chip {
   background: #1e293b;
   color: #f1f5f9;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 3px 11px;
+  padding: 3px 10px;
   border-radius: 20px;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
 
+/* Chip estado */
 .buk-chip-status {
   display: inline-flex;
   align-items: center;
@@ -98,45 +106,36 @@
   padding: 3px 10px;
   border-radius: 20px;
 }
+.buk-chip-status.active   { background: #dcfce7; color: #16a34a; }
+.buk-chip-status.inactive { background: #f1f5f9; color: #94a3b8; }
 
-.buk-chip-status.active {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.buk-chip-status.inactive {
-  background: #f1f5f9;
-  color: #94a3b8;
-}
-
-/* ── CARDS ── */
+/* ══════════════════════════════════════════
+   CARDS GENÉRICAS
+══════════════════════════════════════════ */
 .buk-card {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
-  margin-bottom: 16px;
   overflow: hidden;
+  margin-bottom: 0; /* el gap del grid o margin externo maneja el espacio */
 }
 
 .buk-card-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 16px 24px;
-  font-size: 13px;
+  padding: 14px 20px;
+  font-size: 11px;
   font-weight: 700;
-  color: #475569;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.7px;
   border-bottom: 1px solid #f1f5f9;
   background: #f8fafc;
 }
+.buk-card-title svg { color: #0d9488; }
 
-.buk-card-title svg {
-  color: #0d9488;
-}
-
-/* ── INFO GRID (datos personales) ── */
+/* ── Info grid (2 columnas dentro de la card derecha) ── */
 .buk-info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -146,46 +145,37 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 18px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid #f1f5f9;
   border-right: 1px solid #f1f5f9;
 }
-
-.buk-info-item:nth-child(even) {
-  border-right: none;
-}
-
-/* quitar borde inferior de los últimos dos */
-.buk-info-item:nth-last-child(-n+2) {
-  border-bottom: none;
-}
+.buk-info-item:nth-child(even) { border-right: none; }
+.buk-info-item:nth-last-child(-n+2) { border-bottom: none; }
 
 .buk-info-label {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
-.buk-info-label svg {
-  color: #cbd5e1;
-}
+.buk-info-label svg { color: #cbd5e1; }
 
 .buk-info-value {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #0f172a;
   word-break: break-all;
 }
-
 .buk-info-value.status-val.active   { color: #16a34a; font-weight: 600; }
 .buk-info-value.status-val.inactive { color: #94a3b8; }
 
-/* ── SECURITY GRID ── */
+/* ══════════════════════════════════════════
+   FILA INFERIOR: Seguridad (ancho completo)
+══════════════════════════════════════════ */
 .buk-security-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -195,10 +185,7 @@
   padding: 24px;
   border-right: 1px solid #f1f5f9;
 }
-
-.buk-security-block:last-child {
-  border-right: none;
-}
+.buk-security-block:last-child { border-right: none; }
 
 .buk-security-block-title {
   display: flex;
@@ -209,10 +196,7 @@
   color: #1e293b;
   margin-bottom: 6px;
 }
-
-.buk-security-block-title svg {
-  color: #0d9488;
-}
+.buk-security-block-title svg { color: #0d9488; }
 
 .buk-security-hint {
   font-size: 12px;
@@ -220,15 +204,10 @@
   margin: 0 0 18px;
   line-height: 1.5;
 }
+.buk-security-hint strong { color: #64748b; }
 
-.buk-security-hint strong {
-  color: #64748b;
-}
-
-/* ── FIELDS ── */
-.buk-field {
-  margin-bottom: 14px;
-}
+/* ── Fields ── */
+.buk-field { margin-bottom: 14px; }
 
 .buk-field label {
   display: block;
@@ -252,23 +231,19 @@
   transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
   box-sizing: border-box;
 }
-
 .buk-field input:focus {
   border-color: #0d9488;
   background: #fff;
   box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
 }
 
-/* ── PASSWORD INPUT ── */
+/* ── Password ── */
 .buk-pw-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
-
-.buk-pw-wrap input {
-  padding-right: 40px;
-}
+.buk-pw-wrap input { padding-right: 40px; }
 
 .buk-pw-eye {
   position: absolute;
@@ -282,10 +257,9 @@
   align-items: center;
   transition: color 0.15s;
 }
-
 .buk-pw-eye:hover { color: #0d9488; }
 
-/* ── BOTÓN ── */
+/* ── Botón ── */
 .buk-btn {
   width: 100%;
   padding: 10px 16px;
@@ -299,51 +273,42 @@
   transition: background 0.18s;
   margin-top: 2px;
 }
+.buk-btn:hover:not(:disabled) { background: #0f766e; }
+.buk-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-.buk-btn:hover:not(:disabled) {
-  background: #0f766e;
-}
-
-.buk-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width: 700px) {
-  .buk-identity {
-    padding: 12px 20px 20px;
-    margin-top: 60px; /* la foto queda sobre el banner en mobile */
+/* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .buk-top-row {
+    grid-template-columns: 1fr;
   }
 
+  /* En mobile la foto va centrada */
   .buk-avatar-wrap {
-    left: 50%;
-    transform: translateX(-50%);
+    margin: -44px auto 0;
   }
 
+  .buk-hero-body {
+    align-items: center;
+    text-align: center;
+  }
+
+  .buk-chips {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
   .buk-info-grid,
   .buk-security-grid {
     grid-template-columns: 1fr;
   }
 
-  .buk-info-item {
-    border-right: none;
-  }
+  .buk-info-item { border-right: none; }
+  .buk-info-item:nth-last-child(-n+2) { border-bottom: 1px solid #f1f5f9; }
+  .buk-info-item:last-child { border-bottom: none; }
 
-  .buk-info-item:nth-last-child(-n+2) {
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  .buk-info-item:last-child {
-    border-bottom: none;
-  }
-
-  .buk-security-block {
-    border-right: none;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  .buk-security-block:last-child {
-    border-bottom: none;
-  }
+  .buk-security-block { border-right: none; border-bottom: 1px solid #f1f5f9; }
+  .buk-security-block:last-child { border-bottom: none; }
 }

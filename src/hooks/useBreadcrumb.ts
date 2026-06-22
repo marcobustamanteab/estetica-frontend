@@ -42,6 +42,10 @@ const routeMap: Record<string, { title: string, subtitle: string }> = {
   '/configuracion': {
     title: 'Configuración',
     subtitle: 'Configuración del Negocio'
+  },
+  '/mi-cuenta': {
+    title: 'Mi cuenta',
+    subtitle: 'Información de la cuenta'
   }
 };
 

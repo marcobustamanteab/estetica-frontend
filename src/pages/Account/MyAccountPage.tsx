@@ -19,7 +19,6 @@ const AVATAR_COLORS = [
 function getInitials(first: string, last: string) {
   return ((first?.[0] || '') + (last?.[0] || '')).toUpperCase() || 'U';
 }
-
 function getAvatarColor(initials: string) {
   const code = initials.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
   return AVATAR_COLORS[code % AVATAR_COLORS.length];
@@ -29,16 +28,15 @@ const MyAccountPage: React.FC = () => {
   const { currentUser } = useAuth();
   const [imgError, setImgError] = useState(false);
 
-  const [newEmail, setNewEmail]         = useState('');
-  const [savingEmail, setSavingEmail]   = useState(false);
+  const [newEmail, setNewEmail]       = useState('');
+  const [savingEmail, setSavingEmail] = useState(false);
 
-  const [newPassword, setNewPassword]           = useState('');
-  const [confirmPassword, setConfirmPassword]   = useState('');
-  const [showNew, setShowNew]                   = useState(false);
-  const [showConfirm, setShowConfirm]           = useState(false);
-  const [savingPassword, setSavingPassword]     = useState(false);
+  const [newPassword, setNewPassword]         = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNew, setShowNew]                 = useState(false);
+  const [showConfirm, setShowConfirm]         = useState(false);
+  const [savingPassword, setSavingPassword]   = useState(false);
 
-  /* ── helpers ── */
   const getAllRoles = (): string[] => {
     const groups = (currentUser as any)?.groups;
     if (!groups || groups.length === 0) return [];
@@ -53,12 +51,11 @@ const MyAccountPage: React.FC = () => {
   const commissionRate = (currentUser as any)?.commission_rate;
   const isActive       = (currentUser as any)?.is_active !== false;
 
-  const rawImage       = (currentUser as any)?.profile_image;
+  const rawImage = (currentUser as any)?.profile_image;
   const profileImageUrl = rawImage
     ? (rawImage.startsWith('http') ? rawImage : `${API_BASE_URL}${rawImage}`)
     : null;
 
-  /* ── handlers ── */
   const handleSaveEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmail.trim()) return;
@@ -69,9 +66,7 @@ const MyAccountPage: React.FC = () => {
       setNewEmail('');
     } catch {
       toast.error('Error al actualizar el correo');
-    } finally {
-      setSavingEmail(false);
-    }
+    } finally { setSavingEmail(false); }
   };
 
   const handleSavePassword = async (e: React.FormEvent) => {
@@ -85,105 +80,105 @@ const MyAccountPage: React.FC = () => {
       setNewPassword(''); setConfirmPassword('');
     } catch {
       toast.error('Error al actualizar la contraseña');
-    } finally {
-      setSavingPassword(false);
-    }
+    } finally { setSavingPassword(false); }
   };
 
-  /* ── render ── */
   return (
     <div className="buk-page">
 
-      {/* ── BANNER + FOTO ── */}
-      <div className="buk-banner">
-        <div className="buk-banner-bg" />
-        <div className="buk-avatar-wrap">
-          {profileImageUrl && !imgError ? (
-            <img
-              src={profileImageUrl}
-              alt={currentUser?.first_name || 'Perfil'}
-              className="buk-avatar-img"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="buk-avatar-initials" style={{ background: avatarBg }}>
-              {initials}
+      {/* ── FILA SUPERIOR: Hero (col 5) + Info personal (col 7) ── */}
+      <div className="buk-top-row">
+
+        {/* Card izquierda: Banner + foto + nombre + chips */}
+        <div className="buk-hero-card">
+          <div className="buk-banner-bg" />
+
+          <div className="buk-avatar-wrap">
+            {profileImageUrl && !imgError ? (
+              <img
+                src={profileImageUrl}
+                alt={currentUser?.first_name || 'Perfil'}
+                className="buk-avatar-img"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <div className="buk-avatar-initials" style={{ background: avatarBg }}>
+                {initials}
+              </div>
+            )}
+          </div>
+
+          <div className="buk-hero-body">
+            <div className="buk-name">
+              {currentUser?.first_name} {currentUser?.last_name}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── NOMBRE + BADGES ── */}
-      <div className="buk-identity">
-        <div className="buk-name">
-          {currentUser?.first_name} {currentUser?.last_name}
-        </div>
-        <div className="buk-chips">
-          {roles.length > 0
-            ? roles.map((r, i) => <span key={i} className="buk-chip">{r}</span>)
-            : <span className="buk-chip">Sin rol</span>}
-          <span className={`buk-chip-status ${isActive ? 'active' : 'inactive'}`}>
-            <CheckCircle2 size={12} />
-            {isActive ? 'Activo' : 'Inactivo'}
-          </span>
-        </div>
-      </div>
-
-      {/* ── SECCIÓN: INFORMACIÓN PERSONAL ── */}
-      <div className="buk-card">
-        <div className="buk-card-title">
-          <User size={16} />
-          Información personal
+            <div className="buk-chips">
+              {roles.length > 0
+                ? roles.map((r, i) => <span key={i} className="buk-chip">{r}</span>)
+                : <span className="buk-chip">Sin rol</span>}
+              <span className={`buk-chip-status ${isActive ? 'active' : 'inactive'}`}>
+                <CheckCircle2 size={12} />
+                {isActive ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="buk-info-grid">
-          <div className="buk-info-item">
-            <span className="buk-info-label"><User size={13} /> Usuario</span>
-            <span className="buk-info-value">{currentUser?.username || '—'}</span>
+        {/* Card derecha: Información personal */}
+        <div className="buk-card">
+          <div className="buk-card-title">
+            <User size={15} />
+            Información personal
           </div>
 
-          <div className="buk-info-item">
-            <span className="buk-info-label"><Mail size={13} /> Correo electrónico</span>
-            <span className="buk-info-value">{currentUser?.email || '—'}</span>
-          </div>
-
-          <div className="buk-info-item">
-            <span className="buk-info-label"><Shield size={13} /> Tipo de cuenta</span>
-            <span className="buk-info-value">Trabajador</span>
-          </div>
-
-          {commissionRate != null && (
+          <div className="buk-info-grid">
             <div className="buk-info-item">
-              <span className="buk-info-label"><Percent size={13} /> Comisión</span>
-              <span className="buk-info-value">{commissionRate}%</span>
+              <span className="buk-info-label"><User size={12} /> Usuario</span>
+              <span className="buk-info-value">{currentUser?.username || '—'}</span>
             </div>
-          )}
 
-          <div className="buk-info-item">
-            <span className="buk-info-label"><Building2 size={13} /> Área</span>
-            <span className="buk-info-value">
-              {roles.length > 0 ? roles.join(' · ') : 'Sin asignar'}
-            </span>
-          </div>
+            <div className="buk-info-item">
+              <span className="buk-info-label"><Mail size={12} /> Correo</span>
+              <span className="buk-info-value">{currentUser?.email || '—'}</span>
+            </div>
 
-          <div className="buk-info-item">
-            <span className="buk-info-label"><CheckCircle2 size={13} /> Estado</span>
-            <span className={`buk-info-value status-val ${isActive ? 'active' : 'inactive'}`}>
-              {isActive ? 'Activo' : 'Inactivo'}
-            </span>
+            <div className="buk-info-item">
+              <span className="buk-info-label"><Shield size={12} /> Tipo de cuenta</span>
+              <span className="buk-info-value">Trabajador</span>
+            </div>
+
+            {commissionRate != null && (
+              <div className="buk-info-item">
+                <span className="buk-info-label"><Percent size={12} /> Comisión</span>
+                <span className="buk-info-value">{commissionRate}%</span>
+              </div>
+            )}
+
+            <div className="buk-info-item">
+              <span className="buk-info-label"><Building2 size={12} /> Área</span>
+              <span className="buk-info-value">
+                {roles.length > 0 ? roles.join(' · ') : 'Sin asignar'}
+              </span>
+            </div>
+
+            <div className="buk-info-item">
+              <span className="buk-info-label"><CheckCircle2 size={12} /> Estado</span>
+              <span className={`buk-info-value status-val ${isActive ? 'active' : 'inactive'}`}>
+                {isActive ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── SECCIÓN: SEGURIDAD ── */}
+      {/* ── FILA INFERIOR: Seguridad (ancho completo) ── */}
       <div className="buk-card">
         <div className="buk-card-title">
-          <Lock size={16} />
+          <Lock size={15} />
           Seguridad de la cuenta
         </div>
 
         <div className="buk-security-grid">
-
           {/* Correo */}
           <div className="buk-security-block">
             <div className="buk-security-block-title">
@@ -256,9 +251,9 @@ const MyAccountPage: React.FC = () => {
               </button>
             </form>
           </div>
-
         </div>
       </div>
+
     </div>
   );
 };
