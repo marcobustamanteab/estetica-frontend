@@ -56,6 +56,11 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       ],
     }] : []),
 
+    // Mi cuenta — solo trabajadores (no admin ni superadmin)
+    ...(!isAdmin && !isSuperAdmin
+      ? [{ path: "/mi-cuenta", icon: <FiUser size={20} />, label: "Mi cuenta" }]
+      : []),
+
     { path: "/clientes",        icon: <FiUserCheck size={20} />, label: "Clientes" },
     { path: "/registro-manual", icon: <FiEdit size={20} />,      label: "Registro Manual" },
 
@@ -72,11 +77,6 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
       : []),
 
     { path: "/reportes", icon: <FiBarChart2 size={20} />, label: "Reportes" },
-
-    // Mi cuenta — solo trabajadores (no admin ni superadmin)
-    ...(!isAdmin && !isSuperAdmin
-      ? [{ path: "/mi-cuenta", icon: <FiUser size={20} />, label: "Mi cuenta" }]
-      : []),
 
     // Configuración — solo admin/superadmin
     ...(isAdmin || isSuperAdmin
