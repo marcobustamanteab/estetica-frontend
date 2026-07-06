@@ -140,8 +140,14 @@ const Dashboard: React.FC = () => {
       });
       setTotalSales(dailySalesTotal);
 
+      const monthFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
+      const monthTo   = format(endOfMonth(new Date()),   "yyyy-MM-dd");
+
       const completedMonthlyAppointments = appointments.filter(
-        (appointment) => appointment.status === "completed"
+        (appointment) =>
+          appointment.status === "completed" &&
+          appointment.date >= monthFrom &&
+          appointment.date <= monthTo
       );
 
       let monthlySalesTotal = 0;
@@ -156,7 +162,11 @@ const Dashboard: React.FC = () => {
 
       if (isBarber) {
         const myCompleted = appointments.filter(
-          (a) => a.status === "completed" && a.employee === (currentUser as any)?.id
+          (a) =>
+            a.status === "completed" &&
+            a.employee === (currentUser as any)?.id &&
+            a.date >= monthFrom &&
+            a.date <= monthTo
         );
         setCompletedServicesCount(myCompleted.length);
       }
