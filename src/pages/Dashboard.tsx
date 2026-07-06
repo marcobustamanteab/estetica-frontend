@@ -45,6 +45,13 @@ const Dashboard: React.FC = () => {
   const [todayProductSales, setTodayProductSales] = useState<number>(0);
   const [monthlyProductSales, setMonthlyProductSales] = useState<number>(0);
   const [completedServicesCount, setCompletedServicesCount] = useState<number>(0);
+  const [totalMonthlyServices, setTotalMonthlyServices] = useState<number>(0);
+  const [calendarMonthFrom, setCalendarMonthFrom] = useState(() =>
+    format(startOfMonth(new Date()), "yyyy-MM-dd")
+  );
+  const [calendarMonthTo, setCalendarMonthTo] = useState(() =>
+    format(endOfMonth(new Date()), "yyyy-MM-dd")
+  );
 
   const {
     appointments,
@@ -140,15 +147,14 @@ const Dashboard: React.FC = () => {
       });
       setTotalSales(dailySalesTotal);
 
-      const monthFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-      const monthTo   = format(endOfMonth(new Date()),   "yyyy-MM-dd");
-
       const completedMonthlyAppointments = appointments.filter(
         (appointment) =>
           appointment.status === "completed" &&
-          appointment.date >= monthFrom &&
-          appointment.date <= monthTo
+          appointment.date >= calendarMonthFrom &&
+          appointment.date <= calendarMonthTo
       );
+
+      setTotalMonthlyServices(completedMonthlyAppointments.length);
 
       let monthlySalesTotal = 0;
       completedMonthlyAppointments.forEach((appointment) => {
@@ -165,16 +171,23 @@ const Dashboard: React.FC = () => {
           (a) =>
             a.status === "completed" &&
             a.employee === (currentUser as any)?.id &&
-            a.date >= monthFrom &&
-            a.date <= monthTo
+            a.date >= calendarMonthFrom &&
+            a.date <= calendarMonthTo
         );
         setCompletedServicesCount(myCompleted.length);
       }
-    }, [appointments, services]);
+    }, [appointments, services, calendarMonthFrom, calendarMonthTo]);
 
   // Fetch de citas cuando FullCalendar cambia el rango visible (navegación entre meses)
   const handleCalendarRangeChange = (start: string, end: string) => {
     fetchAppointments({ date_from: start, date_to: end });
+
+    // El grid mensual empieza máximo 6 días antes del día 1 del mes mostrado,
+    // por lo que start + 7 días siempre cae dentro del mes correcto.
+    const midPoint = new Date(start);
+    midPoint.setDate(midPoint.getDate() + 7);
+    setCalendarMonthFrom(format(startOfMonth(midPoint), "yyyy-MM-dd"));
+    setCalendarMonthTo(format(endOfMonth(midPoint), "yyyy-MM-dd"));
   };
 
   // Manejar clic en fecha del calendario - Ahora solo actualiza la fecha seleccionada
@@ -402,6 +415,9 @@ const Dashboard: React.FC = () => {
                 <Counter end={todayAppointments} />
               </div>
               <p>Citas activas para hoy</p>
+              <p style={{ marginTop: "4px", fontSize: "12px", color: "#94a3b8" }}>
+                Total de servicios: <strong style={{ color: "#0d9488" }}>{totalMonthlyServices}</strong>
+              </p>
             </div>
             <div className="card-icon">
               <Calendar size={48} />
