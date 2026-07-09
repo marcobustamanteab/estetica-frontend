@@ -122,12 +122,12 @@ const AppointmentsPage: React.FC = () => {
     if (tab === "calendar") {
       // El fetch lo dispara datesSet automáticamente al montar CalendarView
     } else {
-      // Si volvemos a lista, usar filtro de fecha única
       const today = format(new Date(), "yyyy-MM-dd");
+      const dateToUse = filterDate || today;
 
       const listFilters: AppointmentFilters = {
-        date_from: filterDate || today,
-        date_to: filterDate || today,
+        date_from: dateToUse,
+        date_to: dateToUse,
       };
 
       if (filterStatus) {
@@ -135,6 +135,7 @@ const AppointmentsPage: React.FC = () => {
       }
 
       setFilters(listFilters);
+      fetchAppointments(listFilters);
     }
   };
 
