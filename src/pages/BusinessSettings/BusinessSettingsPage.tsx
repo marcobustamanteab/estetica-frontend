@@ -63,6 +63,7 @@ const BusinessSettingsPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
+  const [logoError, setLogoError] = useState<string>('');
 
   const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem('access')}`, 'Content-Type': 'application/json' });
 
@@ -96,13 +97,17 @@ const BusinessSettingsPage: React.FC = () => {
     if (!file) return;
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowed.includes(file.type)) {
-      toast.error('Solo se permiten imágenes JPG, PNG, WebP o GIF.');
+      setLogoError('Formato no permitido. Solo JPG, PNG, WebP o GIF.');
+      e.target.value = '';
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('La imagen no puede superar 2 MB.');
+    const maxMB = 2;
+    if (file.size > maxMB * 1024 * 1024) {
+      setLogoError(`El archivo supera el límite de ${maxMB} MB (tamaño actual: ${(file.size / 1024 / 1024).toFixed(1)} MB).`);
+      e.target.value = '';
       return;
     }
+    setLogoError('');
     setLogoFile(file);
     setLogoPreview(URL.createObjectURL(file));
   };
@@ -229,11 +234,12 @@ const BusinessSettingsPage: React.FC = () => {
                 />
               </label>
               {logoFile && (
-                <button type="button" className="bs-remove-logo" onClick={() => { setLogoFile(null); setLogoPreview(''); }}>
+                <button type="button" className="bs-remove-logo" onClick={() => { setLogoFile(null); setLogoPreview(''); setLogoError(''); }}>
                   Quitar
                 </button>
               )}
             </div>
+            {logoError && <p className="bs-logo-error">{logoError}</p>}
           </div>
 
           {/* Color primario */}
