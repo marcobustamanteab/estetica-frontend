@@ -61,6 +61,8 @@ const BusinessSettingsPage: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>('');
 
   const authHeader = () => ({ Authorization: `Bearer ${localStorage.getItem('access')}`, 'Content-Type': 'application/json' });
 
@@ -80,11 +82,29 @@ const BusinessSettingsPage: React.FC = () => {
         employee_label: data.employee_label || 'Especialista',
         booking_tagline: data.booking_tagline || 'Elige tu servicio y agenda en minutos',
       });
+      setLogoFile(null);
+      setLogoPreview('');
     } catch {
       toast.error('Error al cargar los datos del negocio');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowed.includes(file.type)) {
+      toast.error('Solo se permiten imágenes JPG, PNG, WebP o GIF.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('La imagen no puede superar 2 MB.');
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
   };
 
   // Cargar datos cuando cambia el negocio seleccionado
@@ -113,24 +133,31 @@ const BusinessSettingsPage: React.FC = () => {
       const url = isSuperAdmin && form.id
         ? `${API_BASE_URL}/api/auth/businesses/${form.id}/`
         : `${API_BASE_URL}/api/auth/businesses/me/`;
+
+      const body = new FormData();
+      body.append('name', form.name);
+      body.append('working_days', JSON.stringify(form.working_days));
+      body.append('primary_color', form.primary_color || '#0d9488');
+      body.append('employee_label', form.employee_label || 'Especialista');
+      body.append('booking_tagline', form.booking_tagline || '');
+      if (logoFile) body.append('logo_file', logoFile);
+
       const res = await fetch(url, {
         method: 'PATCH',
-        headers: authHeader(),
-        body: JSON.stringify({
-          name: form.name,
-          logo_url: form.logo_url || null,
-          working_days: form.working_days,
-          primary_color: form.primary_color || '#0d9488',
-          employee_label: form.employee_label || 'Especialista',
-          booking_tagline: form.booking_tagline || '',
-        }),
+        headers: { Authorization: `Bearer ${localStorage.getItem('access')}` },
+        body,
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Error al guardar');
+      }
       const updated = await res.json();
-      setForm((prev) => ({ ...prev, slug: updated.slug }));
+      setForm((prev) => ({ ...prev, slug: updated.slug, logo_url: updated.logo_url || prev.logo_url }));
+      setLogoFile(null);
+      setLogoPreview('');
       toast.success('Configuración guardada correctamente');
-    } catch {
-      toast.error('Error al guardar los cambios');
+    } catch (e: any) {
+      toast.error(e.message || 'Error al guardar los cambios');
     } finally {
       setSaving(false);
     }
@@ -181,18 +208,31 @@ const BusinessSettingsPage: React.FC = () => {
 
           {/* Logo */}
           <div className="bs-section">
-            <label className="bs-label">URL del logo</label>
+            <label className="bs-label">Logo del negocio</label>
+            <p className="bs-hint">JPG, PNG o WebP · máximo 2 MB</p>
             <div className="bs-logo-row">
-              {form.logo_url && (
-                <img src={form.logo_url} alt="Logo" className="bs-logo-preview" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              {(logoPreview || form.logo_url) && (
+                <img
+                  src={logoPreview || form.logo_url}
+                  alt="Logo"
+                  className="bs-logo-preview"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
               )}
-              <input
-                type="url"
-                className="bs-input"
-                value={form.logo_url}
-                onChange={(e) => setForm((p) => ({ ...p, logo_url: e.target.value }))}
-                placeholder="https://ejemplo.com/logo.png"
-              />
+              <label className="bs-file-label">
+                {logoFile ? logoFile.name : 'Seleccionar imagen'}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="bs-file-input"
+                  onChange={handleLogoChange}
+                />
+              </label>
+              {logoFile && (
+                <button type="button" className="bs-remove-logo" onClick={() => { setLogoFile(null); setLogoPreview(''); }}>
+                  Quitar
+                </button>
+              )}
             </div>
           </div>
 
