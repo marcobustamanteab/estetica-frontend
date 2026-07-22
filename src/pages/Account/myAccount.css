@@ -56,21 +56,24 @@
   position: absolute;
   bottom: 0px;
   right: 0px;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: #1e293b;
-  color: white;
-  border: 2px solid white;
+  background: #0d9488;
+  color: #fff;
+  border: 2px solid #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: background 0.15s, transform 0.15s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  padding: 0;
+  line-height: 1;
 }
-.buk-avatar-camera:hover { background: #0f766e; }
-.buk-avatar-camera:disabled { opacity: 0.6; cursor: not-allowed; }
+.buk-avatar-camera svg { display: block; flex-shrink: 0; }
+.buk-avatar-camera:hover { background: #0f766e; transform: scale(1.1); }
+.buk-avatar-camera:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
 .buk-avatar-initials {
   display: flex;

@@ -150,7 +150,7 @@ const MyAccountPage: React.FC = () => {
               disabled={uploadingPhoto}
               onClick={() => fileInputRef.current?.click()}
             >
-              {uploadingPhoto ? '...' : <Camera size={14} />}
+              {uploadingPhoto ? '…' : <Camera size={15} />}
             </button>
             <input
               ref={fileInputRef}

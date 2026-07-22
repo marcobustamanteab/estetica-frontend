@@ -227,6 +227,10 @@ select[multiple] option:checked {
   display: inline-block;
 }
 
+.ufm-avatar-wrap .avatar {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #0d9488;
+}
+
 .ufm-avatar-camera {
   position: absolute;
   bottom: 0;
