@@ -200,6 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
             firstName={user?.first_name}
             lastName={user?.last_name}
             size="medium"
+            profileImage={user?.profile_image}
           />
           <div className="user-info">
             <div className="user-name">
@@ -215,6 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
             lastName={user?.last_name}
             size="medium"
             className="avatar-sidebar-collapsed"
+            profileImage={user?.profile_image}
           />
         </div>
       )}

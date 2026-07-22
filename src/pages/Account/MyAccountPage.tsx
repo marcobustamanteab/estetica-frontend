@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
-import { Mail, Lock, User, Shield, Percent, Eye, EyeOff, CheckCircle2, Building2 } from 'lucide-react';
+import { Mail, Lock, User, Shield, Percent, Eye, EyeOff, CheckCircle2, Building2, Camera } from 'lucide-react';
 import { toast } from 'react-toastify';
 import './myAccount.css';
 
@@ -25,8 +25,46 @@ function getAvatarColor(initials: string) {
 }
 
 const MyAccountPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, refreshUser } = useAuth();
   const [imgError, setImgError] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowed.includes(file.type)) {
+      toast.error('Solo se permiten imágenes JPG, PNG o WebP.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error(`La imagen supera 2 MB (${(file.size/1024/1024).toFixed(1)} MB).`);
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const form = new FormData();
+      form.append('profile_image', file);
+      const res = await fetch(`${API_BASE_URL}/api/auth/profile/image/`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('access')}` },
+        body: form,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Error al subir imagen');
+      }
+      await refreshUser();
+      setImgError(false);
+      toast.success('Foto actualizada correctamente');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al subir la foto');
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const [newEmail, setNewEmail]       = useState('');
   const [savingEmail, setSavingEmail] = useState(false);
@@ -106,6 +144,21 @@ const MyAccountPage: React.FC = () => {
                 {initials}
               </div>
             )}
+            <button
+              className="buk-avatar-camera"
+              title="Cambiar foto"
+              disabled={uploadingPhoto}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {uploadingPhoto ? '...' : <Camera size={14} />}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              style={{ display: 'none' }}
+              onChange={handlePhotoUpload}
+            />
           </div>
 
           <div className="buk-hero-body">

@@ -90,7 +90,7 @@ function MiniCalendar({ selected, onSelect, workingDays, primaryColor = '#0d9488
 }
 
 interface Service { id: number; name: string; duration: number; price: number; description: string; allowed_role_ids: number[]; }
-interface Employee { id: number; first_name: string; last_name: string; specialty: string | null; role_ids: number[]; }
+interface Employee { id: number; first_name: string; last_name: string; specialty: string | null; role_ids: number[]; profile_image?: string; }
 interface BusinessInfo {
   id: number; name: string; slug: string; logo_url: string | null;
   services: Service[]; employees: Employee[]; working_days: number[];
@@ -420,8 +420,10 @@ export default function BookingPage() {
                   transition: "all 0.2s", boxShadow: employee === e.id ? `0 4px 16px ${pcAlpha15}` : "none",
                   width: "100%", textAlign: "left",
                 }}>
-                  <div style={{ width: 42, height: 42, borderRadius: "50%", background: `linear-gradient(135deg, ${pc}, ${lighten(pc, 0.2)})`, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
-                    {e.first_name[0]}{e.last_name[0]}
+                  <div style={{ width: 42, height: 42, borderRadius: "50%", background: `linear-gradient(135deg, ${pc}, ${lighten(pc, 0.2)})`, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0, overflow: "hidden" }}>
+                    {e.profile_image
+                      ? <img src={e.profile_image} alt={e.first_name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} onError={(ev) => { (ev.target as HTMLImageElement).style.display = "none"; }} />
+                      : <>{e.first_name[0]}{e.last_name[0]}</>}
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, color: "#1a1a2e", fontSize: 14 }}>{e.first_name} {e.last_name}</div>

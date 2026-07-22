@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/Users/MyProfilePage.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Mail, 
@@ -38,9 +38,15 @@ interface ExtendedUser {
   last_login?: string;
 }
 
+const API_BASE_URL = import.meta.env.PROD
+  ? (import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app')
+  : 'http://localhost:8000';
+
 const MyProfilePage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Función para obtener la fecha de ingreso formateada
   const formatDate = (dateString?: string) => {
@@ -79,10 +85,29 @@ const MyProfilePage: React.FC = () => {
     return userGroups.map((groupId) => `Rol ${groupId}`);
   };
   
-  // Función para manejar el cambio de imagen de perfil
-  const handleImageUpload = () => {
-    // Aquí iría la lógica para subir una nueva imagen
-    console.log('Subir nueva imagen');
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowed.includes(file.type)) { alert('Solo se permiten imágenes JPG, PNG o WebP.'); return; }
+    if (file.size > 2 * 1024 * 1024) { alert(`La imagen supera 2 MB (${(file.size/1024/1024).toFixed(1)} MB).`); return; }
+    setUploadingPhoto(true);
+    try {
+      const form = new FormData();
+      form.append('profile_image', file);
+      const res = await fetch(`${API_BASE_URL}/api/auth/profile/image/`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('access')}` },
+        body: form,
+      });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Error'); }
+      await refreshUser();
+    } catch (err: any) {
+      alert(err.message || 'Error al subir la foto');
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   // Determinar si el usuario es administrador
@@ -114,18 +139,17 @@ const MyProfilePage: React.FC = () => {
         <div className="profile-panel personal-info">
           <div className="profile-image-container">
             <div className="profile-image">
-              <img 
-                src={'/default-avatar.png'} 
-                alt={`${currentUser?.first_name || 'Usuario'}`} 
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://i.pravatar.cc/150?img=38'; // Imagen fallback
-                }}
-              />
-              {isEditing && (
-                <button className="upload-image-button" onClick={handleImageUpload}>
-                  <Upload size={16} />
-                </button>
+              {(currentUser as any)?.profile_image ? (
+                <img src={(currentUser as any).profile_image} alt={currentUser?.first_name || 'Usuario'} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              ) : (
+                <div style={{ width: '100%', height: '100%', background: '#0d9488', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 36, fontWeight: 700, borderRadius: '50%' }}>
+                  {(currentUser?.first_name?.[0] || '').toUpperCase()}{(currentUser?.last_name?.[0] || '').toUpperCase() || 'U'}
+                </div>
               )}
+              <button className="upload-image-button" onClick={() => fileInputRef.current?.click()} disabled={uploadingPhoto} title="Cambiar foto">
+                {uploadingPhoto ? '...' : <Upload size={16} />}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: 'none' }} onChange={handleImageUpload} />
             </div>
           </div>
           

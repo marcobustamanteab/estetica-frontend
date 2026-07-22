@@ -20,6 +20,7 @@ interface AuthContextType {
   logout: () => void;
   register: (userData: RegisterData) => Promise<any>;
   isAuthenticated: () => boolean;
+  refreshUser: () => Promise<void>;
 }
 
 interface RegisterData {
@@ -134,6 +135,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    const res = await authService.getProfile();
+    setCurrentUser(res.data);
+  };
+
   // Valores a proporcionar en el contexto
   const value: AuthContextType = {
     currentUser,
@@ -142,7 +148,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     register,
-    isAuthenticated: authService.isAuthenticated
+    isAuthenticated: authService.isAuthenticated,
+    refreshUser,
   };
 
   return (

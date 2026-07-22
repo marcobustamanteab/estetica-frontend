@@ -5,6 +5,7 @@ import { useWorkSchedules, DAYS_OF_WEEK, WorkSchedule } from '../../hooks/useWor
 import { useAuth } from '../../context/AuthContext';
 import { useBusinessContext } from '../../context/BusinessContext';
 import { toast } from 'react-toastify';
+import Avatar from '../../components/common/Avatar';
 import './workSchedules.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -350,10 +351,12 @@ const WorkSchedulesPage: React.FC = () => {
                         {/* Employee name cell */}
                         <td className="ws-grid-td ws-grid-emp-cell">
                           <div className="ws-grid-emp-info">
-                            <div className="ws-employee-avatar ws-employee-avatar--sm">
-                              {(emp.first_name?.[0] || '?').toUpperCase()}
-                              {(emp.last_name?.[0] || '').toUpperCase()}
-                            </div>
+                            <Avatar
+                              firstName={emp.first_name}
+                              lastName={emp.last_name}
+                              profileImage={(emp as any).profile_image}
+                              size="small"
+                            />
                             <div className="ws-grid-emp-text">
                               <span className="ws-grid-emp-name">
                                 {emp.first_name} {emp.last_name}

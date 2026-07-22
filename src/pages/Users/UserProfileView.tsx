@@ -173,13 +173,13 @@ const UserProfileView: React.FC = () => {
         <div className="profile-panel personal-info">
           <div className="profile-image-container">
             <div className="profile-image">
-              <img 
-                src={'/default-avatar.png'} 
-                alt={`${userProfile?.first_name || 'Usuario'}`} 
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://i.pravatar.cc/150?img=38'; // Imagen fallback
-                }}
-              />
+              {(userProfile as any)?.profile_image ? (
+                <img src={(userProfile as any).profile_image} alt={userProfile?.first_name || 'Usuario'} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              ) : (
+                <div style={{ width: '100%', height: '100%', background: '#0d9488', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 36, fontWeight: 700, borderRadius: '50%' }}>
+                  {(userProfile?.first_name?.[0] || '').toUpperCase()}{(userProfile?.last_name?.[0] || '').toUpperCase() || 'U'}
+                </div>
+              )}
             </div>
           </div>
           
