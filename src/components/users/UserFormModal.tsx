@@ -1,10 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { User, UserFormData } from "../../hooks/useUsers";
 import { useGroups } from "../../hooks/useGroups";
 import "../common/modal.css";
 import "../../assets/styles/users/userFormModal.css";
 import { useAuth } from '../../context/AuthContext';
+import { Camera } from 'lucide-react';
+import Avatar from '../common/Avatar';
+
+const API_BASE_URL = import.meta.env.PROD
+  ? (import.meta.env.VITE_API_URL || 'https://estetica-backend-production.up.railway.app')
+  : 'http://localhost:8000';
 
 interface UserFormModalProps {
   user: User | null;
@@ -30,6 +36,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [currentPhoto, setCurrentPhoto] = useState<string | undefined>(undefined);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const { groups, fetchGroups, loading: groupsLoading } = useGroups();
   const { currentUser } = useAuth();
   const isSuperAdmin = (currentUser as any)?.is_superuser === true;
@@ -39,6 +48,10 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
   useEffect(() => {
     fetchGroups();
   }, []);
+
+  useEffect(() => {
+    setCurrentPhoto((user as any)?.profile_image || undefined);
+  }, [user]);
 
   // Si estamos editando, cargar los datos del usuario
   useEffect(() => {
@@ -59,6 +72,32 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
       });
     }
   }, [user]);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowed.includes(file.type)) { alert('Solo se permiten imágenes JPG, PNG o WebP.'); return; }
+    if (file.size > 2 * 1024 * 1024) { alert(`La imagen supera 2 MB.`); return; }
+    setUploadingPhoto(true);
+    try {
+      const form = new FormData();
+      form.append('profile_image', file);
+      const res = await fetch(`${API_BASE_URL}/api/auth/users/${user.id}/image/`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('access')}` },
+        body: form,
+      });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Error'); }
+      const data = await res.json();
+      setCurrentPhoto(data.profile_image);
+    } catch (err: any) {
+      alert(err.message || 'Error al subir la foto');
+    } finally {
+      setUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -169,6 +208,35 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="user-form">
+          {user && (
+            <div className="ufm-avatar-row">
+              <div className="ufm-avatar-wrap">
+                <Avatar
+                  firstName={formData.first_name || user.first_name || ''}
+                  lastName={formData.last_name || user.last_name || ''}
+                  profileImage={currentPhoto}
+                  size="large"
+                />
+                <button
+                  type="button"
+                  className="ufm-avatar-camera"
+                  title="Cambiar foto"
+                  disabled={uploadingPhoto}
+                  onClick={() => photoInputRef.current?.click()}
+                >
+                  {uploadingPhoto ? '…' : <Camera size={14} />}
+                </button>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  style={{ display: 'none' }}
+                  onChange={handlePhotoUpload}
+                />
+              </div>
+              <span className="ufm-avatar-hint">Foto de perfil</span>
+            </div>
+          )}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="username">
