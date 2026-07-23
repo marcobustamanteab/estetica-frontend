@@ -45,7 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigate('/login');
   };
 
-  const businessTitle = businesses.find(b => b.id === selectedBusiness)?.name || 'Beauty Care';
+  const businessName = businesses.find(b => b.id === selectedBusiness)?.name;
 
   return (
     <div className={`layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
@@ -65,7 +65,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <header className="header">
           <button className="menu-button" onClick={toggleSidebar}>☰</button>
 
-          <h1 className="title">{businessTitle}</h1>
+          <h1 className="title">
+            BeautyCare{businessName && <><span className="title-sep"> | </span><span className="title-biz">{businessName}</span></>}
+          </h1>
 
           {isSuperAdmin && businesses.length > 0 && (
             <select

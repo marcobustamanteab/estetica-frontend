@@ -49,7 +49,21 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
     } else {
       // Admin normal — usar su propio negocio
       const businessId = (currentUser as any)?.business;
-      if (businessId) setSelectedBusiness(businessId);
+      if (businessId) {
+        setSelectedBusiness(businessId);
+        const token = localStorage.getItem('access');
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        fetch(`${apiUrl}/api/auth/businesses/me/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data?.id && data?.name) {
+              setBusinesses([{ id: data.id, name: data.name }]);
+            }
+          })
+          .catch(() => {});
+      }
     }
   }, [currentUser]);
 
