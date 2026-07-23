@@ -91,23 +91,15 @@ const Sidebar: React.FC<SidebarProps> = ({ expanded, user }) => {
 
   const getUserRole = (): string => {
     if (!user) return "Usuario";
-
     if (user.is_superuser === true) return "Super Administrador";
-
     if (user.is_staff === true) return "Administrador";
-
     if (user.groups && user.groups.length > 0) {
-      const firstGroup = user.groups[0];
-      if (
-        typeof firstGroup === "object" &&
-        firstGroup !== null &&
-        "name" in firstGroup
-      ) {
-        return firstGroup.name;
-      }
-      return `Rol ${firstGroup}`;
+      return user.groups
+        .map((g: any) =>
+          typeof g === "object" && g !== null && "name" in g ? g.name : `Rol ${g}`
+        )
+        .join(" · ");
     }
-
     return "Sin rol asignado";
   };
 
