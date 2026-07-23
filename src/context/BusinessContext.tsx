@@ -11,12 +11,14 @@ interface BusinessContextType {
   selectedBusiness: number | null;
   setSelectedBusiness: (id: number | null) => void;
   businesses: Business[];
+  refreshBusiness: () => Promise<void>;
 }
 
 const BusinessContext = createContext<BusinessContextType>({
   selectedBusiness: null,
   setSelectedBusiness: () => {},
   businesses: [],
+  refreshBusiness: async () => {},
 });
 
 export const useBusinessContext = () => useContext(BusinessContext);
@@ -27,48 +29,42 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
   const [selectedBusiness, setSelectedBusiness] = useState<number | null>(null);
   const isSuperAdmin = (currentUser as any)?.is_superuser === true;
 
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+  const fetchBusinesses = async () => {
+    const token = localStorage.getItem('access');
+    if (isSuperAdmin) {
+      const res = await fetch(`${apiUrl}/api/auth/businesses/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      const list: Business[] = Array.isArray(data) ? data : [];
+      setBusinesses(list);
+      if (list.length > 0 && !selectedBusiness) setSelectedBusiness(list[0].id);
+    } else {
+      const businessId = (currentUser as any)?.business;
+      if (!businessId) return;
+      setSelectedBusiness(businessId);
+      const res = await fetch(`${apiUrl}/api/auth/businesses/me/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data?.id && data?.name) setBusinesses([{ id: data.id, name: data.name }]);
+    }
+  };
+
+  const refreshBusiness = async () => {
+    try { await fetchBusinesses(); } catch { /* silencioso */ }
+  };
+
   useEffect(() => {
     if (!currentUser) return;
-
-    if (isSuperAdmin) {
-      const token = localStorage.getItem('access');
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      fetch(`${apiUrl}/api/auth/businesses/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => {
-          const list = Array.isArray(data) ? data : [];
-          setBusinesses(list);
-          // Por defecto el primer negocio
-          if (list.length > 0 && !selectedBusiness) {
-            setSelectedBusiness(list[0].id);
-          }
-        })
-        .catch(err => console.error('Error cargando negocios:', err));
-    } else {
-      // Admin normal — usar su propio negocio
-      const businessId = (currentUser as any)?.business;
-      if (businessId) {
-        setSelectedBusiness(businessId);
-        const token = localStorage.getItem('access');
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-        fetch(`${apiUrl}/api/auth/businesses/me/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-          .then(res => res.ok ? res.json() : null)
-          .then(data => {
-            if (data?.id && data?.name) {
-              setBusinesses([{ id: data.id, name: data.name }]);
-            }
-          })
-          .catch(() => {});
-      }
-    }
+    fetchBusinesses().catch(() => {});
   }, [currentUser]);
 
   return (
-    <BusinessContext.Provider value={{ selectedBusiness, setSelectedBusiness, businesses }}>
+    <BusinessContext.Provider value={{ selectedBusiness, setSelectedBusiness, businesses, refreshBusiness }}>
       {children}
     </BusinessContext.Provider>
   );

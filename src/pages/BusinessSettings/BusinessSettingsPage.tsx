@@ -52,7 +52,7 @@ const BookingURL: React.FC<{ slug: string }> = ({ slug }) => {
 
 const BusinessSettingsPage: React.FC = () => {
   const { currentUser } = useAuth();
-  const { selectedBusiness, businesses, setSelectedBusiness } = useBusinessContext();
+  const { selectedBusiness, businesses, setSelectedBusiness, refreshBusiness } = useBusinessContext();
   const isSuperAdmin = (currentUser as any)?.is_superuser === true;
 
   const [form, setForm] = useState<BusinessData>({
@@ -161,6 +161,7 @@ const BusinessSettingsPage: React.FC = () => {
       setLogoFile(null);
       setLogoPreview('');
       toast.success('Configuración guardada correctamente');
+      await refreshBusiness();
     } catch (e: any) {
       toast.error(e.message || 'Error al guardar los cambios');
     } finally {
